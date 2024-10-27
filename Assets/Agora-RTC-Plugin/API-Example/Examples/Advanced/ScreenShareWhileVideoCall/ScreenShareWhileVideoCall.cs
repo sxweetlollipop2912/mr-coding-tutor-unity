@@ -41,6 +41,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
         // Use this for initialization
         private void Start()
         {
+            LogText = GetComponentInChildren<Text>();
             LoadAssetData();
             if (CheckAppId())
             {
