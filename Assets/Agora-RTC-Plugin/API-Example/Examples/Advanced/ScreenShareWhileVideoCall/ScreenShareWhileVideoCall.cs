@@ -265,15 +265,16 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
 
             if (videoSourceType == VIDEO_SOURCE_TYPE.VIDEO_SOURCE_CAMERA)
             {
-                videoSurface = MakeImageSurface("MainCameraView");
+                videoSurface = MakeImageSurfaceFromCameraSource("MainCameraView");
             }
             else if (videoSourceType == VIDEO_SOURCE_TYPE.VIDEO_SOURCE_SCREEN)
             {
-                videoSurface = MakeImageSurface("ScreenShareView");
+                videoSurface = MakeImageSurfaceFromScreenSource("ScreenShareView");
             }
             else
             {
-                videoSurface = MakeImageSurface(uid.ToString());
+                // TODO
+                videoSurface = MakeImageSurfaceFromCameraSource(uid.ToString());
             }
             if (ReferenceEquals(videoSurface, null)) return;
             // configure videoSurface
@@ -296,7 +297,6 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 }
                 Debug.Log("OnTextureSizeModify: " + width + "  " + height);
             };
-
         }
 
         // VIDEO TYPE 1: 3D Object
@@ -327,7 +327,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
         }
 
         // Video TYPE 2: RawImage
-        private static VideoSurface MakeImageSurface(string goName)
+        private static VideoSurface MakeImageSurfaceFromScreenSource(string goName)
         {
             var go = new GameObject();
 
@@ -339,9 +339,46 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             go.name = goName;
             // to be renderered onto
             go.AddComponent<RawImage>();
+            
             // make the object draggable
             go.AddComponent<UIElementDrag>();
-            var canvas = GameObject.Find("VideoCanvas");
+            
+            var canvas = GameObject.Find("ScreenCanvas");
+            if (canvas != null)
+            {
+                go.transform.parent = canvas.transform;
+                Debug.Log("add video view");
+            }
+            else
+            {
+                Debug.Log("Canvas is null video view");
+            }
+
+            // set up transform
+            go.transform.Rotate(0f, 0.0f, 180.0f);
+            go.transform.localPosition = Vector3.zero;
+            go.transform.localScale = new Vector3(3f, 4f, 1f);
+
+            // configure videoSurface
+            var videoSurface = go.AddComponent<VideoSurface>();
+            return videoSurface;
+        }
+
+        // Video TYPE 2: RawImage
+        private static VideoSurface MakeImageSurfaceFromCameraSource(string goName)
+        {
+            var go = new GameObject();
+
+            if (go == null)
+            {
+                return null;
+            }
+
+            go.name = goName;
+            // to be renderered onto
+            go.AddComponent<RawImage>();
+
+            var canvas = GameObject.Find("WebcamCanvas");
             if (canvas != null)
             {
                 go.transform.parent = canvas.transform;
