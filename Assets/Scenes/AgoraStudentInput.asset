@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 310468f085ef24732beac714c9bb64fd, type: 3}
-  m_Name: AppIdInput
+  m_Name: AgoraStudentInput
   m_EditorClassIdentifier: 
   appID: c192b5950ce0401298f9ac2e5c619b8d
   token: 007eJxTYDCWWu3hcn0bt/iO1zLrlKr17EWmHVFbqHpkYcSkBevn/XuvwJBsaGmUZGppapCcamBiYGhkaZFmmZhslGqabGZomWSRovvMLr0hkJFhsuE+BkYoBPFZGHITM/MYGAD0CB6N

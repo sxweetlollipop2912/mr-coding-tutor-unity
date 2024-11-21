@@ -12,7 +12,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
     {
         [FormerlySerializedAs("appIdInput")]
         [SerializeField]
-        private AppIdInput _appIdInput;
+        private AgoraTeacherInput _appIdInput;
 
         [Header("_____________Basic Configuration_____________")]
         [FormerlySerializedAs("APP_ID")]

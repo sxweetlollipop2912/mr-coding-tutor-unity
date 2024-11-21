@@ -401,7 +401,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66152178a0c484a70bc11063a14e7097, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _appIdInput: {fileID: 11400000, guid: 300c6525f002a4dbaac41a5c4b054e35, type: 2}
+  _appIdInput: {fileID: 0}
   _appID: 
   _token: 
   _channelName: 
@@ -6961,6 +6961,7 @@ GameObject:
   - component: {fileID: 1415089056}
   - component: {fileID: 1415089057}
   - component: {fileID: 1415089059}
+  - component: {fileID: 1415089060}
   m_Layer: 0
   m_Name: UI Cylinder
   m_TagString: Untagged
@@ -7051,18 +7052,37 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1415089053}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66152178a0c484a70bc11063a14e7097, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _appIdInput: {fileID: 11400000, guid: 300c6525f002a4dbaac41a5c4b054e35, type: 2}
+  _appIdInput: {fileID: 0}
   _appID: 
   _token: 
   _channelName: 
   LogText: {fileID: 0}
   Uid1: 321
   Uid2: 654
+--- !u!114 &1415089060
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1415089053}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e83fcde0583d64cf39f85b276e82aed9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _appIdInput: {fileID: 0}
+  _appID: c192b5950ce0401298f9ac2e5c619b8d
+  _token: 007eJxTYGgSdnzr6bAojaX6EMubPMevMXo11x8ce2+zY3XIpq6ENx4KDMmGlkZJppamBsmpBiYGhkaWFmmWiclGqabJZoaWSRYp6/Xs0xsCGRlempczMjJAIIjPwpCbmJnHwAAAXR4fnw==
+  _channelName: main
+  LogText: {fileID: 0}
+  Uid1: 123
+  Uid2: 456
 --- !u!224 &1426724739 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 693168603103582408, guid: 97e33494e27fdd147a0d4020ab527ed5, type: 3}

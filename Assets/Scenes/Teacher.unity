@@ -43,7 +43,7 @@ RenderSettings:
 LightmapSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 12
-  m_GIWorkflowMode: 1
+  m_GIWorkflowMode: 0
   m_GISettings:
     serializedVersion: 2
     m_BounceScale: 1
@@ -96,7 +96,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000000, guid: b2d7db1cf54b64753ab9a613eb6303c6, type: 2}
+  m_LightingDataAsset: {fileID: 0}
   m_LightingSettings: {fileID: 4890085278179872738, guid: 64798d6c962ac48a386b9be488987bc9, type: 2}
 --- !u!196 &4
 NavMeshSettings:
@@ -1515,14 +1515,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 1305517156}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 66152178a0c484a70bc11063a14e7097, type: 3}
+  m_Script: {fileID: 11500000, guid: 25e431023560e411696a4ef65e92eb90, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _appIdInput: {fileID: 11400000, guid: 300c6525f002a4dbaac41a5c4b054e35, type: 2}
-  _appID: 569637ea0042450ba2151ceca12d46a6
-  _token: 007eJxTYFASDZ5slPb+9HuNy1++Kak4dCa8/dBfdt/xXUn7+c7mZdoKDKZmlmbG5qmJBgYmRiamBkmJRoamhsmpyYmGRikmZolmE5nl0hsCGRm2/r7GxMgAgSA+C0NuYmYeAwMAqP0gxQ==
+  _appIdInput: {fileID: 0}
+  _appID: c192b5950ce0401298f9ac2e5c619b8d
+  _token: 007eJxTYGgSdnzr6bAojaX6EMubPMevMXo11x8ce2+zY3XIpq6ENx4KDMmGlkZJppamBsmpBiYGhkaWFmmWiclGqabJZoaWSRYp6/Xs0xsCGRlempczMjJAIIjPwpCbmJnHwAAAXR4fnw==
   _channelName: main
-  LogText: {fileID: 424067497}
+  LogText: {fileID: 0}
   Uid1: 321
   Uid2: 654
 --- !u!1 &1370585358
