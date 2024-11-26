@@ -38,6 +38,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             private Dropdown _winIdSelect;
             private Button _startShareBtn;
             private Button _stopShareBtn;
+            private static GameObject _mainScreen = null;
 
             // Use this for initialization
             private void Start()
@@ -46,11 +47,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 if (CheckAppId())
                 {
                     InitEngine();
-    #if UNITY_ANDROID || UNITY_IPHONE
-                    GameObject.Find("winIdSelect").SetActive(false);
-    #else       
                     PrepareScreenCapture();
-    #endif
                     EnableUI();
                     JoinChannel();
                 }
@@ -60,7 +57,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             {
                 LogText = GameObject.Find("LogText").GetComponent<Text>();
                 Log = new Logger(LogText);
-                return Log.DebugAssert(_appID.Length > 10, "Please fill in your appId in API-Example/profile/appIdInput.asset");
+                return Log.DebugAssert(_appID.Length > 10, "Please fill in your appId in Scenes/AgoraTeacherInput.asset");
             }
 
             //Show data in AgoraBasicProfile
@@ -101,16 +98,12 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 options.publishCameraTrack.SetValue(false);
                 options.publishScreenTrack.SetValue(true);
                 options.enableAudioRecordingOrPlayout.SetValue(false);
-    #if UNITY_ANDROID || UNITY_IPHONE
-                options.publishScreenCaptureAudio.SetValue(true);
-                options.publishScreenCaptureVideo.SetValue(true);
-    #endif
 
     #if UNITY_EDITOR_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX
                 //If you want to share audio when sharing the desktop screen, you need to use this interface.
                 //For details, please refer to the annotation of this interface
-                //ret = RtcEngine.EnableLoopbackRecordingEx(new RtcConnection(_channelName, this.Uid2), true, "");
-                //Debug.Log("EnableLoopbackRecording returns: " + ret);
+                ret = RtcEngine.EnableLoopbackRecordingEx(new RtcConnection(_channelName, this.Uid2), true, "");
+                Debug.Log("EnableLoopbackRecording returns: " + ret);
     #endif
                 options.clientRoleType.SetValue(CLIENT_ROLE_TYPE.CLIENT_ROLE_BROADCASTER);
                 ret = RtcEngine.JoinChannelEx(_token, new RtcConnection(_channelName, this.Uid2), options);
@@ -130,11 +123,6 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
 
                 options.publishCameraTrack.SetValue(false);
                 options.publishScreenTrack.SetValue(true);
-
-    #if UNITY_ANDROID || UNITY_IPHONE
-                options.publishScreenCaptureAudio.SetValue(true);
-                options.publishScreenCaptureVideo.SetValue(true);
-    #endif
 
                 options.clientRoleType.SetValue(CLIENT_ROLE_TYPE.CLIENT_ROLE_BROADCASTER);
 
@@ -196,13 +184,6 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 if (_startShareBtn != null) _startShareBtn.gameObject.SetActive(false);
                 if (_stopShareBtn != null) _stopShareBtn.gameObject.SetActive(true);
         
-    #if UNITY_ANDROID || UNITY_IPHONE
-                var parameters2 = new ScreenCaptureParameters2();
-                parameters2.captureAudio = true;
-                parameters2.captureVideo = true;
-                var nRet = RtcEngine.StartScreenCapture(parameters2);
-                // this.Log.UpdateLog("StartScreenCapture :" + nRet);
-    #else
                 RtcEngine.StopScreenCapture();
                 if (_winIdSelect == null) return;
                 var option = _winIdSelect.options[_winIdSelect.value].text;
@@ -224,7 +205,6 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                         new ScreenCaptureParameters { captureMouseCursor = true, frameRate = 30 });
                     // this.Log.UpdateLog("StartScreenCaptureByDisplayId:" + nRet);
                 }
-    #endif
 
                 ScreenShareJoinChannel();
             }
@@ -342,30 +322,98 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 // To be rendered onto
                 go.AddComponent<RawImage>();
 
-                // Make the object draggable
-                go.AddComponent<UIElementDrag>();
+                // Set up transform properties
+                go.transform.Rotate(0f, 0.0f, 180.0f);
+                go.transform.localPosition = Vector3.zero;
+                go.transform.localScale = new Vector3(3f, 4f, 1f);
 
-                var canvas = GameObject.Find("VideoCanvas");
+                // Set the sizeDelta to allow the layout group to control size
+                var rectTransform = go.GetComponent<RectTransform>();
+                float width = 160; // Example width
+                float height = width * 9f / 16f; // Calculate height based on 16:9 aspect ratio
+                rectTransform.sizeDelta = new Vector2(width, height); // Apply size
+
+                if (_mainScreen != null) {
+                    ConvertToStandby(_mainScreen);
+                }
+                ConvertToMainScreen(go);
+    
+                // Configure VideoSurface
+                var videoSurface = go.AddComponent<VideoSurface>();
+                return videoSurface;
+            }
+
+            private static void ConvertToStandby(GameObject go)
+            {
+                var canvas = GameObject.Find("StandByScreensRow");
                 if (canvas != null)
                 {
                     // Properly set the parent of the new GameObject
                     go.transform.SetParent(canvas.transform, false);
 
-                    Debug.Log("Added video view to VideoCanvas");
+                    Debug.Log("Added video view to StandByScreensRow");
                 }
                 else
                 {
                     Debug.LogError("Canvas is null. Video view not added.");
                 }
 
-                // Set up transform properties
-                go.transform.Rotate(0f, 0.0f, 180.0f);
-                go.transform.localPosition = Vector3.zero;
-                go.transform.localScale = new Vector3(3f, 4f, 1f);
+                var aspectRaioFilter = go.GetComponent<AspectRatioFitter>();
+                if (aspectRaioFilter != null)
+                {
+                    Destroy(aspectRaioFilter);
+                }
 
-                // Configure VideoSurface
-                var videoSurface = go.AddComponent<VideoSurface>();
-                return videoSurface;
+                // Set LayoutElement for proper size in Horizontal Layout Group
+                var layoutElement = go.AddComponent<LayoutElement>();
+                layoutElement.preferredWidth = 160;
+                layoutElement.preferredHeight = 90;
+
+                // Set the sizeDelta to allow the layout group to control size
+                var rectTransform = go.GetComponent<RectTransform>();
+                float width = 160; // Example width
+                float height = width * 9f / 16f; // Calculate height based on 16:9 aspect ratio
+                rectTransform.sizeDelta = new Vector2(width, height); // Apply size
+            }
+
+            private static void ConvertToMainScreen(GameObject go)
+            {
+                var canvas = GameObject.Find("MainScreen");
+                if (canvas != null)
+                {
+                    // Properly set the parent of the new GameObject
+                    go.transform.SetParent(canvas.transform, false);
+
+                    Debug.Log("Added video view to StandByScreensRow");
+                }
+                else
+                {
+                    Debug.LogError("Canvas is null. Video view not added.");
+                }
+
+                var layoutElement = go.GetComponent<LayoutElement>();
+                if (layoutElement != null)
+                {
+                    Destroy(layoutElement);
+                }
+
+                // Configure the RectTransform to stretch
+                RectTransform rectTransform = go.GetComponent<RectTransform>();
+                rectTransform.anchorMin = new Vector2(0, 0); // Stretch horizontally and vertically
+                rectTransform.anchorMax = new Vector2(1, 1);
+                rectTransform.offsetMin = Vector2.zero; // Remove offsets
+                rectTransform.offsetMax = Vector2.zero;
+
+                // Step 4: Add Aspect Ratio Fitter to maintain the aspect ratio
+                var aspectRatioFitter = go.GetComponent<AspectRatioFitter>();
+                if (aspectRatioFitter == null)
+                {
+                    aspectRatioFitter = go.gameObject.AddComponent<AspectRatioFitter>();
+                }
+                aspectRatioFitter.aspectMode = AspectRatioFitter.AspectMode.FitInParent; // Maintains ratio while stretching
+                aspectRatioFitter.aspectRatio = 16f / 9f; // Example 16:9 ratio (adjust as needed)
+
+                _mainScreen = go;
             }
 
             internal static void DestroyVideoView(string name)
@@ -374,6 +422,13 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 if (!ReferenceEquals(go, null))
                 {
                     Destroy(go);
+
+                    if (ReferenceEquals(go, _mainScreen)) {
+                        var standbyScreensRow = GameObject.Find("StandByScreensRow").transform;
+                        // Get the last screen in the standby row
+                        Transform lastScreen = standbyScreensRow.GetChild(standbyScreensRow.childCount - 1);
+                        ConvertToMainScreen(lastScreen.gameObject);
+                    }
                 }
             }
 

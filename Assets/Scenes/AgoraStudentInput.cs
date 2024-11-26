@@ -6,7 +6,7 @@ using UnityEngine.Serialization;
 
 namespace io.agora.rtc.demo
 {
-    [CreateAssetMenu(menuName = "Agora/AppIdInput", fileName = "AgoraStudentInput", order = 1)]
+    [CreateAssetMenu(menuName = "Agora/AgoraStudentInput", fileName = "AgoraStudentInput", order = 1)]
     [Serializable]
     public class AgoraStudentInput : ScriptableObject
     {

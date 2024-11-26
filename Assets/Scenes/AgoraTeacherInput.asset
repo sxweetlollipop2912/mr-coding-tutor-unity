@@ -9,9 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 310468f085ef24732beac714c9bb64fd, type: 3}
+  m_Script: {fileID: 11500000, guid: 43770b23bef234687a386c85a9b29f3b, type: 3}
   m_Name: AgoraTeacherInput
   m_EditorClassIdentifier: 
   appID: c192b5950ce0401298f9ac2e5c619b8d
-  token: 007eJxTYDCWWu3hcn0bt/iO1zLrlKr17EWmHVFbqHpkYcSkBevn/XuvwJBsaGmUZGppapCcamBiYGhkaZFmmZhslGqabGZomWSRovvMLr0hkJFhsuE+BkYoBPFZGHITM/MYGAD0CB6N
+  token: 007eJxTYChK1bZOfWvB61ew65S/wK42/qMJl2JV9tRdeq1ZIP3m0F0FhmRDS6MkU0tTg+RUAxMDQyNLizTLxGSjVNNkM0PLJIsUq/mu6Q2BjAzR9Z2MjAwQCOKzMOQmZuYxMAAABxQegQ==
   channelName: main
