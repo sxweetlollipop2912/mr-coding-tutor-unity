@@ -374,6 +374,12 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 float width = 160; // Example width
                 float height = width * 9f / 16f; // Calculate height based on 16:9 aspect ratio
                 rectTransform.sizeDelta = new Vector2(width, height); // Apply size
+
+                var button = go.AddComponent<Button>();
+                button.onClick.AddListener(() => {
+                    ConvertToStandby(_mainScreen);
+                    ConvertToMainScreen(go);  
+                });
             }
 
             private static void ConvertToMainScreen(GameObject go)
@@ -395,6 +401,11 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 if (layoutElement != null)
                 {
                     Destroy(layoutElement);
+                }
+                var button = go.GetComponent<Button>();
+                if (button != null)
+                {
+                    Destroy(button);
                 }
 
                 // Configure the RectTransform to stretch
