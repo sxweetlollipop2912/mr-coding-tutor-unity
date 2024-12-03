@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using Agora.Rtc;
 using UnityEngine.Serialization;
 using io.agora.rtc.demo;
+using Unity.VisualScripting;
 
 namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCall
 {
@@ -32,13 +33,17 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             internal Logger Log;
             internal IRtcEngineEx RtcEngine = null;
 
-            public uint Uid1 = 123;
-            public uint Uid2 = 456;
-        
+            public uint Uid1 = 321;
+            public uint Uid2 = 654;
+            public static uint StudentScreenUid = 456;
+
+            private int _streamId = -1;
+
             private Dropdown _winIdSelect;
             private Button _startShareBtn;
             private Button _stopShareBtn;
             private static GameObject _mainScreen = null;
+            private static GameObject _studentScreen = null;
 
             // Use this for initialization
             private void Start()
@@ -87,6 +92,12 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 RtcEngine.JoinChannel(_token, _channelName, this.Uid1, options);
                 RtcEngine.MuteRemoteAudioStream(Uid2, true);
                 RtcEngine.MuteRemoteVideoStream(Uid2, true);
+            }
+
+            void Update()
+            {
+                PermissionHelper.RequestMicrophontPermission();
+                UpdateMousePosition();
             }
 
             private void ScreenShareJoinChannel()
@@ -278,6 +289,9 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                     Debug.Log("OnTextureSizeModify: " + width + "  " + height);
                 };
 
+                if (uid == 0 && videoSourceType == VIDEO_SOURCE_TYPE.VIDEO_SOURCE_SCREEN) {
+                    _studentScreen = videoSurface.gameObject;
+                }
             }
 
             // VIDEO TYPE 1: 3D Object
@@ -444,7 +458,93 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             }
 
             #endregion
+
+            #region -- Mouse Position Streaming Logic ---
+
+            private void UpdateMousePosition()
+            {
+                RectTransform canvasRect = _studentScreen.GetComponent<RectTransform>();
+                if (canvasRect == null)
+                {
+                    return;
+                }
+
+                if (Input.GetMouseButton(0)) // Check if left mouse button is pressed
+                {
+                    // Get the mouse position in screen space
+                    Vector2 screenMousePosition = Input.mousePosition;
+                    Vector2 localPoint;
+
+                    // Convert the screen position to the Canvas's local space
+                    if (RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, screenMousePosition, null, out localPoint))
+                    {
+                        // Check if the mouse position is within the bounds of the Canvas
+                        if (IsInsideCanvas(localPoint, canvasRect))
+                        {
+                            // Normalize the position relative to the Canvas
+                            float normalizedX = (localPoint.x + canvasRect.rect.width / 2) / canvasRect.rect.width;
+                            float normalizedY = (localPoint.y + canvasRect.rect.height / 2) / canvasRect.rect.height;
+
+                            // Send the normalized position via Agora data channel
+                            string mouseData = $"{normalizedX},{normalizedY}";
+                            StreamMessage(mouseData);
+                        }
+                    }
+                }
+            }
+
+            bool IsInsideCanvas(Vector2 localPoint, RectTransform canvasRect)
+            {
+                // Check if the point is within the bounds of the Canvas
+                return localPoint.x >= -canvasRect.rect.width / 2 &&
+                    localPoint.x <= canvasRect.rect.width / 2 &&
+                    localPoint.y >= -canvasRect.rect.height / 2 &&
+                    localPoint.y <= canvasRect.rect.height / 2;
+            }
+
+            private void StreamMessage(string msg)
+            {
+                if (msg == "")
+                {
+                    Log.UpdateLog("Dont send empty message!");
+                    return;
+                }
+
+                int streamId = this.CreateDataStreamId();
+                if (streamId < 0)
+                {
+                    Log.UpdateLog("CreateDataStream failed!");
+                    return;
+                }
+                else
+                {
+                    SendStreamMessage(streamId, msg);
+                }
+            }
+
+            private int CreateDataStreamId()
+            {
+                if (this._streamId == -1)
+                {
+                    var config = new DataStreamConfig();
+                    config.syncWithAudio = false;
+                    config.ordered = true;
+                    var nRet = RtcEngine.CreateDataStream(ref this._streamId, config);
+                    this.Log.UpdateLog(string.Format("CreateDataStream: nRet{0}, streamId{1}", nRet, _streamId));
+                }
+                return _streamId;
+            }
+
+            private void SendStreamMessage(int streamId, string message)
+            {
+                byte[] byteArray = System.Text.Encoding.Default.GetBytes(message);
+                var nRet = RtcEngine.SendStreamMessage(streamId, byteArray, Convert.ToUInt32(byteArray.Length));
+                // TODO: Delete this log
+                this.Log.UpdateLog(message);
+            }
         }
+
+        #endregion
 
         #region -- Agora Event ---
 
