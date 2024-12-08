@@ -429,9 +429,9 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                     return;
                 }
 
+                // Check for the "hide dot" condition
                 if (normalizedCoordinate == new Vector2(-1, -1))
                 {
-                    // Disable the red dot
                     if (_redDot != null)
                     {
                         _redDot.SetActive(false);
@@ -439,20 +439,24 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                     return;
                 }
 
-                // Ensure the red dot is created
+                // Create the red dot only if it doesn't exist
                 if (_redDot == null)
                 {
                     _redDot = CreateRedDot();
                 }
 
-                // Calculate position on the image
+                // Calculate the new position for the red dot
                 Vector2 imageSize = _screenShareRect.rect.size;
                 Vector2 position = new Vector2(normalizedCoordinate.x * imageSize.x, normalizedCoordinate.y * imageSize.y);
 
-                // Set the red dot's position immediately
-                _redDot.GetComponent<RectTransform>().anchoredPosition = position;
+                // Check if the position has actually changed to avoid redundant updates
+                RectTransform redDotTransform = _redDot.GetComponent<RectTransform>();
+                if (redDotTransform.anchoredPosition != position)
+                {
+                    redDotTransform.anchoredPosition = position;
+                }
 
-                // Activate the red dot
+                // Ensure the red dot is visible
                 if (!_redDot.activeSelf)
                 {
                     _redDot.SetActive(true);
