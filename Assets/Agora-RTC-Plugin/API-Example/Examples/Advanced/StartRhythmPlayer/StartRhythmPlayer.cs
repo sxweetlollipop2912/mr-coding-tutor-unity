@@ -49,7 +49,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.StartRhythmPlayer
 
         private void Update()
         {
-            PermissionHelper.RequestMicrophontPermission();
+            PermissionHelper.RequestMicrophonePermission();
             PermissionHelper.RequestCameraPermission();
         }
 
@@ -118,7 +118,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.StartRhythmPlayer
 #else
             string sound1 = Path.Combine(Application.streamingAssetsPath, "audio/ding.mp3");
             string sound2 = Path.Combine(Application.streamingAssetsPath, "audio/dang.mp3");
-#endif 
+#endif
             AgoraRhythmPlayerConfig config = new AgoraRhythmPlayerConfig()
             {
                 beatsPerMeasure = 4,

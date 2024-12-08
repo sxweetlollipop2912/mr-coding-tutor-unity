@@ -33,9 +33,9 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             internal Logger Log;
             internal IRtcEngineEx RtcEngine = null;
 
-            public uint Uid1 = 321;
-            public uint Uid2 = 654;
-            public static uint StudentScreenUid = 456;
+            public uint UidWebcam = 321;
+            public uint UidScreen = 654;
+            public static uint UidStudentScreen = 456;
 
             private int _streamId = -1;
 
@@ -80,7 +80,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 RtcEngine.EnableAudio();
                 RtcEngine.EnableVideo();
                 RtcEngine.SetClientRole(CLIENT_ROLE_TYPE.CLIENT_ROLE_BROADCASTER);
-                
+
                 ChannelMediaOptions options = new ChannelMediaOptions();
                 options.autoSubscribeAudio.SetValue(true);
                 options.autoSubscribeVideo.SetValue(true);
@@ -89,14 +89,14 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 options.publishScreenTrack.SetValue(false);
                 options.enableAudioRecordingOrPlayout.SetValue(true);
                 options.clientRoleType.SetValue(CLIENT_ROLE_TYPE.CLIENT_ROLE_BROADCASTER);
-                RtcEngine.JoinChannel(_token, _channelName, this.Uid1, options);
-                RtcEngine.MuteRemoteAudioStream(Uid2, true);
-                RtcEngine.MuteRemoteVideoStream(Uid2, true);
+                RtcEngine.JoinChannel(_token, _channelName, this.UidWebcam, options);
+                RtcEngine.MuteRemoteAudioStream(UidScreen, true);
+                RtcEngine.MuteRemoteVideoStream(UidScreen, true);
             }
 
             void Update()
             {
-                PermissionHelper.RequestMicrophontPermission();
+                PermissionHelper.RequestMicrophonePermission();
                 UpdateMousePosition();
             }
 
@@ -113,17 +113,17 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
     #if UNITY_EDITOR_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX
                 //If you want to share audio when sharing the desktop screen, you need to use this interface.
                 //For details, please refer to the annotation of this interface
-                ret = RtcEngine.EnableLoopbackRecordingEx(new RtcConnection(_channelName, this.Uid2), true, "");
+                ret = RtcEngine.EnableLoopbackRecordingEx(new RtcConnection(_channelName, this.UidScreen), true, "");
                 Debug.Log("EnableLoopbackRecording returns: " + ret);
     #endif
                 options.clientRoleType.SetValue(CLIENT_ROLE_TYPE.CLIENT_ROLE_BROADCASTER);
-                ret = RtcEngine.JoinChannelEx(_token, new RtcConnection(_channelName, this.Uid2), options);
+                ret = RtcEngine.JoinChannelEx(_token, new RtcConnection(_channelName, this.UidScreen), options);
                 Debug.Log("JoinChannelEx returns: " + ret);
             }
 
             private void ScreenShareLeaveChannel()
             {
-                RtcEngine.LeaveChannelEx(new RtcConnection(_channelName, Uid2));
+                RtcEngine.LeaveChannelEx(new RtcConnection(_channelName, UidScreen));
             }
 
             private void UpdateChannelMediaOptions()
@@ -194,7 +194,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
 
                 if (_startShareBtn != null) _startShareBtn.gameObject.SetActive(false);
                 if (_stopShareBtn != null) _stopShareBtn.gameObject.SetActive(true);
-        
+
                 RtcEngine.StopScreenCapture();
                 if (_winIdSelect == null) return;
                 var option = _winIdSelect.options[_winIdSelect.value].text;
@@ -289,7 +289,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                     Debug.Log("OnTextureSizeModify: " + width + "  " + height);
                 };
 
-                if (uid == 0 && videoSourceType == VIDEO_SOURCE_TYPE.VIDEO_SOURCE_SCREEN) {
+                if (uid == UidStudentScreen) {
                     _studentScreen = videoSurface.gameObject;
                 }
             }
@@ -308,7 +308,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 var mesh = go.GetComponent<MeshRenderer>();
                 if (mesh != null)
                 {
-                    Debug.LogWarning("VideoSureface update shader");
+                    Debug.LogWarning("VideoSurface update shader");
                     mesh.material = new Material(Shader.Find("Unlit/Texture"));
                 }
                 // set up transform
@@ -351,7 +351,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                     ConvertToStandby(_mainScreen);
                 }
                 ConvertToMainScreen(go);
-    
+
                 // Configure VideoSurface
                 var videoSurface = go.AddComponent<VideoSurface>();
                 return videoSurface;
@@ -372,10 +372,10 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                     Debug.LogError("Canvas is null. Video view not added.");
                 }
 
-                var aspectRaioFilter = go.GetComponent<AspectRatioFitter>();
-                if (aspectRaioFilter != null)
+                var aspectRatioFilter = go.GetComponent<AspectRatioFitter>();
+                if (aspectRatioFilter != null)
                 {
-                    Destroy(aspectRaioFilter);
+                    Destroy(aspectRatioFilter);
                 }
 
                 // Set LayoutElement for proper size in Horizontal Layout Group
@@ -392,7 +392,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 var button = go.AddComponent<Button>();
                 button.onClick.AddListener(() => {
                     ConvertToStandby(_mainScreen);
-                    ConvertToMainScreen(go);  
+                    ConvertToMainScreen(go);
                 });
             }
 
@@ -570,11 +570,11 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 _desktopScreenShare.Log.UpdateLog(
                     string.Format("OnJoinChannelSuccess channelName: {0}, uid: {1}, elapsed: {2}",
                                     connection.channelId, connection.localUid, elapsed));
-                if (connection.localUid == _desktopScreenShare.Uid1)
+                if (connection.localUid == _desktopScreenShare.UidWebcam)
                 {
                     TeacherAgoraScript.MakeVideoView(0);
                 }
-                else if (connection.localUid == _desktopScreenShare.Uid2)
+                else if (connection.localUid == _desktopScreenShare.UidScreen)
                 {
                     TeacherAgoraScript.MakeVideoView(0, "", VIDEO_SOURCE_TYPE.VIDEO_SOURCE_SCREEN);
                 }
@@ -588,11 +588,11 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             public override void OnLeaveChannel(RtcConnection connection, RtcStats stats)
             {
                 _desktopScreenShare.Log.UpdateLog("OnLeaveChannel");
-                if (connection.localUid == _desktopScreenShare.Uid1)
+                if (connection.localUid == _desktopScreenShare.UidWebcam)
                 {
                     TeacherAgoraScript.DestroyVideoView("MainCameraView");
                 }
-                else if (connection.localUid == _desktopScreenShare.Uid2)
+                else if (connection.localUid == _desktopScreenShare.UidScreen)
                 {
                     TeacherAgoraScript.DestroyVideoView("ScreenShareView");
                 }
@@ -606,7 +606,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             public override void OnUserJoined(RtcConnection connection, uint uid, int elapsed)
             {
                 _desktopScreenShare.Log.UpdateLog(string.Format("OnUserJoined uid: ${0} elapsed: ${1}", uid, elapsed));
-                if (uid != _desktopScreenShare.Uid1 && uid != _desktopScreenShare.Uid2)
+                if (uid != _desktopScreenShare.UidWebcam && uid != _desktopScreenShare.UidScreen)
                 {
                     TeacherAgoraScript.MakeVideoView(uid, _desktopScreenShare.GetChannelName(), VIDEO_SOURCE_TYPE.VIDEO_SOURCE_REMOTE);
                 }
@@ -616,7 +616,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             {
                 _desktopScreenShare.Log.UpdateLog(string.Format("OnUserOffLine uid: ${0}, reason: ${1}", uid,
                     (int)reason));
-                if (uid != _desktopScreenShare.Uid1 && uid != _desktopScreenShare.Uid2)
+                if (uid != _desktopScreenShare.UidWebcam && uid != _desktopScreenShare.UidScreen)
                 {
                     TeacherAgoraScript.DestroyVideoView(uid.ToString());
                 }

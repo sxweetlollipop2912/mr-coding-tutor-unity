@@ -62,7 +62,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.AudioSpectrum
         // Update is called once per frame
         private void Update()
         {
-            PermissionHelper.RequestMicrophontPermission();
+            PermissionHelper.RequestMicrophonePermission();
             PermissionHelper.RequestCameraPermission();
 
             lock (data)
@@ -469,7 +469,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.AudioSpectrum
     {
         internal UserPlayerCustomDataProvider()
         {
-           
+
         }
 
         public override Int64 OnSeek(Int64 offset, int whence)
@@ -488,7 +488,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.AudioSpectrum
     internal class UserAudioSpectrumObserver : IAudioSpectrumObserver
     {
         AudioSpectrum _sample;
-     
+
         internal UserAudioSpectrumObserver(AudioSpectrum sample)
         {
             this._sample = sample;

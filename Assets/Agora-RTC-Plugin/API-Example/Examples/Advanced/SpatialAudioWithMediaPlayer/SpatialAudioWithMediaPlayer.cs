@@ -64,7 +64,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.SpatialAudioWithMediaPl
         // Update is called once per frame
         private void Update()
         {
-            PermissionHelper.RequestMicrophontPermission();
+            PermissionHelper.RequestMicrophonePermission();
             PermissionHelper.RequestCameraPermission();
         }
 
@@ -204,7 +204,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.SpatialAudioWithMediaPl
             //float[] positionRemote = { position.x, position.y, position.z };
             //float[] forwardRemote = { forward.x, forward.y, forward.z };
 
-  
+
             float[] positionRemote = { 0.0f, 1.0f, 0.0f };
             float[] forwardRemote = { 0, 0, 0 };
             RemoteVoicePositionInfo remoteVoicePositionInfo = new RemoteVoicePositionInfo(positionRemote, forwardRemote);

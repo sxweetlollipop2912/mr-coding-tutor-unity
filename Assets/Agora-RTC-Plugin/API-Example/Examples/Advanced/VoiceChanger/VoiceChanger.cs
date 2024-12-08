@@ -77,7 +77,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.VoiceChanger
 
         private void Update()
         {
-            PermissionHelper.RequestMicrophontPermission();
+            PermissionHelper.RequestMicrophonePermission();
         }
 
         private void SetupUI()

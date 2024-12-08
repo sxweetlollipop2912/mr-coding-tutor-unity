@@ -58,7 +58,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.VirtualBackground
         // Update is called once per frame
         private void Update()
         {
-            PermissionHelper.RequestMicrophontPermission();
+            PermissionHelper.RequestMicrophonePermission();
             PermissionHelper.RequestCameraPermission();
         }
 
@@ -141,7 +141,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.VirtualBackground
             source.background_source_type = BACKGROUND_SOURCE_TYPE.BACKGROUND_IMG;
             string filePath = Path.Combine(Application.persistentDataPath, "png.png");
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
-            filePath = filePath.Replace('/', '\\');   
+            filePath = filePath.Replace('/', '\\');
 #endif
             source.source = filePath;
 

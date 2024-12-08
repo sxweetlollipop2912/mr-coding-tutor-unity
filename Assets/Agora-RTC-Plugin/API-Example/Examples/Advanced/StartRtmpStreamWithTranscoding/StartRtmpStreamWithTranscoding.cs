@@ -46,7 +46,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.StartRtmpStreamWithTran
         // Update is called once per frame
         private void Update()
         {
-            PermissionHelper.RequestMicrophontPermission();
+            PermissionHelper.RequestMicrophonePermission();
             PermissionHelper.RequestCameraPermission();
         }
 
@@ -133,7 +133,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.StartRtmpStreamWithTran
             if (nRet == 0)
             {
                 this.Log.UpdateLog(url);
-                /* 
+                /*
                     Verify remote
                     1.install ffmpeg(brew install ffmpeg)
                     2.ffplay rtmp://play.xxxxxxxxxx

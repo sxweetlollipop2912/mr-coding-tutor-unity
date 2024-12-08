@@ -79,7 +79,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ChannelMediaRelay
 
         private void Update()
         {
-            PermissionHelper.RequestMicrophontPermission();
+            PermissionHelper.RequestMicrophonePermission();
             PermissionHelper.RequestCameraPermission();
         }
 
@@ -293,7 +293,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ChannelMediaRelay
                 Destroy(go);
             }
         }
-        
+
         #endregion
     }
 

@@ -52,7 +52,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.AudioMixing
 
         private void Update()
         {
-            PermissionHelper.RequestMicrophontPermission();
+            PermissionHelper.RequestMicrophonePermission();
         }
 
         //Show data in AgoraBasicProfile

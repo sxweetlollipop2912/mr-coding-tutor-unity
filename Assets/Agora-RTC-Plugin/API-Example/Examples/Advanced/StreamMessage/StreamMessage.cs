@@ -82,7 +82,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.StreamMessage
 
         private void Update()
         {
-            PermissionHelper.RequestMicrophontPermission();
+            PermissionHelper.RequestMicrophonePermission();
         }
 
         private void SetupUI()

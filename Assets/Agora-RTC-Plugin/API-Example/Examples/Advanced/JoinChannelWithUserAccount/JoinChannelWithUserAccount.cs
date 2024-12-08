@@ -45,7 +45,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.JoinChannelWithUserAcco
         // Update is called once per frame
         private void Update()
         {
-            PermissionHelper.RequestMicrophontPermission();
+            PermissionHelper.RequestMicrophonePermission();
             PermissionHelper.RequestCameraPermission();
         }
 
@@ -75,7 +75,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.JoinChannelWithUserAcco
             context.channelProfile = CHANNEL_PROFILE_TYPE.CHANNEL_PROFILE_LIVE_BROADCASTING;
             context.audioScenario = AUDIO_SCENARIO_TYPE.AUDIO_SCENARIO_DEFAULT;
             context.areaCode = AREA_CODE.AREA_CODE_GLOB;
-          
+
             RtcEngine.Initialize(context);
             RtcEngine.InitEventHandler(handler);
         }

@@ -49,7 +49,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.SetEncryption
 
         private void Update()
         {
-            PermissionHelper.RequestMicrophontPermission();
+            PermissionHelper.RequestMicrophonePermission();
         }
 
         private bool CheckAppId()
@@ -87,7 +87,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.SetEncryption
 
         private void SetEncryption()
         {
-            byte[] kdfSal = this.GetEncryptionSaltFromServer(); 
+            byte[] kdfSal = this.GetEncryptionSaltFromServer();
             var config = new EncryptionConfig
             {
                 encryptionMode = EncrytionMode,

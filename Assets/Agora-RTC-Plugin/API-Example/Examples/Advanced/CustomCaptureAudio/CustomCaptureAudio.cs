@@ -68,7 +68,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.CustomCaptureAudio
         // Update is called once per frame
         private void Update()
         {
-            PermissionHelper.RequestMicrophontPermission();
+            PermissionHelper.RequestMicrophonePermission();
         }
 
         //Show data in AgoraBasicProfile
@@ -117,7 +117,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.CustomCaptureAudio
 
         private IEnumerator PreparationFilePath(Action<string> callback)
         {
-#if (UNITY_ANDROID || UNITY_IOS) && !UNITY_EDITOR          
+#if (UNITY_ANDROID || UNITY_IOS) && !UNITY_EDITOR
             string fromPath = Path.Combine(Application.streamingAssetsPath, "audio/pcm16.wav");
             string filePath = Path.Combine(Application.persistentDataPath, "pcm16.wav");
             if (fromPath.Contains("://") || fromPath.Contains(":///"))
@@ -214,7 +214,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.CustomCaptureAudio
                 RtcEngine.Dispose();
                 RtcEngine = null;
             }
-            //need wait pullAudioFrameThread stop 
+            //need wait pullAudioFrameThread stop
             _pushAudioFrameThread.Join();
 
         }

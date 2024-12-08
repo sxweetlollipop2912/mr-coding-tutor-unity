@@ -10,11 +10,11 @@ namespace Agora_RTC_Plugin.API_Example
 {
     public class PermissionHelper
     {
-        public static void RequestMicrophontPermission()
+        public static void RequestMicrophonePermission()
         {
 #if (UNITY_2018_3_OR_NEWER && UNITY_ANDROID)
 		if (!Permission.HasUserAuthorizedPermission(Permission.Microphone))
-		{                 
+		{
 			Permission.RequestUserPermission(Permission.Microphone);
 		}
 #endif
@@ -24,7 +24,7 @@ namespace Agora_RTC_Plugin.API_Example
         {
 #if (UNITY_2018_3_OR_NEWER && UNITY_ANDROID)
 		if (!Permission.HasUserAuthorizedPermission(Permission.Camera))
-		{                 
+		{
 			Permission.RequestUserPermission(Permission.Camera);
 		}
 #endif

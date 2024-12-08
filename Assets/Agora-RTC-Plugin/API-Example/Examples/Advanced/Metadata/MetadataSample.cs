@@ -92,7 +92,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.MetadataSample
 
         private void Update()
         {
-            PermissionHelper.RequestMicrophontPermission();
+            PermissionHelper.RequestMicrophonePermission();
             lock (MetadataQueue)
             {
                 while (MetadataQueue.Count > 0)

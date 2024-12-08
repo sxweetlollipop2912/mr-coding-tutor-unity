@@ -48,7 +48,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.TakeSnapshot
         // Update is called once per frame
         private void Update()
         {
-            PermissionHelper.RequestMicrophontPermission();
+            PermissionHelper.RequestMicrophonePermission();
             PermissionHelper.RequestCameraPermission();
         }
 

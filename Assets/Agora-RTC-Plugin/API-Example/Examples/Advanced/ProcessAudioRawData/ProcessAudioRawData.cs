@@ -65,7 +65,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ProcessAudioRawData
         // Update is called once per frame
         void Update()
         {
-            PermissionHelper.RequestMicrophontPermission();
+            PermissionHelper.RequestMicrophonePermission();
             PermissionHelper.RequestCameraPermission();
         }
 
@@ -111,8 +111,8 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ProcessAudioRawData
                 RAW_AUDIO_FRAME_OP_MODE_TYPE.RAW_AUDIO_FRAME_OP_MODE_READ_ONLY, 1024);
             RtcEngine.SetMixedAudioFrameParameters(SAMPLE_RATE, CHANNEL, 1024);
             RtcEngine.SetEarMonitoringAudioFrameParameters(SAMPLE_RATE, CHANNEL,
-                RAW_AUDIO_FRAME_OP_MODE_TYPE.RAW_AUDIO_FRAME_OP_MODE_READ_ONLY, 1024); 
-            
+                RAW_AUDIO_FRAME_OP_MODE_TYPE.RAW_AUDIO_FRAME_OP_MODE_READ_ONLY, 1024);
+
             RtcEngine.RegisterAudioFrameObserver(new AudioFrameObserver(this),
                  AUDIO_FRAME_POSITION.AUDIO_FRAME_POSITION_PLAYBACK|
                  AUDIO_FRAME_POSITION.AUDIO_FRAME_POSITION_RECORD|
@@ -247,7 +247,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ProcessAudioRawData
         internal AudioFrameObserver(ProcessAudioRawData agoraAudioRawData)
         {
             _agoraAudioRawData = agoraAudioRawData;
-   
+
         }
 
         public override bool OnRecordAudioFrame(string channelId, AudioFrame audioFrame)

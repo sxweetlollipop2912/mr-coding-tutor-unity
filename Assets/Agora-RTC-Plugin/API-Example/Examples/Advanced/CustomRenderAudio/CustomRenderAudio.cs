@@ -65,7 +65,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.CustomRenderAudio
 
         private void Update()
         {
-            PermissionHelper.RequestMicrophontPermission();
+            PermissionHelper.RequestMicrophonePermission();
         }
 
         private bool CheckAppId()
@@ -156,7 +156,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.CustomRenderAudio
                 RtcEngine.Dispose();
                 RtcEngine = null;
             }
-            //need wait pullAudioFrameThread stop 
+            //need wait pullAudioFrameThread stop
             _pullAudioFrameThread.Join();
         }
 
@@ -170,7 +170,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.CustomRenderAudio
             var samplesPerSec = SAMPLE_RATE;
             var byteBuffer = new byte[samplesPerChannel * bytesPerSample * channels];
             var freq = 1000 / PULL_FREQ_PER_SEC;
-            
+
             AudioFrame audioFrame = new AudioFrame
             {
                 type = type,

@@ -3,8 +3,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Serialization;
 using Agora.Rtc;
- 
- 
+
+
 
 #if UNITY_2018_1_OR_NEWER
 using Unity.Collections;
@@ -37,7 +37,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.CustomCaptureVideo
         internal Logger Log;
         internal IRtcEngine RtcEngine = null;
 
-       
+
         private Texture2D _texture;
         private Rect _rect;
 
@@ -72,7 +72,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.CustomCaptureVideo
 
         private void Update()
         {
-            PermissionHelper.RequestMicrophontPermission();
+            PermissionHelper.RequestMicrophonePermission();
             StartCoroutine(ShareScreen());
         }
 

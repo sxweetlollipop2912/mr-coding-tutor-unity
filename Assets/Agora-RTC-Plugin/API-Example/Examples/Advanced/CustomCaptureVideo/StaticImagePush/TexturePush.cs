@@ -52,7 +52,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.TexturePush
 
         private void Update()
         {
-            PermissionHelper.RequestMicrophontPermission();
+            PermissionHelper.RequestMicrophonePermission();
             StartCoroutine(ShareScreen());
         }
 

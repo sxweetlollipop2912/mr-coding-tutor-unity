@@ -56,7 +56,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.DeviceManager
 
         private void Update()
         {
-            PermissionHelper.RequestMicrophontPermission();
+            PermissionHelper.RequestMicrophonePermission();
         }
 
         private bool CheckAppId()

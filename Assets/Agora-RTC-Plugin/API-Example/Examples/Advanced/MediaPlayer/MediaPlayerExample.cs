@@ -49,7 +49,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.MediaPlayer
         public InputField InputField;
         public Slider Slider;
         internal bool isGragged;
-       
+
         // Use this for initialization
         private void Start()
         {
@@ -66,7 +66,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.MediaPlayer
         // Update is called once per frame
         private void Update()
         {
-            PermissionHelper.RequestMicrophontPermission();
+            PermissionHelper.RequestMicrophonePermission();
             PermissionHelper.RequestCameraPermission();
         }
 
@@ -543,7 +543,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.MediaPlayer
     {
         internal UserPlayerCustomDataProvider()
         {
-            
+
         }
 
         public override Int64 OnSeek(Int64 offset, int whence)

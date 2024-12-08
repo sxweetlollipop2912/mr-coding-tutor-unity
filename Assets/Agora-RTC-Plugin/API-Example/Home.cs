@@ -39,17 +39,17 @@ namespace Agora_RTC_Plugin.API_Example
 #if AGORA_RTC
 //#if AGORA_NUMBER_UID
             "BasicAudioCallScene",
-            
+
             "AudioCallRouteScene",
             "AudioMixingScene",
             "AudioSpectrumScene",
             "ChannelMediaRelayScene",
-            
+
             "CustomCaptureAudioScene",
-            
+
             "CustomRenderAudioScene",
             "DeviceManagerScene",
-            
+
             "JoinChannelVideoTokenScene",
             "JoinChannelWithUserAccountScene",
             "MediaPlayerScene",
@@ -59,14 +59,14 @@ namespace Agora_RTC_Plugin.API_Example
             "MusicPlayerScene",
             "PluginScene",
             "ProcessAudioRawDataScene",
-            
-            
-            
-            
-            
-            
+
+
+
+
+
+
             "SetEncryptionScene",
-            
+
             "SpatialAudioWithMediaPlayerScene",
             "SpatialAudioWithUsers",
             "StartDirectCdnStreamingScene",
@@ -74,23 +74,23 @@ namespace Agora_RTC_Plugin.API_Example
             "StartRhythmPlayerScene",
             "StartRtmpStreamWithTranscodingScene",
             "StreamMessageScene",
-            
-            
+
+
             "VoiceChangerScene",
-            
+
 //#endif
 //#if AGORA_STRING_UID
 //            "BasicAudioCallSceneS",
-//            
+//
 //            "AudioMixingSceneS",
 //            "AudioSpectrumSceneS",
 //            "ChannelMediaRelaySceneS",
-//            
+//
 //            "CustomCaptureAudioSceneS",
-//            
+//
 //            "CustomRenderAudioSceneS",
 //            "DeviceManagerSceneS",
-//            
+//
 //            "JoinChannelVideoTokenSceneS",
 //            "MediaPlayerSceneS",
 //            "MediaPlayerWithCustomDataProviderSceneS",
@@ -99,14 +99,14 @@ namespace Agora_RTC_Plugin.API_Example
 //            "MusicPlayerSceneS",
 //            "PluginSceneS",
 //            "ProcessAudioRawDataSceneS",
-//            
-//            
-//            
-//            
-//            
-//            
+//
+//
+//
+//
+//
+//
 //            "SetEncryptionSceneS",
-//            
+//
 //            "SpatialAudioWithMediaPlayerSceneS",
 //            "SpatialAudioWithUsersS",
 //            "StartDirectCdnStreamingSceneS",
@@ -114,10 +114,10 @@ namespace Agora_RTC_Plugin.API_Example
 //            "StartRhythmPlayerSceneS",
 //            "StartRtmpStreamWithTranscodingSceneS",
 //            "StreamMessageSceneS",
-//            
-//            
+//
+//
 //            "VoiceChangerSceneS",
-//            
+//
 //#endif
 #endif
         };
@@ -135,7 +135,7 @@ namespace Agora_RTC_Plugin.API_Example
         private void Awake()
         {
 #if AGORA_RTC
-            PermissionHelper.RequestMicrophontPermission();
+            PermissionHelper.RequestMicrophonePermission();
             PermissionHelper.RequestCameraPermission();
 #endif
 
