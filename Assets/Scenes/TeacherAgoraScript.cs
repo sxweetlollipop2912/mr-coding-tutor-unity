@@ -44,6 +44,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             private Button _stopShareBtn;
             private static GameObject _mainScreen = null;
             private static GameObject _studentScreen = null;
+            private bool _isStreamingMouse = false;
 
             // Use this for initialization
             private void Start()
@@ -464,19 +465,14 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             private void UpdateMousePosition()
             {
                 RectTransform canvasRect = _studentScreen.GetComponent<RectTransform>();
-                if (canvasRect == null)
-                {
-                    return;
-                }
 
-                if (Input.GetMouseButton(0)) // Check if left mouse button is pressed
+                if (canvasRect != null && Input.GetMouseButton(0)) // Check if left mouse button is pressed
                 {
                     // Get the mouse position in screen space
                     Vector2 screenMousePosition = Input.mousePosition;
-                    Vector2 localPoint;
 
                     // Convert the screen position to the Canvas's local space
-                    if (RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, screenMousePosition, null, out localPoint))
+                    if (RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, screenMousePosition, null, out Vector2 localPoint))
                     {
                         // Check if the mouse position is within the bounds of the Canvas
                         if (IsInsideCanvas(localPoint, canvasRect))
@@ -488,8 +484,17 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                             // Send the normalized position via Agora data channel
                             string mouseData = $"{normalizedX},{normalizedY}";
                             StreamMessage(mouseData);
+                            _isStreamingMouse = true;
+                            return;
                         }
                     }
+                }
+
+                if (_isStreamingMouse)
+                {
+                    // Send a message to stop streaming the mouse position
+                    StreamMessage("-1,-1");
+                    _isStreamingMouse = false;
                 }
             }
 

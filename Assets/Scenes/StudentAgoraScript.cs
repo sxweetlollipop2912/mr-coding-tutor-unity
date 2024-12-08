@@ -38,6 +38,8 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             private Dropdown _winIdSelect;
             private Button _startShareBtn;
             private Button _stopShareBtn;
+            private GameObject _redDot;
+            private static RectTransform _screenShareRect;
 
             // Use this for initialization
             private void Start()
@@ -298,6 +300,12 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                     }
                     Debug.Log("OnTextureSizeModify: " + width + "  " + height);
                 };
+
+                if (uid == 0 && videoSourceType == VIDEO_SOURCE_TYPE.VIDEO_SOURCE_SCREEN)
+                {
+                    _screenShareRect = videoSurface.GetComponent<RectTransform>();
+                    Debug.Log("ScreenShareRect set");
+                }
             }
 
             // VIDEO TYPE 1: 3D Object
@@ -410,6 +418,76 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             }
 
             #endregion
+
+            #region -- Teacher Mouse Display
+
+            internal void PositionRedDot(Vector2 normalizedCoordinate)
+            {
+                if (_screenShareRect == null)
+                {
+                    Debug.LogError("Screen share rect not set.");
+                    return;
+                }
+
+                if (normalizedCoordinate == new Vector2(-1, -1))
+                {
+                    // Disable the red dot
+                    if (_redDot != null)
+                    {
+                        _redDot.SetActive(false);
+                    }
+                    return;
+                }
+
+                // Ensure the red dot is created
+                if (_redDot == null)
+                {
+                    _redDot = CreateRedDot();
+                }
+
+                // Calculate position on the image
+                Vector2 imageSize = _screenShareRect.rect.size;
+                Vector2 position = new Vector2(normalizedCoordinate.x * imageSize.x, normalizedCoordinate.y * imageSize.y);
+
+                // Set the red dot's position immediately
+                _redDot.GetComponent<RectTransform>().anchoredPosition = position;
+
+                // Activate the red dot
+                if (!_redDot.activeSelf)
+                {
+                    _redDot.SetActive(true);
+                }
+            }
+
+            private GameObject CreateRedDot()
+            {
+                if (_screenShareRect == null)
+                {
+                    Debug.LogError("Screen share rect not set.");
+                    return null;
+                }
+
+                // Create a new GameObject
+                GameObject dot = new GameObject("RedDot");
+
+                // Add an Image component
+                var image = dot.AddComponent<UnityEngine.UI.Image>();
+                image.color = new Color(1f, 0f, 0f, 0.5f); // Semi-transparent red
+
+                // Set the parent to the image surface
+                dot.transform.SetParent(_screenShareRect, false);
+
+                // Configure the RectTransform
+                var rectTransform = dot.GetComponent<RectTransform>();
+                rectTransform.sizeDelta = new Vector2(10f, 10f); // Adjust size as needed
+                rectTransform.anchorMin = Vector2.zero;
+                rectTransform.anchorMax = Vector2.zero;
+                rectTransform.pivot = new Vector2(0.5f, 0.5f);
+
+                return dot;
+            }
+
+            #endregion
         }
 
         #region -- Agora Event ---
@@ -486,6 +564,41 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 {
                     StudentAgoraScript.DestroyVideoView(uid.ToString());
                 }
+            }
+
+            public override void OnStreamMessage(RtcConnection connection, uint remoteUid, int streamId, byte[] data, ulong length, ulong sentTs)
+            {
+                // Convert the data to a string
+                string coordinateString = System.Text.Encoding.Default.GetString(data);
+                // Parse the coordinate string
+                if (TryParseCoordinate(coordinateString, out Vector2 coordinate))
+                {
+                    // Update the red dot's position
+                    _desktopScreenShare.PositionRedDot(coordinate);
+                }
+                else
+                {
+                    Debug.LogError("Invalid coordinate format received.");
+                }
+            }
+
+            private bool TryParseCoordinate(string coordinateString, out Vector2 coordinate)
+            {
+                coordinate = Vector2.zero;
+                var parts = coordinateString.Split(',');
+                if (parts.Length == 2 &&
+                    float.TryParse(parts[0], out float x) &&
+                    float.TryParse(parts[1], out float y))
+                {
+                    coordinate = new Vector2(x, y);
+                    return true;
+                }
+                return false;
+            }
+
+            public override void OnStreamMessageError(RtcConnection connection, uint remoteUid, int streamId, int code, int missed, int cached)
+            {
+                Debug.Log(string.Format("OnStreamMessageError remoteUid: {0}, streamId: {1}, code: {2}, missed: {3}, cached: {4}", remoteUid, streamId, code, missed, cached));
             }
         }
 
