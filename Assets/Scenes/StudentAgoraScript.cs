@@ -28,14 +28,11 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             [SerializeField]
             private string _channelName = "";
 
-            public Text LogText;
-            internal Logger Log;
             internal IRtcEngineEx RtcEngine = null;
 
             public uint Uid1 = 123;
             public uint Uid2 = 456;
         
-            private Dropdown _winIdSelect;
             private Button _startShareBtn;
             private Button _stopShareBtn;
             private GameObject _redDot;
@@ -44,25 +41,10 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             // Use this for initialization
             private void Start()
             {
-                LogText = GetComponentInChildren<Text>();
                 LoadAssetData();
-                if (CheckAppId())
-                {
-                    InitEngine();
-    #if UNITY_ANDROID || UNITY_IPHONE
-                    GameObject.Find("winIdSelect").SetActive(false);
-    #else       
-                    PrepareScreenCapture();
-    #endif
-                    EnableUI();
-                    JoinChannel();
-                }
-            }
-
-            private bool CheckAppId()
-            {
-                Log = new Logger(LogText);
-                return Log.DebugAssert(_appID.Length > 10, "Please fill in your appId in API-Example/profile/appIdInput.asset");
+                InitEngine();
+                EnableUI();
+                JoinChannel();
             }
 
             //Show data in AgoraBasicProfile
@@ -157,28 +139,6 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 RtcEngine.InitEventHandler(handler);
             }
 
-            private void PrepareScreenCapture()
-            {
-                _winIdSelect = GameObject.Find("winIdSelect").GetComponent<Dropdown>();
-
-                if (_winIdSelect == null || RtcEngine == null) return;
-
-                _winIdSelect.ClearOptions();
-
-                SIZE t = new SIZE();
-                t.width = 360;
-                t.height = 240;
-                SIZE s = new SIZE();
-                s.width = 360;
-                s.height = 240;
-                var info = RtcEngine.GetScreenCaptureSources(t, s, true);
-
-                _winIdSelect.AddOptions(info.Select(w =>
-                        new Dropdown.OptionData(
-                            string.Format("{0}: {1}-{2} | {3}", w.type, w.sourceName, w.sourceTitle, w.sourceId)))
-                    .ToList());
-            }
-
             private void EnableUI()
             {
                 _startShareBtn = GameObject.Find("startShareBtn").GetComponent<Button>();
@@ -206,26 +166,20 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 this.Log.UpdateLog("StartScreenCapture :" + nRet);
     #else
                 RtcEngine.StopScreenCapture();
-                if (_winIdSelect == null) return;
-                var option = _winIdSelect.options[_winIdSelect.value].text;
-                if (string.IsNullOrEmpty(option)) return;
+                
+                SIZE t = new SIZE();
+                t.width = 360;
+                t.height = 240;
+                SIZE s = new SIZE();
+                s.width = 360;
+                s.height = 240;
+                var info = RtcEngine.GetScreenCaptureSources(t, s, true);
 
-                if (option.Contains("ScreenCaptureSourceType_Window"))
-                {
-                    var windowId = option.Split("|".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1];
-                    Log.UpdateLog(string.Format(">>>>> Start sharing {0}", windowId));
-                    var nRet = RtcEngine.StartScreenCaptureByWindowId(ulong.Parse(windowId), default(Rectangle),
-                            default(ScreenCaptureParameters));
-                    this.Log.UpdateLog("StartScreenCaptureByWindowId:" + nRet);
-                }
-                else
-                {
-                    var dispId = uint.Parse(option.Split("|".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1]);
-                    Log.UpdateLog(string.Format(">>>>> Start sharing display {0}", dispId));
-                    var nRet = RtcEngine.StartScreenCaptureByDisplayId(dispId, default(Rectangle),
-                        new ScreenCaptureParameters { captureMouseCursor = true, frameRate = 30 });
-                    this.Log.UpdateLog("StartScreenCaptureByDisplayId:" + nRet);
-                }
+                var dispId = (uint)info[0].sourceId;
+                Debug.Log(string.Format(">>>>> Start sharing display {0}", dispId));
+                var nRet = RtcEngine.StartScreenCaptureByDisplayId(dispId, default(Rectangle),
+                    new ScreenCaptureParameters { captureMouseCursor = true, frameRate = 30 });
+                Debug.Log("StartScreenCaptureByDisplayId:" + nRet);
     #endif
 
                 ScreenShareJoinChannel();
@@ -507,15 +461,15 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
 
             public override void OnError(int err, string msg)
             {
-                _desktopScreenShare.Log.UpdateLog(string.Format("OnError err: {0}, msg: {1}", err, msg));
+                Debug.Log(string.Format("OnError err: {0}, msg: {1}", err, msg));
             }
 
             public override void OnJoinChannelSuccess(RtcConnection connection, int elapsed)
             {
                 int build = 0;
-                _desktopScreenShare.Log.UpdateLog(string.Format("sdk version: ${0}",
+                Debug.Log(string.Format("sdk version: ${0}",
                     _desktopScreenShare.RtcEngine.GetVersion(ref build)));
-                _desktopScreenShare.Log.UpdateLog(
+                Debug.Log(
                     string.Format("OnJoinChannelSuccess channelName: {0}, uid: {1}, elapsed: {2}",
                                     connection.channelId, connection.localUid, elapsed));
                 if (connection.localUid == _desktopScreenShare.Uid1)
@@ -530,12 +484,12 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
 
             public override void OnRejoinChannelSuccess(RtcConnection connection, int elapsed)
             {
-                _desktopScreenShare.Log.UpdateLog("OnRejoinChannelSuccess");
+                Debug.Log("OnRejoinChannelSuccess");
             }
 
             public override void OnLeaveChannel(RtcConnection connection, RtcStats stats)
             {
-                _desktopScreenShare.Log.UpdateLog("OnLeaveChannel");
+                Debug.Log("OnLeaveChannel");
                 if (connection.localUid == _desktopScreenShare.Uid1)
                 {
                     StudentAgoraScript.DestroyVideoView("MainCameraView");
@@ -548,12 +502,12 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
 
             public override void OnClientRoleChanged(RtcConnection connection, CLIENT_ROLE_TYPE oldRole, CLIENT_ROLE_TYPE newRole, ClientRoleOptions newRoleOptions)
             {
-                _desktopScreenShare.Log.UpdateLog("OnClientRoleChanged");
+                Debug.Log("OnClientRoleChanged");
             }
 
             public override void OnUserJoined(RtcConnection connection, uint uid, int elapsed)
             {
-                _desktopScreenShare.Log.UpdateLog(string.Format("OnUserJoined uid: ${0} elapsed: ${1}", uid, elapsed));
+                Debug.Log(string.Format("OnUserJoined uid: ${0} elapsed: ${1}", uid, elapsed));
                 if (uid != _desktopScreenShare.Uid1 && uid != _desktopScreenShare.Uid2)
                 {
                     StudentAgoraScript.MakeVideoView(uid, _desktopScreenShare.GetChannelName(), VIDEO_SOURCE_TYPE.VIDEO_SOURCE_REMOTE);
@@ -562,7 +516,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
 
             public override void OnUserOffline(RtcConnection connection, uint uid, USER_OFFLINE_REASON_TYPE reason)
             {
-                _desktopScreenShare.Log.UpdateLog(string.Format("OnUserOffLine uid: ${0}, reason: ${1}", uid,
+                Debug.Log(string.Format("OnUserOffLine uid: ${0}, reason: ${1}", uid,
                     (int)reason));
                 if (uid != _desktopScreenShare.Uid1 && uid != _desktopScreenShare.Uid2)
                 {
