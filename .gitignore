@@ -73,3 +73,18 @@ crashlytics-build.properties
 
 # Configs
 config.json
+
+# --- Python ---
+# Ignore Python virtual environments
+whisper-env/
+env/
+venv/
+*.pyc
+__pycache__/
+
+# --- Additional ---
+# Ignore temp_audio.wav or generated audio files
+Assets/temp_audio.wav
+
+.DS_Store
+
