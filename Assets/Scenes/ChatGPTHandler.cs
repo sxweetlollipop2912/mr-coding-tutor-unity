@@ -10,6 +10,8 @@ public class ChatGPTHandler : MonoBehaviour
     [SerializeField] private TMP_Text responseText;         // Text field to display GPT's response
     private string apiKey;
 
+    [SerializeField] private TextToSpeechHandler textToSpeechHandler; // Reference to TTS handler
+
     private void Start()
     {
         // Path to the configuration file in the Assets folder
@@ -108,6 +110,9 @@ public class ChatGPTHandler : MonoBehaviour
             // Parse and display the response
             string responseContent = ParseResponse(request.downloadHandler.text);
             responseText.text = responseContent;
+
+            // Speak the response using TTS
+            textToSpeechHandler.SpeakText(responseContent);
         }
         else
         {

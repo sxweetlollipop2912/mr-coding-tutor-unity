@@ -6,7 +6,7 @@ using System.IO;
 public class WhisperIntegration : MonoBehaviour
 {
     private AudioClip audioClip;
-    private string serverUrl = "http://127.0.0.1:5000/transcribe";
+    private string serverUrl = "http://127.0.0.1:5111/transcribe";
     private string relativeFilePath = "Assets/temp_audio.wav"; // File saved in the Assets folder
 
     [SerializeField] private ChatGPTHandler chatGPTHandler; // Reference to ChatGPTHandler
