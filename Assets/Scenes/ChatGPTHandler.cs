@@ -2,17 +2,17 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.Networking;
 using TMPro; // For TextMeshPro UI elements
-using Newtonsoft.Json; // Install Newtonsoft.Json via Unity Package Manager if not already included
+using Newtonsoft.Json; // For JSON serialization and deserialization
 
 public class ChatGPTHandler : MonoBehaviour
 {
-    [SerializeField] private TMP_InputField userInputField; // Input from user
-    [SerializeField] private TMP_Text responseText;         // Response display field
+    [SerializeField] private TMP_InputField userInputField; // Input field for user messages
+    [SerializeField] private TMP_Text responseText;         // Text field to display GPT's response
     private string apiKey;
 
     private void Start()
     {
-        // Path to config.json in the Assets folder
+        // Path to the configuration file in the Assets folder
         string configPath = Application.dataPath + "/config.json";
 
         if (System.IO.File.Exists(configPath))
@@ -42,7 +42,7 @@ public class ChatGPTHandler : MonoBehaviour
         public string openai_api_key;
     }
 
-
+    // Triggered by the user manually
     public void SendMessageToChatGPT()
     {
         // Get user input
@@ -58,11 +58,25 @@ public class ChatGPTHandler : MonoBehaviour
         StartCoroutine(SendPostRequest(userMessage));
     }
 
+    // Called from WhisperIntegration with the transcribed text
+    public void SetInputAndSend(string message)
+    {
+        if (!string.IsNullOrEmpty(message))
+        {
+            userInputField.text = message; // Set the transcription as input
+            SendMessageToChatGPT(); // Send the message to ChatGPT
+        }
+        else
+        {
+            Debug.LogError("Received empty transcription from Whisper.");
+        }
+    }
+
     private IEnumerator SendPostRequest(string prompt)
     {
         string url = "https://api.openai.com/v1/chat/completions";
 
-        // Construct the JSON payload using Newtonsoft.Json
+        // Construct the JSON payload for the GPT API
         var payload = new
         {
             model = "gpt-4",
@@ -86,6 +100,7 @@ public class ChatGPTHandler : MonoBehaviour
         // Send the request
         yield return request.SendWebRequest();
 
+        // Handle the response
         if (request.result == UnityWebRequest.Result.Success)
         {
             Debug.Log("Response received: " + request.downloadHandler.text);
@@ -128,7 +143,7 @@ public class ChatGPTHandler : MonoBehaviour
         }
     }
 
-    // Class to parse ChatGPT response
+    // Class for deserializing ChatGPT's response
     [System.Serializable]
     private class ChatGPTResponse
     {

@@ -9,6 +9,8 @@ public class WhisperIntegration : MonoBehaviour
     private string serverUrl = "http://127.0.0.1:5000/transcribe";
     private string relativeFilePath = "Assets/temp_audio.wav"; // File saved in the Assets folder
 
+    [SerializeField] private ChatGPTHandler chatGPTHandler; // Reference to ChatGPTHandler
+
     public void StartRecording()
     {
         // Start recording from the microphone
@@ -63,12 +65,45 @@ public class WhisperIntegration : MonoBehaviour
         if (request.result == UnityWebRequest.Result.Success)
         {
             Debug.Log("Whisper Response: " + request.downloadHandler.text);
+
+            // Pass the transcription to ChatGPTHandler
+            string transcription = ParseWhisperResponse(request.downloadHandler.text);
+            if (!string.IsNullOrEmpty(transcription))
+            {
+                Debug.Log("Transcription received: " + transcription);
+                chatGPTHandler.SetInputAndSend(transcription);
+            }
+            else
+            {
+                Debug.LogError("Failed to parse transcription from Whisper response.");
+            }
         }
         else
         {
             Debug.LogError("Whisper Error: " + request.error);
             Debug.LogError("Response Text: " + request.downloadHandler.text);
         }
+    }
+
+    private string ParseWhisperResponse(string jsonResponse)
+    {
+        // Extract transcription text from Whisper response
+        try
+        {
+            var whisperResponse = JsonUtility.FromJson<WhisperResponse>(jsonResponse);
+            return whisperResponse.transcription;
+        }
+        catch
+        {
+            Debug.LogError("Failed to parse Whisper response.");
+            return null;
+        }
+    }
+
+    [System.Serializable]
+    private class WhisperResponse
+    {
+        public string transcription;
     }
 
     private void SaveAudioClipToWav(AudioClip clip, string filePath)
