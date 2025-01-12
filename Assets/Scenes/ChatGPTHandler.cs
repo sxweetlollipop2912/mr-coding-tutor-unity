@@ -1,25 +1,33 @@
 using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using Newtonsoft.Json; // For JSON serialization and deserialization
+using TMPro; // For TextMeshPro UI elements
 using UnityEngine;
 using UnityEngine.Networking;
-using TMPro; // For TextMeshPro UI elements
-using Newtonsoft.Json; // For JSON serialization and deserialization
 
 public class ChatGPTHandler : MonoBehaviour
 {
-    [SerializeField] private TMP_InputField userInputField; // Input field for user messages
-    [SerializeField] private TMP_Text responseText;         // Text field to display GPT's response
-    private string apiKey;
+    [SerializeField]
+    private TMP_InputField userInputField; // Input field for user messages
 
-    [SerializeField] private TextToSpeechHandler textToSpeechHandler; // Reference to TTS handler
+    [SerializeField]
+    private TMP_Text responseText; // Text field to display GPT's response
+
+    [SerializeField]
+    private TextToSpeechHandler textToSpeechHandler; // Reference to TTS handler
+
+    private string apiKey;
+    private List<Message> conversationHistory = new List<Message>(); // Holds stateful conversation history
 
     private void Start()
     {
         // Path to the configuration file in the Assets folder
         string configPath = Application.dataPath + "/config.json";
 
-        if (System.IO.File.Exists(configPath))
+        if (File.Exists(configPath))
         {
-            string json = System.IO.File.ReadAllText(configPath);
+            string json = File.ReadAllText(configPath);
             Config config = JsonUtility.FromJson<Config>(json);
             apiKey = config.openai_api_key;
 
@@ -27,14 +35,42 @@ public class ChatGPTHandler : MonoBehaviour
             {
                 Debug.LogError("API Key is missing in the config file.");
             }
+
+            // Load the system prompt from the file specified in config
+            string systemPromptPath = Path.Combine(Application.dataPath, config.system_prompt_file);
+            Debug.Log("Loading system prompt from: " + systemPromptPath);
+            if (File.Exists(systemPromptPath))
+            {
+                string systemPrompt = File.ReadAllText(systemPromptPath);
+
+                if (!string.IsNullOrEmpty(systemPrompt))
+                {
+                    Debug.Log("System prompt successfully loaded from: " + systemPromptPath);
+
+                    // Add the system prompt as the first message in the conversation history
+                    if (conversationHistory.Count == 0)
+                    {
+                        conversationHistory.Add(
+                            new Message { role = "system", content = systemPrompt }
+                        );
+                        Debug.Log("System prompt added to conversation history: " + systemPrompt);
+                    }
+                }
+                else
+                {
+                    Debug.LogError("System prompt file is empty.");
+                }
+            }
             else
             {
-                Debug.Log("API Key successfully loaded from config.json in Assets folder.");
+                Debug.LogError("System prompt file not found: " + systemPromptPath);
             }
         }
         else
         {
-            Debug.LogError("Config file not found in Assets folder. Please create a config.json file.");
+            Debug.LogError(
+                "Config file not found in Assets folder. Please create a config.json file."
+            );
         }
     }
 
@@ -42,12 +78,12 @@ public class ChatGPTHandler : MonoBehaviour
     private class Config
     {
         public string openai_api_key;
+        public string system_prompt_file; // Path to the system prompt file
     }
 
     // Triggered by the user manually
     public void SendMessageToChatGPT()
     {
-        // Get user input
         string userMessage = userInputField.text;
 
         if (string.IsNullOrEmpty(userMessage))
@@ -56,8 +92,11 @@ public class ChatGPTHandler : MonoBehaviour
             return;
         }
 
-        // Start coroutine to send API request
-        StartCoroutine(SendPostRequest(userMessage));
+        // Add user's message to conversation history
+        conversationHistory.Add(new Message { role = "user", content = userMessage });
+
+        // Start coroutine to send the conversation to ChatGPT
+        StartCoroutine(SendPostRequest());
     }
 
     // Called from WhisperIntegration with the transcribed text
@@ -74,7 +113,7 @@ public class ChatGPTHandler : MonoBehaviour
         }
     }
 
-    private IEnumerator SendPostRequest(string prompt)
+    private IEnumerator SendPostRequest()
     {
         string url = "https://api.openai.com/v1/chat/completions";
 
@@ -82,14 +121,13 @@ public class ChatGPTHandler : MonoBehaviour
         var payload = new
         {
             model = "gpt-4",
-            messages = new[]
-            {
-                new { role = "system", content = "You are a helpful AI tutor specializing in Python programming." },
-                new { role = "user", content = prompt }
-            }
+            messages = conversationHistory, // Include the full conversation history
         };
 
         string jsonPayload = JsonConvert.SerializeObject(payload);
+
+        // Log the payload being sent to GPT for debugging
+        Debug.Log("Request to GPT: " + jsonPayload);
 
         // Configure the UnityWebRequest
         UnityWebRequest request = new UnityWebRequest(url, "POST");
@@ -102,7 +140,6 @@ public class ChatGPTHandler : MonoBehaviour
         // Send the request
         yield return request.SendWebRequest();
 
-        // Handle the response
         if (request.result == UnityWebRequest.Result.Success)
         {
             Debug.Log("Response received: " + request.downloadHandler.text);
@@ -110,6 +147,9 @@ public class ChatGPTHandler : MonoBehaviour
             // Parse and display the response
             string responseContent = ParseResponse(request.downloadHandler.text);
             responseText.text = responseContent;
+
+            // Add ChatGPT's response to the conversation history
+            conversationHistory.Add(new Message { role = "assistant", content = responseContent });
 
             // Speak the response using TTS
             textToSpeechHandler.SpeakText(responseContent);
@@ -165,5 +205,12 @@ public class ChatGPTHandler : MonoBehaviour
                 public string content;
             }
         }
+    }
+
+    [System.Serializable]
+    private class Message
+    {
+        public string role;
+        public string content;
     }
 }

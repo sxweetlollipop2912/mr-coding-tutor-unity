@@ -21,8 +21,9 @@ public class TextToSpeechHandler : MonoBehaviour
 
     private IEnumerator SendTextToTTS(string text)
     {
-        // Create JSON payload manually
-        string jsonPayload = "{\"text\":\"" + text.Replace("\"", "\\\"") + "\"}";
+        // Create JSON payload using a class and JsonUtility
+        TTSRequest ttsRequest = new TTSRequest { text = text };
+        string jsonPayload = JsonUtility.ToJson(ttsRequest);
 
         Debug.Log("Sending JSON payload to TTS server: " + jsonPayload);
 
@@ -72,5 +73,12 @@ public class TextToSpeechHandler : MonoBehaviour
                 Debug.LogError("Failed to load audio: " + request.error);
             }
         }
+    }
+
+    // Class to represent the TTS request payload
+    [System.Serializable]
+    private class TTSRequest
+    {
+        public string text;
     }
 }
