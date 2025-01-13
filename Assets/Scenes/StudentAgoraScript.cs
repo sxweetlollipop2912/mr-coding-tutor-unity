@@ -163,7 +163,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 parameters2.captureAudio = true;
                 parameters2.captureVideo = true;
                 var nRet = RtcEngine.StartScreenCapture(parameters2);
-                this.Log.UpdateLog("StartScreenCapture :" + nRet);
+                // Debug.Log.UpdateLog("StartScreenCapture :" + nRet);
     #else
                 RtcEngine.StopScreenCapture();
                 
@@ -302,9 +302,6 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 go.name = goName;
                 // to be renderered onto
                 go.AddComponent<RawImage>();
-                
-                // make the object draggable
-                go.AddComponent<UIElementDrag>();
                 
                 var canvas = GameObject.Find("ScreenCanvas");
                 if (canvas != null)

@@ -79,7 +79,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
 
             void Update()
             {
-                PermissionHelper.RequestMicrophonePermission();
+                // PermissionHelper.RequestMicrophonePermission();
                 UpdateMousePosition();
             }
 
@@ -372,6 +372,9 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
 
             private void UpdateMousePosition()
             {
+                if (_studentScreen == null)
+                    return;
+
                 RectTransform canvasRect = _studentScreen.GetComponent<RectTransform>();
 
                 if (canvasRect != null && Input.GetMouseButton(0)) // Check if left mouse button is pressed

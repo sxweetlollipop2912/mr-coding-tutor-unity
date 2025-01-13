@@ -684,6 +684,26 @@ MonoBehaviour:
   company: Unity
   priority: 0
   required: 0
+--- !u!114 &997623433711687657
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2fe570546b5b2046873e03d7b882369, type: 3}
+  m_Name: MeshingTeapotFeature Standalone
+  m_EditorClassIdentifier: 
+  m_enabled: 1
+  nameUi: 'Sample: Meshing Teapot'
+  version: 0.0.1
+  featureIdInternal: com.unity.openxr.feature.example.meshing
+  openxrExtensionStrings: 
+  company: Unity
+  priority: 0
+  required: 0
 --- !u!114 &2699013334187877803
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -738,6 +758,7 @@ MonoBehaviour:
   - {fileID: 7694686206221689464}
   - {fileID: -703383515189206158}
   - {fileID: -1830884829722145211}
+  - {fileID: 997623433711687657}
   - {fileID: -6753819844447265787}
   - {fileID: 9138224683526244619}
   - {fileID: -4612217583607988757}
@@ -934,6 +955,26 @@ MonoBehaviour:
   company: Meta
   priority: 0
   required: 0
+--- !u!114 &6484189670419306415
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2fe570546b5b2046873e03d7b882369, type: 3}
+  m_Name: MeshingTeapotFeature Android
+  m_EditorClassIdentifier: 
+  m_enabled: 0
+  nameUi: 'Sample: Meshing Teapot'
+  version: 0.0.1
+  featureIdInternal: com.unity.openxr.feature.example.meshing
+  openxrExtensionStrings: 
+  company: Unity
+  priority: 0
+  required: 0
 --- !u!114 &6818921753504791435
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -988,6 +1029,7 @@ MonoBehaviour:
   - {fileID: -1364994145354587977}
   - {fileID: -8613511760136735402}
   - {fileID: -8919605162576915758}
+  - {fileID: 6484189670419306415}
   - {fileID: 5325427597046111254}
   - {fileID: -7439234192227325090}
   m_renderMode: 1
