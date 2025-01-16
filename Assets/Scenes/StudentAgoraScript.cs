@@ -1,8 +1,8 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
-using Agora.Rtc;
-using UnityEngine.Serialization;
+﻿using Agora.Rtc;
 using io.agora.rtc.demo;
+using UnityEngine;
+using UnityEngine.Serialization;
+using UnityEngine.UI;
 
 namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCall
 {
@@ -51,7 +51,8 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             [ContextMenu("ShowAgoraBasicProfileData")]
             private void LoadAssetData()
             {
-                if (_appIdInput == null) return;
+                if (_appIdInput == null)
+                    return;
                 _appID = _appIdInput.appID;
                 _token = _appIdInput.token;
                 _channelName = _appIdInput.channelName;
@@ -97,7 +98,11 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 //Debug.Log("EnableLoopbackRecording returns: " + ret);
 #endif
                 options.clientRoleType.SetValue(CLIENT_ROLE_TYPE.CLIENT_ROLE_BROADCASTER);
-                ret = RtcEngine.JoinChannelEx(_token, new RtcConnection(_channelName, this.Uid2), options);
+                ret = RtcEngine.JoinChannelEx(
+                    _token,
+                    new RtcConnection(_channelName, this.Uid2),
+                    options
+                );
                 Debug.Log("JoinChannelEx returns: " + ret);
             }
 
@@ -126,7 +131,8 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
 
             private void OnStartShareScreen()
             {
-                if (RtcEngine == null) return;
+                if (RtcEngine == null)
+                    return;
 
 #if UNITY_ANDROID || UNITY_IPHONE
                 var parameters2 = new ScreenCaptureParameters2();
@@ -147,8 +153,11 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
 
                 var dispId = (uint)info[0].sourceId;
                 Debug.Log(string.Format(">>>>> Start sharing display {0}", dispId));
-                var nRet = RtcEngine.StartScreenCaptureByDisplayId(dispId, default(Rectangle),
-                    new ScreenCaptureParameters { captureMouseCursor = true, frameRate = 30 });
+                var nRet = RtcEngine.StartScreenCaptureByDisplayId(
+                    dispId,
+                    default(Rectangle),
+                    new ScreenCaptureParameters { captureMouseCursor = true, frameRate = 30 }
+                );
                 Debug.Log("StartScreenCaptureByDisplayId:" + nRet);
 #endif
 
@@ -164,7 +173,8 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             private void OnDestroy()
             {
                 Debug.Log("OnDestroy");
-                if (RtcEngine == null) return;
+                if (RtcEngine == null)
+                    return;
                 OnStopShareScreen();
                 RtcEngine.InitEventHandler(null);
                 RtcEngine.LeaveChannel();
@@ -178,7 +188,11 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
 
             #region -- Video Render UI Logic ---
 
-            internal static void MakeVideoView(uint uid, string channelId = "", VIDEO_SOURCE_TYPE videoSourceType = VIDEO_SOURCE_TYPE.VIDEO_SOURCE_CAMERA)
+            internal static void MakeVideoView(
+                uint uid,
+                string channelId = "",
+                VIDEO_SOURCE_TYPE videoSourceType = VIDEO_SOURCE_TYPE.VIDEO_SOURCE_CAMERA
+            )
             {
                 var go = GameObject.Find(uid.ToString());
                 if (!ReferenceEquals(go, null))
@@ -193,7 +207,8 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 {
                     go = GameObject.Find("ScreenShareView");
                     videoSurface = go.GetComponent<VideoSurface>();
-                    if (ReferenceEquals(videoSurface, null)) return;
+                    if (ReferenceEquals(videoSurface, null))
+                        return;
 
                     videoSurface.OnTextureSizeModify += (int width, int height) =>
                     {
@@ -202,7 +217,10 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                         {
                             //If render in RawImage. just set rawImage size.
                             transform.sizeDelta = new Vector2(width / 1.7f, height / 1.7f);
-                            transform.localScale = videoSourceType == VIDEO_SOURCE_TYPE.VIDEO_SOURCE_SCREEN ? new Vector3(-1, 1, 1) : Vector3.one;
+                            transform.localScale =
+                                videoSourceType == VIDEO_SOURCE_TYPE.VIDEO_SOURCE_SCREEN
+                                    ? new Vector3(-1, 1, 1)
+                                    : Vector3.one;
                         }
                         else
                         {
@@ -213,15 +231,20 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                         Debug.Log("OnTextureSizeModify: " + width + "  " + height);
                     };
                 }
-                else if (videoSourceType == VIDEO_SOURCE_TYPE.VIDEO_SOURCE_CAMERA || uid == UidTeacherWebcam)
+                else if (
+                    videoSourceType == VIDEO_SOURCE_TYPE.VIDEO_SOURCE_CAMERA
+                    || uid == UidTeacherWebcam
+                )
                 {
                     go = GameObject.Find("TeacherCameraView");
                     videoSurface = go.GetComponent<VideoSurface>();
-                } else
+                }
+                else
                 {
                     return;
                 }
-                if (ReferenceEquals(videoSurface, null)) return;
+                if (ReferenceEquals(videoSurface, null))
+                    return;
                 // configure videoSurface
                 videoSurface.SetForUser(uid, channelId, videoSourceType);
                 videoSurface.SetEnable(true);
@@ -296,14 +319,19 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
 
                 // Calculate the new position for the red dot
                 Vector2 imageSize = _screenShareRect.rect.size;
-                Vector3 position = new Vector3(normalizedCoordinate.x * imageSize.x, normalizedCoordinate.y * imageSize.y, 0);
+                Vector2 position = new Vector2(
+                    normalizedCoordinate.x * imageSize.x,
+                    normalizedCoordinate.y * imageSize.y
+                );
 
                 // Check if the position has actually changed to avoid redundant updates
                 RectTransform redDotTransform = redDot.GetComponent<RectTransform>();
-                redDotTransform.localPosition = position;
+                redDotTransform.anchoredPosition = position;
 
                 // Ensure the red dot is visible
                 redDot.gameObject.SetActive(true);
+
+                redDot.GetComponent<Image>().color = Color.red;
             }
 
             #endregion
@@ -328,11 +356,20 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             public override void OnJoinChannelSuccess(RtcConnection connection, int elapsed)
             {
                 int build = 0;
-                Debug.Log(string.Format("sdk version: ${0}",
-                    _desktopScreenShare.RtcEngine.GetVersion(ref build)));
                 Debug.Log(
-                    string.Format("OnJoinChannelSuccess channelName: {0}, uid: {1}, elapsed: {2}",
-                                    connection.channelId, connection.localUid, elapsed));
+                    string.Format(
+                        "sdk version: ${0}",
+                        _desktopScreenShare.RtcEngine.GetVersion(ref build)
+                    )
+                );
+                Debug.Log(
+                    string.Format(
+                        "OnJoinChannelSuccess channelName: {0}, uid: {1}, elapsed: {2}",
+                        connection.channelId,
+                        connection.localUid,
+                        elapsed
+                    )
+                );
                 if (connection.localUid == _desktopScreenShare.Uid1)
                 {
                     StudentAgoraScript.MakeVideoView(0);
@@ -361,7 +398,12 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 }
             }
 
-            public override void OnClientRoleChanged(RtcConnection connection, CLIENT_ROLE_TYPE oldRole, CLIENT_ROLE_TYPE newRole, ClientRoleOptions newRoleOptions)
+            public override void OnClientRoleChanged(
+                RtcConnection connection,
+                CLIENT_ROLE_TYPE oldRole,
+                CLIENT_ROLE_TYPE newRole,
+                ClientRoleOptions newRoleOptions
+            )
             {
                 Debug.Log("OnClientRoleChanged");
             }
@@ -371,21 +413,35 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 Debug.Log(string.Format("OnUserJoined uid: ${0} elapsed: ${1}", uid, elapsed));
                 if (uid != _desktopScreenShare.Uid1 && uid != _desktopScreenShare.Uid2)
                 {
-                    StudentAgoraScript.MakeVideoView(uid, _desktopScreenShare.GetChannelName(), VIDEO_SOURCE_TYPE.VIDEO_SOURCE_REMOTE);
+                    StudentAgoraScript.MakeVideoView(
+                        uid,
+                        _desktopScreenShare.GetChannelName(),
+                        VIDEO_SOURCE_TYPE.VIDEO_SOURCE_REMOTE
+                    );
                 }
             }
 
-            public override void OnUserOffline(RtcConnection connection, uint uid, USER_OFFLINE_REASON_TYPE reason)
+            public override void OnUserOffline(
+                RtcConnection connection,
+                uint uid,
+                USER_OFFLINE_REASON_TYPE reason
+            )
             {
-                Debug.Log(string.Format("OnUserOffLine uid: ${0}, reason: ${1}", uid,
-                    (int)reason));
+                Debug.Log(string.Format("OnUserOffLine uid: ${0}, reason: ${1}", uid, (int)reason));
                 if (uid != _desktopScreenShare.Uid1 && uid != _desktopScreenShare.Uid2)
                 {
                     StudentAgoraScript.DestroyVideoView(uid.ToString());
                 }
             }
 
-            public override void OnStreamMessage(RtcConnection connection, uint remoteUid, int streamId, byte[] data, ulong length, ulong sentTs)
+            public override void OnStreamMessage(
+                RtcConnection connection,
+                uint remoteUid,
+                int streamId,
+                byte[] data,
+                ulong length,
+                ulong sentTs
+            )
             {
                 // Convert the data to a string
                 string coordinateString = System.Text.Encoding.Default.GetString(data);
@@ -405,9 +461,11 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             {
                 coordinate = Vector2.zero;
                 var parts = coordinateString.Split(',');
-                if (parts.Length == 2 &&
-                    float.TryParse(parts[0], out float x) &&
-                    float.TryParse(parts[1], out float y))
+                if (
+                    parts.Length == 2
+                    && float.TryParse(parts[0], out float x)
+                    && float.TryParse(parts[1], out float y)
+                )
                 {
                     coordinate = new Vector2(x, y);
                     return true;
@@ -415,9 +473,25 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 return false;
             }
 
-            public override void OnStreamMessageError(RtcConnection connection, uint remoteUid, int streamId, int code, int missed, int cached)
+            public override void OnStreamMessageError(
+                RtcConnection connection,
+                uint remoteUid,
+                int streamId,
+                int code,
+                int missed,
+                int cached
+            )
             {
-                Debug.Log(string.Format("OnStreamMessageError remoteUid: {0}, streamId: {1}, code: {2}, missed: {3}, cached: {4}", remoteUid, streamId, code, missed, cached));
+                Debug.Log(
+                    string.Format(
+                        "OnStreamMessageError remoteUid: {0}, streamId: {1}, code: {2}, missed: {3}, cached: {4}",
+                        remoteUid,
+                        streamId,
+                        code,
+                        missed,
+                        cached
+                    )
+                );
             }
         }
 

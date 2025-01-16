@@ -6248,7 +6248,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1022876514}
-  - component: {fileID: 1022876515}
   m_Layer: 0
   m_Name: ContentRoot
   m_TagString: Untagged
@@ -6274,24 +6273,6 @@ Transform:
   - {fileID: 1142612794}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1022876515
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1022876513}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 98c98c657feb956428aa12a4b798bde6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _themes:
-  - {fileID: 11400000, guid: 4b2fdc959511e154cb98df0433028c9b, type: 2}
-  - {fileID: 11400000, guid: 6d200bf68ab316d46be5cbf2afb3e24e, type: 2}
-  - {fileID: 11400000, guid: 337a53e84c4e4454bbe5cbc93d5c6320, type: 2}
-  - {fileID: 11400000, guid: 3ced7d0f34b29634ba18cbee188cf141, type: 2}
-  _currentThemeIndex: 0
 --- !u!1 &1044440530
 GameObject:
   m_ObjectHideFlags: 0
@@ -6970,15 +6951,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 698551298687156392, guid: d4ea6a0a3bc325444a4f332171438fcd, type: 3}
       propertyPath: m_Color.b
-      value: 0.4811321
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 698551298687156392, guid: d4ea6a0a3bc325444a4f332171438fcd, type: 3}
       propertyPath: m_Color.g
-      value: 0.4811321
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 698551298687156392, guid: d4ea6a0a3bc325444a4f332171438fcd, type: 3}
       propertyPath: m_Color.r
-      value: 0.4811321
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 698551298687156396, guid: d4ea6a0a3bc325444a4f332171438fcd, type: 3}
       propertyPath: m_Alpha
@@ -11070,7 +11051,8 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 3778921118949953983, guid: d4ea6a0a3bc325444a4f332171438fcd, type: 3}
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 3778921118078438294, guid: d4ea6a0a3bc325444a4f332171438fcd, type: 3}
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 3778921118949953956, guid: d4ea6a0a3bc325444a4f332171438fcd, type: 3}
       insertIndex: -1
@@ -16765,8 +16747,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Material: {fileID: 2100000, guid: 88f3053aa1ac746fe93eb58dfbeaa639, type: 2}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 0, b: 0, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -16774,7 +16756,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_Sprite: {fileID: 0}
-  m_Type: 0
+  m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
