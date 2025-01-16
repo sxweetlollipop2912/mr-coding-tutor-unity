@@ -33,7 +33,6 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             public uint Uid2 = 456;
             public static uint UidTeacherWebcam = 321; // TODO
 
-            private GameObject _redDot;
             private static RectTransform _screenShareRect;
 
             // Use this for initialization
@@ -279,20 +278,18 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                     return;
                 }
 
-                // Check for the "hide dot" condition
-                if (normalizedCoordinate == new Vector2(-1, -1))
+                var redDot = GameObject.Find("RedDot");
+
+                if (redDot == null)
                 {
-                    if (_redDot != null)
-                    {
-                        _redDot.SetActive(false);
-                    }
                     return;
                 }
 
-                // Create the red dot only if it doesn't exist
-                if (_redDot == null)
+                // Check for the "hide dot" condition
+                if (normalizedCoordinate == new Vector2(-1, -1))
                 {
-                    _redDot = CreateRedDot();
+                    redDot.SetActive(false);
+                    return;
                 }
 
                 // Calculate the new position for the red dot
@@ -300,45 +297,17 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 Vector2 position = new Vector2(normalizedCoordinate.x * imageSize.x, normalizedCoordinate.y * imageSize.y);
 
                 // Check if the position has actually changed to avoid redundant updates
-                RectTransform redDotTransform = _redDot.GetComponent<RectTransform>();
+                RectTransform redDotTransform = redDot.GetComponent<RectTransform>();
                 if (redDotTransform.anchoredPosition != position)
                 {
                     redDotTransform.anchoredPosition = position;
                 }
 
                 // Ensure the red dot is visible
-                if (!_redDot.activeSelf)
+                if (!redDot.activeSelf)
                 {
-                    _redDot.SetActive(true);
+                    redDot.SetActive(true);
                 }
-            }
-
-            private GameObject CreateRedDot()
-            {
-                if (_screenShareRect == null)
-                {
-                    Debug.LogError("Screen share rect not set.");
-                    return null;
-                }
-
-                // Create a new GameObject
-                GameObject dot = new GameObject("RedDot");
-
-                // Add an Image component
-                var image = dot.AddComponent<UnityEngine.UI.Image>();
-                image.color = new Color(1f, 0f, 0f, 0.5f); // Semi-transparent red
-
-                // Set the parent to the image surface
-                dot.transform.SetParent(_screenShareRect, false);
-
-                // Configure the RectTransform
-                var rectTransform = dot.GetComponent<RectTransform>();
-                rectTransform.sizeDelta = new Vector2(10f, 10f); // Adjust size as needed
-                rectTransform.anchorMin = Vector2.zero;
-                rectTransform.anchorMax = Vector2.zero;
-                rectTransform.pivot = new Vector2(0.5f, 0.5f);
-
-                return dot;
             }
 
             #endregion
