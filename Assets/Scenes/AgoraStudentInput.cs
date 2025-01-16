@@ -1,12 +1,14 @@
-using UnityEngine;
 using System;
+using UnityEngine;
 using UnityEngine.Serialization;
-
-
 
 namespace io.agora.rtc.demo
 {
-    [CreateAssetMenu(menuName = "Agora/AgoraStudentInput", fileName = "AgoraStudentInput", order = 1)]
+    [CreateAssetMenu(
+        menuName = "Agora/AgoraStudentInput",
+        fileName = "AgoraStudentInput",
+        order = 1
+    )]
     [Serializable]
     public class AgoraStudentInput : ScriptableObject
     {

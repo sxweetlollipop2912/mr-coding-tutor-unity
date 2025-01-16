@@ -1,6 +1,11 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Scenes/TeacherHand/HandTransparentMaterial.mat.meta
 guid: 03099323dd5894d4889f0967daba6b76
 NativeFormatImporter:
+========
+guid: 1904b6f45626b4415b0bf57934e5efd5
+DefaultImporter:
+>>>>>>>> cd509af4 (update):Assets/Scenes/VRAI.unity.meta
   externalObjects: {}
   mainObjectFileID: 2100000
   userData: 

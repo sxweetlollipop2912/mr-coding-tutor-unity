@@ -1,6 +1,10 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Scenes/TeacherHand.meta
 guid: 60e4ec1f01ed543a18c79fac1a0a1c38
 folderAsset: yes
+========
+guid: ff96f2e7a09454e18be7fcef932f3fc9
+>>>>>>>> cd509af4 (update):Assets/Scenes/FFmpegTestScene.unity.meta
 DefaultImporter:
   externalObjects: {}
   userData: 
