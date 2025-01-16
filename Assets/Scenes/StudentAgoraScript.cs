@@ -27,6 +27,9 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             [SerializeField]
             private string _channelName = "";
 
+            [SerializeField]
+            public Transform redDot;
+
             internal IRtcEngineEx RtcEngine = null;
 
             public uint Uid1 = 123;
@@ -278,17 +281,16 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                     return;
                 }
 
-                var redDot = GameObject.Find("RedDot");
-
                 if (redDot == null)
                 {
+                    Debug.LogError("Red dot not found.");
                     return;
                 }
 
                 // Check for the "hide dot" condition
                 if (normalizedCoordinate == new Vector2(-1, -1))
                 {
-                    redDot.SetActive(false);
+                    redDot.gameObject.SetActive(false);
                     return;
                 }
 
@@ -304,10 +306,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 }
 
                 // Ensure the red dot is visible
-                if (!redDot.activeSelf)
-                {
-                    redDot.SetActive(true);
-                }
+                redDot.gameObject.SetActive(true);
             }
 
             #endregion
