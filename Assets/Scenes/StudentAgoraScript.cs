@@ -296,14 +296,11 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
 
                 // Calculate the new position for the red dot
                 Vector2 imageSize = _screenShareRect.rect.size;
-                Vector2 position = new Vector2(normalizedCoordinate.x * imageSize.x, normalizedCoordinate.y * imageSize.y);
+                Vector3 position = new Vector3(normalizedCoordinate.x * imageSize.x, normalizedCoordinate.y * imageSize.y, 0);
 
                 // Check if the position has actually changed to avoid redundant updates
                 RectTransform redDotTransform = redDot.GetComponent<RectTransform>();
-                if (redDotTransform.anchoredPosition != position)
-                {
-                    redDotTransform.anchoredPosition = position;
-                }
+                redDotTransform.localPosition = position;
 
                 // Ensure the red dot is visible
                 redDot.gameObject.SetActive(true);
