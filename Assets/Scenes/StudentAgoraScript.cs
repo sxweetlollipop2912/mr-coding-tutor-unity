@@ -31,6 +31,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
 
             public uint Uid1 = 123;
             public uint Uid2 = 456;
+            public static uint UidTeacherWebcam = 321; // TODO
 
             private GameObject _redDot;
             private static RectTransform _screenShareRect;
@@ -186,40 +187,42 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 // create a GameObject and assign to this new user
                 VideoSurface videoSurface = new VideoSurface();
 
-                if (videoSourceType == VIDEO_SOURCE_TYPE.VIDEO_SOURCE_CAMERA)
+                if (videoSourceType == VIDEO_SOURCE_TYPE.VIDEO_SOURCE_SCREEN)
                 {
-                    videoSurface = MakeImageSurfaceFromCameraSource("MainCameraView");
+                    go = GameObject.Find("ScreenShareView");
+                    videoSurface = go.GetComponent<VideoSurface>();
+                    if (ReferenceEquals(videoSurface, null)) return;
+
+                    videoSurface.OnTextureSizeModify += (int width, int height) =>
+                    {
+                        var transform = videoSurface.GetComponent<RectTransform>();
+                        if (transform)
+                        {
+                            //If render in RawImage. just set rawImage size.
+                            transform.sizeDelta = new Vector2(width / 1.7f, height / 1.7f);
+                            transform.localScale = videoSourceType == VIDEO_SOURCE_TYPE.VIDEO_SOURCE_SCREEN ? new Vector3(-1, 1, 1) : Vector3.one;
+                        }
+                        else
+                        {
+                            //If render in MeshRenderer, just set localSize with MeshRenderer
+                            float scale = (float)height / (float)width;
+                            videoSurface.transform.localScale = new Vector3(-1, 1, scale);
+                        }
+                        Debug.Log("OnTextureSizeModify: " + width + "  " + height);
+                    };
                 }
-                else if (videoSourceType == VIDEO_SOURCE_TYPE.VIDEO_SOURCE_SCREEN)
+                else if (videoSourceType == VIDEO_SOURCE_TYPE.VIDEO_SOURCE_CAMERA || uid == UidTeacherWebcam)
                 {
-                    videoSurface = MakeImageSurfaceFromScreenSource("ScreenShareView");
-                }
-                else
+                    go = GameObject.Find("TeacherCameraView");
+                    videoSurface = go.GetComponent<VideoSurface>();
+                } else
                 {
-                    // TODO
-                    videoSurface = MakeImageSurfaceFromCameraSource(uid.ToString());
+                    return;
                 }
                 if (ReferenceEquals(videoSurface, null)) return;
                 // configure videoSurface
                 videoSurface.SetForUser(uid, channelId, videoSourceType);
                 videoSurface.SetEnable(true);
-                videoSurface.OnTextureSizeModify += (int width, int height) =>
-                {
-                    var transform = videoSurface.GetComponent<RectTransform>();
-                    if (transform)
-                    {
-                        //If render in RawImage. just set rawImage size.
-                        transform.sizeDelta = new Vector2(width / 2, height / 2);
-                        transform.localScale = videoSourceType == VIDEO_SOURCE_TYPE.VIDEO_SOURCE_SCREEN ? new Vector3(-1, 1, 1) : Vector3.one;
-                    }
-                    else
-                    {
-                        //If render in MeshRenderer, just set localSize with MeshRenderer
-                        float scale = (float)height / (float)width;
-                        videoSurface.transform.localScale = new Vector3(-1, 1, scale);
-                    }
-                    Debug.Log("OnTextureSizeModify: " + width + "  " + height);
-                };
 
                 if (uid == 0 && videoSourceType == VIDEO_SOURCE_TYPE.VIDEO_SOURCE_SCREEN)
                 {
@@ -249,76 +252,6 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 go.transform.Rotate(-90.0f, 0.0f, 0.0f);
                 go.transform.position = Vector3.zero;
                 go.transform.localScale = new Vector3(0.25f, 0.5f, .5f);
-
-                // configure videoSurface
-                var videoSurface = go.AddComponent<VideoSurface>();
-                return videoSurface;
-            }
-
-            // Video TYPE 2: RawImage
-            private static VideoSurface MakeImageSurfaceFromScreenSource(string goName)
-            {
-                var go = new GameObject();
-
-                if (go == null)
-                {
-                    return null;
-                }
-
-                go.name = goName;
-                // to be renderered onto
-                go.AddComponent<RawImage>();
-
-                var canvas = GameObject.Find("ScreenCanvas");
-                if (canvas != null)
-                {
-                    go.transform.parent = canvas.transform;
-                    Debug.Log("add video view");
-                }
-                else
-                {
-                    Debug.Log("Canvas is null video view");
-                }
-
-                // set up transform
-                go.transform.Rotate(0f, 0.0f, 180.0f);
-                go.transform.localPosition = Vector3.zero;
-                go.transform.localScale = new Vector3(3f, 4f, 1f);
-
-                // configure videoSurface
-                var videoSurface = go.AddComponent<VideoSurface>();
-                return videoSurface;
-            }
-
-            // Video TYPE 2: RawImage
-            private static VideoSurface MakeImageSurfaceFromCameraSource(string goName)
-            {
-                var go = new GameObject();
-
-                if (go == null)
-                {
-                    return null;
-                }
-
-                go.name = goName;
-                // to be renderered onto
-                go.AddComponent<RawImage>();
-
-                var canvas = GameObject.Find("WebcamCanvas");
-                if (canvas != null)
-                {
-                    go.transform.parent = canvas.transform;
-                    Debug.Log("add video view");
-                }
-                else
-                {
-                    Debug.Log("Canvas is null video view");
-                }
-
-                // set up transform
-                go.transform.Rotate(0f, 0.0f, 180.0f);
-                go.transform.localPosition = Vector3.zero;
-                go.transform.localScale = new Vector3(3f, 4f, 1f);
 
                 // configure videoSurface
                 var videoSurface = go.AddComponent<VideoSurface>();
