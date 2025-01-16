@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using Agora.Rtc;
 using UnityEngine.Serialization;
@@ -8,7 +6,8 @@ using io.agora.rtc.demo;
 
 namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCall
 {
-    namespace StudentMrCodingTutorUnity {
+    namespace StudentMrCodingTutorUnity
+    {
         public class StudentAgoraScript : MonoBehaviour
         {
             [FormerlySerializedAs("appIdInput")]
@@ -32,9 +31,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
 
             public uint Uid1 = 123;
             public uint Uid2 = 456;
-        
-            private Button _startShareBtn;
-            private Button _stopShareBtn;
+
             private GameObject _redDot;
             private static RectTransform _screenShareRect;
 
@@ -62,7 +59,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 RtcEngine.EnableAudio();
                 RtcEngine.EnableVideo();
                 RtcEngine.SetClientRole(CLIENT_ROLE_TYPE.CLIENT_ROLE_BROADCASTER);
-                
+
                 ChannelMediaOptions options = new ChannelMediaOptions();
                 options.autoSubscribeAudio.SetValue(true);
                 options.autoSubscribeVideo.SetValue(true);
@@ -85,17 +82,17 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 options.publishCameraTrack.SetValue(false);
                 options.publishScreenTrack.SetValue(true);
                 options.enableAudioRecordingOrPlayout.SetValue(false);
-    #if UNITY_ANDROID || UNITY_IPHONE
+#if UNITY_ANDROID || UNITY_IPHONE
                 options.publishScreenCaptureAudio.SetValue(true);
                 options.publishScreenCaptureVideo.SetValue(true);
-    #endif
+#endif
 
-    #if UNITY_EDITOR_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX
+#if UNITY_EDITOR_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX
                 //If you want to share audio when sharing the desktop screen, you need to use this interface.
                 //For details, please refer to the annotation of this interface
                 //ret = RtcEngine.EnableLoopbackRecordingEx(new RtcConnection(_channelName, this.Uid2), true, "");
                 //Debug.Log("EnableLoopbackRecording returns: " + ret);
-    #endif
+#endif
                 options.clientRoleType.SetValue(CLIENT_ROLE_TYPE.CLIENT_ROLE_BROADCASTER);
                 ret = RtcEngine.JoinChannelEx(_token, new RtcConnection(_channelName, this.Uid2), options);
                 Debug.Log("JoinChannelEx returns: " + ret);
@@ -104,26 +101,6 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             private void ScreenShareLeaveChannel()
             {
                 RtcEngine.LeaveChannelEx(new RtcConnection(_channelName, Uid2));
-            }
-
-            private void UpdateChannelMediaOptions()
-            {
-                ChannelMediaOptions options = new ChannelMediaOptions();
-                options.autoSubscribeAudio.SetValue(false);
-                options.autoSubscribeVideo.SetValue(false);
-
-                options.publishCameraTrack.SetValue(false);
-                options.publishScreenTrack.SetValue(true);
-
-    #if UNITY_ANDROID || UNITY_IPHONE
-                options.publishScreenCaptureAudio.SetValue(true);
-                options.publishScreenCaptureVideo.SetValue(true);
-    #endif
-
-                options.clientRoleType.SetValue(CLIENT_ROLE_TYPE.CLIENT_ROLE_BROADCASTER);
-
-                var ret = RtcEngine.UpdateChannelMediaOptions(options);
-                Debug.Log("UpdateChannelMediaOptions returns: " + ret);
             }
 
             private void InitEngine()
@@ -141,32 +118,22 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
 
             private void EnableUI()
             {
-                _startShareBtn = GameObject.Find("startShareBtn").GetComponent<Button>();
-                _stopShareBtn = GameObject.Find("stopShareBtn").GetComponent<Button>();
-                if (_startShareBtn != null) _startShareBtn.onClick.AddListener(OnStartShareBtnClick);
-                if (_stopShareBtn != null)
-                {
-                    _stopShareBtn.onClick.AddListener(OnStopShareBtnClick);
-                    _stopShareBtn.gameObject.SetActive(false);
-                }
+                OnStartShareScreen();
             }
 
-            private void OnStartShareBtnClick()
+            private void OnStartShareScreen()
             {
                 if (RtcEngine == null) return;
 
-                if (_startShareBtn != null) _startShareBtn.gameObject.SetActive(false);
-                if (_stopShareBtn != null) _stopShareBtn.gameObject.SetActive(true);
-        
-    #if UNITY_ANDROID || UNITY_IPHONE
+#if UNITY_ANDROID || UNITY_IPHONE
                 var parameters2 = new ScreenCaptureParameters2();
                 parameters2.captureAudio = true;
                 parameters2.captureVideo = true;
                 var nRet = RtcEngine.StartScreenCapture(parameters2);
-                // Debug.Log.UpdateLog("StartScreenCapture :" + nRet);
-    #else
+                Debug.Log("StartScreenCapture :" + nRet);
+#else
                 RtcEngine.StopScreenCapture();
-                
+
                 SIZE t = new SIZE();
                 t.width = 360;
                 t.height = 240;
@@ -180,16 +147,14 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 var nRet = RtcEngine.StartScreenCaptureByDisplayId(dispId, default(Rectangle),
                     new ScreenCaptureParameters { captureMouseCursor = true, frameRate = 30 });
                 Debug.Log("StartScreenCaptureByDisplayId:" + nRet);
-    #endif
+#endif
 
                 ScreenShareJoinChannel();
             }
 
-            private void OnStopShareBtnClick()
+            private void OnStopShareScreen()
             {
                 ScreenShareLeaveChannel();
-                if (_startShareBtn != null) _startShareBtn.gameObject.SetActive(true);
-                if (_stopShareBtn != null) _stopShareBtn.gameObject.SetActive(false);
                 RtcEngine.StopScreenCapture();
             }
 
@@ -197,6 +162,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             {
                 Debug.Log("OnDestroy");
                 if (RtcEngine == null) return;
+                OnStopShareScreen();
                 RtcEngine.InitEventHandler(null);
                 RtcEngine.LeaveChannel();
                 RtcEngine.Dispose();
@@ -302,7 +268,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 go.name = goName;
                 // to be renderered onto
                 go.AddComponent<RawImage>();
-                
+
                 var canvas = GameObject.Find("ScreenCanvas");
                 if (canvas != null)
                 {

@@ -6,7 +6,7 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 0
-    path: Assets/Scenes/VRStudent.unity
+    path: Assets/Scenes/VRStudent_Old.unity
     guid: 729ff7b6b0f0147109f74cd15d88b585
   - enabled: 0
     path: Assets/Scenes/Teacher.unity
