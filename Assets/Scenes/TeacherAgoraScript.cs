@@ -4,6 +4,7 @@ using Agora.Rtc;
 using io.agora.rtc.demo;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 
@@ -11,7 +12,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
 {
     namespace TeacherMrCodingTutorUnity
     {
-        public class TeacherAgoraScript : MonoBehaviour
+        public class TeacherAgoraScript : MonoBehaviour, IPointerExitHandler
         {
             [FormerlySerializedAs("appIdInput")]
             [SerializeField]
@@ -444,11 +445,38 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                     }
                 }
 
+                // If the mouse button is released or outside canvas bounds, stop streaming
+                StopMouseStreaming();
+            }
+
+            public void OnPointerExit(PointerEventData eventData)
+            {
+                StopMouseStreaming();
+            }
+
+            private void StopMouseStreaming()
+            {
                 if (_isStreamingMouse)
                 {
                     // Send a message to stop streaming the mouse position
                     StreamMessage("-1,-1");
                     _isStreamingMouse = false;
+                }
+            }
+
+            private void OnApplicationFocus(bool hasFocus)
+            {
+                if (!hasFocus)
+                {
+                    StopMouseStreaming();
+                }
+            }
+
+            private void OnApplicationPause(bool isPaused)
+            {
+                if (isPaused)
+                {
+                    StopMouseStreaming();
                 }
             }
 
