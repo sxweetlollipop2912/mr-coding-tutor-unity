@@ -404,6 +404,8 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
 
             #region -- Mouse Position Streaming Logic ---
 
+            private bool _isMouseDown = false; // Explicitly track mouse down state
+
             private void UpdateMousePosition()
             {
                 if (_studentScreen == null)
@@ -411,7 +413,18 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
 
                 RectTransform canvasRect = _studentScreen.GetComponent<RectTransform>();
 
-                if (canvasRect != null && Input.GetMouseButton(0)) // Check if left mouse button is pressed
+                // Track mouse down state
+                if (Input.GetMouseButtonDown(0))
+                {
+                    _isMouseDown = true;
+                }
+                if (Input.GetMouseButtonUp(0))
+                {
+                    _isMouseDown = false;
+                    StopMouseStreaming(); // Ensure stop message is sent on release
+                }
+
+                if (canvasRect != null && _isMouseDown) // Check if the mouse button is pressed
                 {
                     // Get the mouse position in screen space
                     Vector2 screenMousePosition = Input.mousePosition;
@@ -446,11 +459,15 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 }
 
                 // If the mouse button is released or outside canvas bounds, stop streaming
-                StopMouseStreaming();
+                if (_isStreamingMouse)
+                {
+                    StopMouseStreaming();
+                }
             }
 
             public void OnPointerExit(PointerEventData eventData)
             {
+                Debug.Log("Pointer exited the canvas.");
                 StopMouseStreaming();
             }
 
@@ -458,7 +475,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             {
                 if (_isStreamingMouse)
                 {
-                    // Send a message to stop streaming the mouse position
+                    Debug.Log("Sending stop streaming signal (-1,-1).");
                     StreamMessage("-1,-1");
                     _isStreamingMouse = false;
                 }
@@ -468,6 +485,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             {
                 if (!hasFocus)
                 {
+                    Debug.Log("Application lost focus. Stopping mouse streaming.");
                     StopMouseStreaming();
                 }
             }
@@ -476,6 +494,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             {
                 if (isPaused)
                 {
+                    Debug.Log("Application paused. Stopping mouse streaming.");
                     StopMouseStreaming();
                 }
             }
