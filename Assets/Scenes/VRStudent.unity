@@ -11201,6 +11201,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: -8815916660451158452, guid: bb2797487bd96432aaa213a231429791, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: bb2797487bd96432aaa213a231429791, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.005
@@ -11280,6 +11284,10 @@ PrefabInstance:
     - target: {fileID: -7051511630497099704, guid: bb2797487bd96432aaa213a231429791, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: -5354932205223022244, guid: bb2797487bd96432aaa213a231429791, type: 3}
+      propertyPath: m_Enabled
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -5354932205223022244, guid: bb2797487bd96432aaa213a231429791, type: 3}
       propertyPath: m_Materials.Array.data[0]
@@ -16696,8 +16704,8 @@ MonoBehaviour:
   hand: {fileID: 2071365793}
   invisibleDot: {fileID: 2112559518}
   source: {fileID: 341902951}
-  distanceFromDot: 0.1
-  moveSpeed: 5
+  distanceFromDot: 0.15
+  moveSpeed: 10
 --- !u!1 &2112559517
 GameObject:
   m_ObjectHideFlags: 0
