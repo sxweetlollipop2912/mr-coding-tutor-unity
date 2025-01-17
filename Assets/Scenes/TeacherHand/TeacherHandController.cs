@@ -8,7 +8,8 @@ public class TeacherHandController : MonoBehaviour
     public Transform source; // Starting position for the hand
     public float distanceFromDot = 1.0f; // Distance between hand and dot
     public float moveSpeed = 5.0f; // Speed for smooth movement
-    private bool isHandActive = false; // Track if the hand is active
+    private bool isHandActive; // Track if the hand is active
+    private Vector3 startPosition; // Starting position for the hand
 
     private void Start()
     {
@@ -21,13 +22,15 @@ public class TeacherHandController : MonoBehaviour
         }
 
         // Ensure the hand starts as inactive
-        actualHand.gameObject.SetActive(isHandActive);
+        actualHand.gameObject.SetActive(false);
+        isHandActive = false;
+
+        startPosition = source.position;
+        startPosition.y -= 2f;
     }
 
     private void Update()
     {
-        var startPosition = source.position;
-
         // Check if the invisible dot is active
         if (!invisibleDot.gameObject.activeSelf)
         {

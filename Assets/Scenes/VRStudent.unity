@@ -11207,19 +11207,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: bb2797487bd96432aaa213a231429791, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.005
+      value: 0.007
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: bb2797487bd96432aaa213a231429791, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.005
+      value: 0.007
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: bb2797487bd96432aaa213a231429791, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.005
+      value: 0.007
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: bb2797487bd96432aaa213a231429791, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.005
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: bb2797487bd96432aaa213a231429791, type: 3}
       propertyPath: m_LocalPosition.y
@@ -11256,6 +11256,14 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: bb2797487bd96432aaa213a231429791, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7051511630497099704, guid: bb2797487bd96432aaa213a231429791, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7051511630497099704, guid: bb2797487bd96432aaa213a231429791, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -5
       objectReference: {fileID: 0}
     - target: {fileID: -7051511630497099704, guid: bb2797487bd96432aaa213a231429791, type: 3}
       propertyPath: m_LocalRotation.w
@@ -16704,7 +16712,7 @@ MonoBehaviour:
   hand: {fileID: 2071365793}
   invisibleDot: {fileID: 2112559518}
   source: {fileID: 341902951}
-  distanceFromDot: 0.15
+  distanceFromDot: 0.2
   moveSpeed: 10
 --- !u!1 &2112559517
 GameObject:
@@ -16741,7 +16749,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 512, y: 344}
-  m_SizeDelta: {x: 10, y: 10}
+  m_SizeDelta: {x: 5, y: 5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2112559519
 MonoBehaviour:
@@ -16756,7 +16764,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 0, b: 0, a: 1}
+  m_Color: {r: 1, g: 0, b: 0, a: 0.6039216}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1

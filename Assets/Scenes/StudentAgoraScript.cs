@@ -34,7 +34,8 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
 
             public uint Uid1 = 123;
             public uint Uid2 = 456;
-            public static uint UidTeacherWebcam = 321; // TODO
+            public static uint UidTeacherWebcam = 321;
+            private static bool _isTeacherWebcamActive = false;
 
             private static RectTransform _screenShareRect;
 
@@ -231,10 +232,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                         Debug.Log("OnTextureSizeModify: " + width + "  " + height);
                     };
                 }
-                else if (
-                    videoSourceType == VIDEO_SOURCE_TYPE.VIDEO_SOURCE_CAMERA
-                    || uid == UidTeacherWebcam
-                )
+                else if (uid == UidTeacherWebcam)
                 {
                     go = GameObject.Find("TeacherCameraView");
                     videoSurface = go.GetComponent<VideoSurface>();
