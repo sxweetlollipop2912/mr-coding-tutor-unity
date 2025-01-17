@@ -31,6 +31,11 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             [SerializeField]
             private string _channelName = "";
 
+            [SerializeField]
+            private float mouseMessagesPerSecond = 30f;
+
+            private float _lastMouseMessageTime = 0f;
+
             internal IRtcEngineEx RtcEngine = null;
 
             public uint UidWebcam = 321;
@@ -411,9 +416,10 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 if (_studentScreen == null)
                     return;
 
-                RectTransform canvasRect = _studentScreen.GetComponent<RectTransform>();
+                // Only proceed if enough time has passed
+                if (Time.time - _lastMouseMessageTime < 1f / mouseMessagesPerSecond)
+                    return;
 
-                // Track mouse down state
                 if (Input.GetMouseButtonDown(0))
                 {
                     _isMouseDown = true;
@@ -421,44 +427,43 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 if (Input.GetMouseButtonUp(0))
                 {
                     _isMouseDown = false;
-                    StopMouseStreaming(); // Ensure stop message is sent on release
+                    StopMouseStreaming();
                 }
 
-                if (canvasRect != null && _isMouseDown) // Check if the mouse button is pressed
+                if (_isMouseDown)
                 {
-                    // Get the mouse position in screen space
-                    Vector2 screenMousePosition = Input.mousePosition;
-
-                    // Convert the screen position to the Canvas's local space
-                    if (
-                        RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                            canvasRect,
-                            screenMousePosition,
-                            null,
-                            out Vector2 localPoint
-                        )
-                    )
+                    RectTransform canvasRect = _studentScreen.GetComponent<RectTransform>();
+                    if (canvasRect != null)
                     {
-                        // Check if the mouse position is within the bounds of the Canvas
-                        if (IsInsideCanvas(localPoint, canvasRect))
+                        Vector2 screenMousePosition = Input.mousePosition;
+                        if (
+                            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                                canvasRect,
+                                screenMousePosition,
+                                null,
+                                out Vector2 localPoint
+                            )
+                        )
                         {
-                            // Normalize the position relative to the Canvas
-                            float normalizedX =
-                                (localPoint.x + canvasRect.rect.width / 2) / canvasRect.rect.width;
-                            float normalizedY =
-                                (localPoint.y + canvasRect.rect.height / 2)
-                                / canvasRect.rect.height;
+                            if (IsInsideCanvas(localPoint, canvasRect))
+                            {
+                                float normalizedX =
+                                    (localPoint.x + canvasRect.rect.width / 2)
+                                    / canvasRect.rect.width;
+                                float normalizedY =
+                                    (localPoint.y + canvasRect.rect.height / 2)
+                                    / canvasRect.rect.height;
 
-                            // Send the normalized position via Agora data channel
-                            string mouseData = $"{normalizedX},{normalizedY}";
-                            StreamMessage(mouseData);
-                            _isStreamingMouse = true;
-                            return;
+                                string mouseData = $"{normalizedX},{normalizedY}";
+                                StreamMessage(mouseData);
+                                _isStreamingMouse = true;
+                                _lastMouseMessageTime = Time.time; // Mark send time
+                                return;
+                            }
                         }
                     }
                 }
 
-                // If the mouse button is released or outside canvas bounds, stop streaming
                 if (_isStreamingMouse)
                 {
                     StopMouseStreaming();
