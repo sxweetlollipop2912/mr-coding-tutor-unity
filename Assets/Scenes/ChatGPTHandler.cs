@@ -17,31 +17,43 @@ public class ChatGPTHandler : MonoBehaviour
     [SerializeField]
     private TextToSpeechHandler textToSpeechHandler; // Reference to TTS handler
 
-    private string apiKey;
+    private string openaiApiKey;
+    private string systemPrompt;
+    private string openaiApiUrl;
     private List<Message> conversationHistory = new List<Message>(); // Holds stateful conversation history
 
     private void Start()
     {
-        // Path to the configuration file in the Assets folder
-        string configPath = Application.dataPath + "/config.json";
+        LoadConfigs();
+    }
 
-        if (File.Exists(configPath))
+    private void LoadConfigs()
+    {
+        // Ensure ConfigLoader is initialized
+        if (ConfigLoader.Instance != null && ConfigLoader.Instance.ConfigData != null)
         {
-            string json = File.ReadAllText(configPath);
-            Config config = JsonUtility.FromJson<Config>(json);
-            apiKey = config.openai_api_key;
+            var config = ConfigLoader.Instance.ConfigData;
 
-            if (string.IsNullOrEmpty(apiKey))
+            // Fetch API key
+            openaiApiKey = config.openaiApiKey;
+            openaiApiUrl = config.openaiApiUrl;
+
+            if (string.IsNullOrEmpty(openaiApiKey) || string.IsNullOrEmpty(openaiApiUrl))
             {
-                Debug.LogError("API Key is missing in the config file.");
+                Debug.LogError("API Key or API URL is missing in the configuration.");
+                return;
             }
 
-            // Load the system prompt from the file specified in config
-            string systemPromptPath = Path.Combine(Application.dataPath, config.system_prompt_file);
+            // Load the system prompt from the file specified in the config
+            string systemPromptPath = Path.Combine(
+                Application.dataPath,
+                config.systemPromptFilename
+            );
             Debug.Log("Loading system prompt from: " + systemPromptPath);
+
             if (File.Exists(systemPromptPath))
             {
-                string systemPrompt = File.ReadAllText(systemPromptPath);
+                systemPrompt = File.ReadAllText(systemPromptPath);
 
                 if (!string.IsNullOrEmpty(systemPrompt))
                 {
@@ -68,17 +80,8 @@ public class ChatGPTHandler : MonoBehaviour
         }
         else
         {
-            Debug.LogError(
-                "Config file not found in Assets folder. Please create a config.json file."
-            );
+            Debug.LogError("ConfigLoader instance or configuration data is not available.");
         }
-    }
-
-    [System.Serializable]
-    private class Config
-    {
-        public string openai_api_key;
-        public string system_prompt_file; // Path to the system prompt file
     }
 
     // Triggered by the user manually
@@ -115,7 +118,11 @@ public class ChatGPTHandler : MonoBehaviour
 
     private IEnumerator SendPostRequest()
     {
-        string url = "https://api.openai.com/v1/chat/completions";
+        if (string.IsNullOrEmpty(openaiApiKey) || string.IsNullOrEmpty(openaiApiUrl))
+        {
+            Debug.LogError("API Key or API URL is not set.");
+            yield break;
+        }
 
         // Construct the JSON payload for the GPT API
         var payload = new
@@ -130,12 +137,12 @@ public class ChatGPTHandler : MonoBehaviour
         Debug.Log("Request to GPT: " + jsonPayload);
 
         // Configure the UnityWebRequest
-        UnityWebRequest request = new UnityWebRequest(url, "POST");
+        UnityWebRequest request = new UnityWebRequest(openaiApiUrl, "POST");
         byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonPayload);
         request.uploadHandler = new UploadHandlerRaw(bodyRaw);
         request.downloadHandler = new DownloadHandlerBuffer();
         request.SetRequestHeader("Content-Type", "application/json");
-        request.SetRequestHeader("Authorization", $"Bearer {apiKey}");
+        request.SetRequestHeader("Authorization", $"Bearer {openaiApiKey}");
 
         // Send the request
         yield return request.SendWebRequest();

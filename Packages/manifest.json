@@ -2,7 +2,7 @@
   "dependencies": {
     "com.meta.xr.sdk.all": "71.0.0",
     "com.meta.xr.simulator.samples": "66.0.1",
-    "com.readyplayerme.core": "https://github.com/readyplayerme/rpm-unity-sdk-core.git",
+    "com.readyplayerme.core": "7.4.0",
     "com.unity.cloud.gltfast": "6.0.1",
     "com.unity.collab-proxy": "2.5.2",
     "com.unity.feature.development": "1.0.2",
@@ -16,6 +16,7 @@
     "com.unity.xr.management": "4.5.0",
     "com.unity.xr.oculus": "4.3.0",
     "com.unity.xr.openxr": "1.13.0",
+    "com.whisper.unity": "https://github.com/Macoron/whisper.unity.git?path=/Packages/com.whisper.unity",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",
     "com.unity.modules.animation": "1.0.0",
@@ -47,5 +48,14 @@
     "com.unity.modules.vr": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
     "com.unity.modules.xr": "1.0.0"
-  }
+  },
+  "scopedRegistries": [
+    {
+      "name": "package.openupm.com",
+      "url": "https://package.openupm.com",
+      "scopes": [
+        "com.readyplayerme.core"
+      ]
+    }
+  ]
 }
