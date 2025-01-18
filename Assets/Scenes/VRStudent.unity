@@ -2090,7 +2090,7 @@ PrefabInstance:
       objectReference: {fileID: 8934703130449255026}
     - target: {fileID: 4574527821592105551, guid: af3467ecf1a7ab8428e0ef8e746be06a, type: 3}
       propertyPath: _opacity
-      value: 0.4
+      value: 0.2
       objectReference: {fileID: 0}
     - target: {fileID: 4574527821592105551, guid: af3467ecf1a7ab8428e0ef8e746be06a, type: 3}
       propertyPath: handVisual
@@ -2102,7 +2102,7 @@ PrefabInstance:
       objectReference: {fileID: 3597954126852624296}
     - target: {fileID: 4574527821592105551, guid: af3467ecf1a7ab8428e0ef8e746be06a, type: 3}
       propertyPath: _outlineOpacity
-      value: 0.8
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 4574527821592105551, guid: af3467ecf1a7ab8428e0ef8e746be06a, type: 3}
       propertyPath: handMaterialPropertyBlock
@@ -6272,7 +6272,7 @@ Transform:
   m_GameObject: {fileID: 1022876513}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.2, z: 1.7}
+  m_LocalPosition: {x: 0, y: 0.8, z: 1.7}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -14838,7 +14838,7 @@ PrefabInstance:
       objectReference: {fileID: 8934703130449255026}
     - target: {fileID: 4574527821592105551, guid: af3467ecf1a7ab8428e0ef8e746be06a, type: 3}
       propertyPath: _opacity
-      value: 0.4
+      value: 0.2
       objectReference: {fileID: 0}
     - target: {fileID: 4574527821592105551, guid: af3467ecf1a7ab8428e0ef8e746be06a, type: 3}
       propertyPath: handVisual
@@ -14850,7 +14850,7 @@ PrefabInstance:
       objectReference: {fileID: 3597954126852624294}
     - target: {fileID: 4574527821592105551, guid: af3467ecf1a7ab8428e0ef8e746be06a, type: 3}
       propertyPath: _outlineOpacity
-      value: 0.8
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 4574527821592105551, guid: af3467ecf1a7ab8428e0ef8e746be06a, type: 3}
       propertyPath: handMaterialPropertyBlock
