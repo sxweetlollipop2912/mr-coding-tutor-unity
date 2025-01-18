@@ -2089,6 +2089,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 8934703130449255026}
     - target: {fileID: 4574527821592105551, guid: af3467ecf1a7ab8428e0ef8e746be06a, type: 3}
+      propertyPath: _opacity
+      value: 0.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 4574527821592105551, guid: af3467ecf1a7ab8428e0ef8e746be06a, type: 3}
       propertyPath: handVisual
       value: 
       objectReference: {fileID: 3597954126852624296}
@@ -2096,6 +2100,10 @@ PrefabInstance:
       propertyPath: _handVisual
       value: 
       objectReference: {fileID: 3597954126852624296}
+    - target: {fileID: 4574527821592105551, guid: af3467ecf1a7ab8428e0ef8e746be06a, type: 3}
+      propertyPath: _outlineOpacity
+      value: 0.8
+      objectReference: {fileID: 0}
     - target: {fileID: 4574527821592105551, guid: af3467ecf1a7ab8428e0ef8e746be06a, type: 3}
       propertyPath: handMaterialPropertyBlock
       value: 
@@ -14829,6 +14837,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 8934703130449255026}
     - target: {fileID: 4574527821592105551, guid: af3467ecf1a7ab8428e0ef8e746be06a, type: 3}
+      propertyPath: _opacity
+      value: 0.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 4574527821592105551, guid: af3467ecf1a7ab8428e0ef8e746be06a, type: 3}
       propertyPath: handVisual
       value: 
       objectReference: {fileID: 3597954126852624294}
@@ -14836,6 +14848,10 @@ PrefabInstance:
       propertyPath: _handVisual
       value: 
       objectReference: {fileID: 3597954126852624294}
+    - target: {fileID: 4574527821592105551, guid: af3467ecf1a7ab8428e0ef8e746be06a, type: 3}
+      propertyPath: _outlineOpacity
+      value: 0.8
+      objectReference: {fileID: 0}
     - target: {fileID: 4574527821592105551, guid: af3467ecf1a7ab8428e0ef8e746be06a, type: 3}
       propertyPath: handMaterialPropertyBlock
       value: 
