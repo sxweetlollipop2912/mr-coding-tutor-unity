@@ -11,9 +11,12 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/Teacher.unity
     guid: 5a991fcb56f1a49e0b29ab4b3e5975a5
-  - enabled: 1
+  - enabled: 0
     path: Assets/Samples/Meta MR Utility Kit/71.0.0/Passthrough Relighting/PassthroughRelighting.unity
     guid: 36246cc1dd7f015428dc705da9e4497e
+  - enabled: 1
+    path: Assets/Scenes/VRStudent.unity
+    guid: 0b4b3ef32dbc64f5987acbcc50219975
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: 3768cd375894c463b9f1c3bc009a6c4a, type: 2}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 92111c013065f4625996c4cc71b155ea, type: 2}
