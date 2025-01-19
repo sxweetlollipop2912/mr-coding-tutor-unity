@@ -142,7 +142,7 @@ namespace HyperDesktopDuplication {
                   // IMPORTANT: masks only affect RGB, not A
                   if (andMask != 0 && xorMask != 0) {
                     // if AND and XOR: (any AND 1) XOR 1 => invert any, this shouldn't happen
-                    Logger.Log("AND and XOR: any xor 1 == invert, this shouldn't happen");
+                    // Logger.Log("AND and XOR: any xor 1 == invert, this shouldn't happen");
                   } else if (andMask != 0 && xorMask == 0) {
                     // if AND and not XOR: (any AND 1) XOR 0 => any, transparent
                     textureBuffer[i * 4] = 0; // just set alpha to 0
