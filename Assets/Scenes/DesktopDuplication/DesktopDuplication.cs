@@ -203,6 +203,20 @@ public class DesktopDuplication : MonoBehaviour
         // Root UI
         GameObject monitorUI = new GameObject($"MonitorUI_{monitorIndex}");
         monitorUI.transform.SetParent(monitorCanvas.transform, false);
+        monitorUI.transform.SetSiblingIndex(0);
+
+        Debug.Log(
+            string.Format(
+                "Monitor {0}: {1}x{2} @ {3},{4} to {5},{6}",
+                monitorIndex,
+                info.PixelWidth,
+                info.PixelHeight,
+                info.Left,
+                info.Top,
+                info.Right,
+                info.Bottom
+            )
+        );
 
         RectTransform rt = monitorUI.AddComponent<RectTransform>();
         rt.pivot = new Vector2(0.5f, 0.5f);
@@ -211,6 +225,13 @@ public class DesktopDuplication : MonoBehaviour
         float monitorWidth = (info.Right - info.Left) / scale;
         float monitorHeight = (info.Bottom - info.Top) / scale;
         rt.sizeDelta = new Vector2(monitorWidth, monitorHeight);
+
+        var canvasRt = monitorCanvas.GetComponent<RectTransform>();
+        canvasRt.sizeDelta = new Vector2(monitorWidth, monitorHeight);
+        var scaleFactor = 0.0015f * (1200f / (float)monitorWidth);
+        canvasRt.localScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
+
+        Debug.Log($"Canvas size: {canvasRt.sizeDelta} scale: {canvasRt.localScale}");
 
         // Desktop RawImage
         GameObject desktopGO = new GameObject("DesktopRawImage");
