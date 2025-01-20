@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using HyperDesktopDuplication;
 using UnityEngine;
 using UnityEngine.UI;
@@ -184,6 +185,23 @@ public class DesktopDuplication : MonoBehaviour
                 data.mouseUI.rectTransform.anchoredPosition = anchoredPos;
             }
         }
+
+        // if (Time.timeSinceLevelLoad >= 10f && !exported)
+        // {
+        //     try
+        //     {
+        //         SaveDesktopToPNG(
+        //             GameObject.Find("DesktopRawImage").GetComponent<RawImage>(),
+        //             "D:\\mr-coding-tutor-unity\\mouse.png"
+        //         );
+        //         exported = true;
+        //         Debug.Log("Exported desktop to PNG");
+        //     }
+        //     catch (System.Exception e)
+        //     {
+        //         Debug.LogError($"Error exporting desktop: {e}");
+        //     }
+        // }
     }
 
     /// <summary>
@@ -295,5 +313,93 @@ public class DesktopDuplication : MonoBehaviour
             pixelWidth = (int)info.PixelWidth,
             pixelHeight = (int)info.PixelHeight,
         };
+    }
+
+    // using System.IO;
+
+    public void SaveDesktopToPNG(RawImage desktopRawImage, string filePath)
+    {
+        var srcTexture = desktopRawImage.texture;
+        if (srcTexture == null)
+        {
+            Debug.LogWarning($"ExportDesktopToPNG: Desktop texture is null");
+            return;
+        }
+
+        RenderTexture prevRT = RenderTexture.active;
+        Texture2D exportTex = null;
+
+        // --- 1) Read pixels from the source texture ---
+        if (srcTexture is RenderTexture rt)
+        {
+            // RenderTexture case (most common in Desktop Duplication)
+            RenderTexture.active = rt;
+
+            exportTex = new Texture2D(rt.width, rt.height, TextureFormat.ARGB32, false);
+            exportTex.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
+            exportTex.Apply();
+        }
+        else if (srcTexture is Texture2D tex2D)
+        {
+            // Direct Texture2D copy if it's marked readable
+            try
+            {
+                exportTex = new Texture2D(tex2D.width, tex2D.height, TextureFormat.ARGB32, false);
+                exportTex.SetPixels(tex2D.GetPixels());
+                exportTex.Apply();
+            }
+            catch
+            {
+                Debug.LogWarning(
+                    "ExportDesktopToPNG: Could not copy pixels from Texture2D. "
+                        + "Make sure it is marked 'readable'."
+                );
+                return;
+            }
+        }
+        else
+        {
+            Debug.LogWarning(
+                "ExportDesktopToPNG: Unknown texture type. Expected RenderTexture or Texture2D."
+            );
+            return;
+        }
+
+        RenderTexture.active = prevRT; // restore
+
+        // --- 2) Flip vertically to match normal top-down orientation ---
+        FlipTextureVertically(exportTex);
+
+        // --- 3) Encode to PNG and save ---
+        byte[] pngData = exportTex.EncodeToPNG();
+        try
+        {
+            File.WriteAllBytes(filePath, pngData);
+            Debug.Log($"ExportDesktopToPNG: Saved desktop to '{filePath}'.");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"ExportDesktopToPNG: Failed to write file. {e}");
+        }
+    }
+
+    /// <summary>
+    /// Flips a Texture2D top-to-bottom in place.
+    /// </summary>
+    private void FlipTextureVertically(Texture2D source)
+    {
+        int w = source.width;
+        int h = source.height;
+
+        // Swap rows: row i with row (h - i - 1)
+        for (int y = 0; y < h / 2; y++)
+        {
+            var topRow = source.GetPixels(0, h - 1 - y, w, 1);
+            var bottomRow = source.GetPixels(0, y, w, 1);
+
+            source.SetPixels(0, y, w, 1, topRow);
+            source.SetPixels(0, h - 1 - y, w, 1, bottomRow);
+        }
+        source.Apply();
     }
 }
