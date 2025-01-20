@@ -51,6 +51,9 @@ namespace HyperDesktopDuplication
             monitor.transform.parent = this.transform;
             monitor.gameObject.name = $"Monitor {id}";
             monitor.GetComponent<HDD_Monitor>().Setup(this.client, id, info, this.filenamePrefix);
+            var mesh = monitor.GetComponent<Renderer>();
+            var c = mesh.material.color;
+            mesh.material.color = new Color(c.r, c.g, c.b, 0f);
             return monitor;
         }
 
