@@ -263,7 +263,7 @@ public class DesktopDuplication : MonoBehaviour
         mouseGO.transform.SetParent(monitorUI.transform, false);
 
         RectTransform mouseRT = mouseGO.AddComponent<RectTransform>();
-        mouseRT.sizeDelta = new Vector2(20, 20);
+        mouseRT.sizeDelta = new Vector2(0, 0);
         mouseRT.anchoredPosition = Vector2.zero;
         mouseRT.pivot = new Vector2(0.5f, 0.5f);
 
