@@ -47,7 +47,7 @@ public class ConfigLoader : MonoBehaviour
 
     private void LoadConfig()
     {
-        string filePath = Path.Combine(Application.dataPath, configFileName);
+        string filePath = Path.Combine(Application.streamingAssetsPath, configFileName);
 
         if (!File.Exists(filePath))
         {

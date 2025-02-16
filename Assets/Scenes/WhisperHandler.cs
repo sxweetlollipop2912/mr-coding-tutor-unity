@@ -26,7 +26,7 @@ public class WhisperHandler : MonoBehaviour
 
             // Fetch server URL and output file path from ConfigLoader
             whisperServerUrl = config.whisperServerUrl;
-            outputFilePath = Path.Combine(Application.dataPath, config.whisperOutputFilename);
+            outputFilePath = Path.Combine(Application.streamingAssetsPath, config.whisperOutputFilename);
 
             if (string.IsNullOrEmpty(whisperServerUrl))
             {
