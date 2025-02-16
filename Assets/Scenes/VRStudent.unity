@@ -6387,6 +6387,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HDD_Manager
       objectReference: {fileID: 0}
+    - target: {fileID: 1297483303408520549, guid: ab31a55396bc81c4ca6dcec5dd0ef56b, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1297483303408520551, guid: ab31a55396bc81c4ca6dcec5dd0ef56b, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -7111,6 +7115,10 @@ PrefabInstance:
     - target: {fileID: 698551298687156398, guid: d4ea6a0a3bc325444a4f332171438fcd, type: 3}
       propertyPath: m_Layer
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 698551298687156398, guid: d4ea6a0a3bc325444a4f332171438fcd, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 756230862501766798, guid: d4ea6a0a3bc325444a4f332171438fcd, type: 3}
       propertyPath: m_AnchorMax.y
