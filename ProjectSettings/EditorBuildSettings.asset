@@ -6,13 +6,13 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 0
-    path: Assets/Scenes/Teacher.unity
+    path: Assets/Scenes/Teacher/Teacher.unity
     guid: 5a991fcb56f1a49e0b29ab4b3e5975a5
   - enabled: 1
-    path: Assets/Scenes/VRStudent.unity
+    path: Assets/Scenes/CoreScenes/VRStudent.unity
     guid: 0b4b3ef32dbc64f5987acbcc50219975
   - enabled: 0
-    path: Assets/Scenes/VRAI.unity
+    path: Assets/Scenes/CoreScenes/VRAI.unity
     guid: f7d5fdebe6c91493cb6ac719279c1a98
   - enabled: 0
     path: Assets/Scenes/DesktopDuplication/TestDesktopDuplication.unity
