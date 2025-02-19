@@ -2221,6 +2221,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   chatGPTHandler: {fileID: 1596424456}
+  desktopDuplication: {fileID: 0}
 --- !u!4 &1621113235
 Transform:
   m_ObjectHideFlags: 0
