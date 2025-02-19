@@ -36,7 +36,7 @@ public class XRInputHandler : MonoBehaviour
         {
             // Just as an example:
             // Set some test text directly and send it to ChatGPT.
-            chatGPTHandler.SetInputAndSend("Hello from the XR controller!");
+            chatGPTHandler.SendTextAndImageToGPT("Hello! This is a test message.", null);
         }
 
         // Example: Press X (OVRInput.Button.Three) to test TTS quickly.

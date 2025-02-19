@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.IO;
 using UnityEngine;
@@ -11,6 +12,9 @@ public class WhisperHandler : MonoBehaviour
 
     [SerializeField]
     private ChatGPTHandler chatGPTHandler; // Reference to ChatGPTHandler
+
+    [SerializeField]
+    private DesktopDuplication desktopDuplication; // Reference to DesktopDuplication
 
     private void Start()
     {
@@ -26,7 +30,10 @@ public class WhisperHandler : MonoBehaviour
 
             // Fetch server URL and output file path from ConfigLoader
             whisperServerUrl = config.whisperServerUrl;
-            outputFilePath = Path.Combine(Application.streamingAssetsPath, config.whisperOutputFilename);
+            outputFilePath = Path.Combine(
+                Application.streamingAssetsPath,
+                config.whisperOutputFilename
+            );
 
             if (string.IsNullOrEmpty(whisperServerUrl))
             {
@@ -109,7 +116,10 @@ public class WhisperHandler : MonoBehaviour
             if (!string.IsNullOrEmpty(transcription))
             {
                 Debug.Log("Transcription received: " + transcription);
-                chatGPTHandler.SetInputAndSend(transcription);
+
+                // Capture screen and send to ChatGPT
+                string base64Image = CaptureScreenToBase64();
+                chatGPTHandler.SendTextAndImageToGPT(transcription, base64Image);
             }
             else
             {
@@ -131,9 +141,9 @@ public class WhisperHandler : MonoBehaviour
             var whisperResponse = JsonUtility.FromJson<WhisperResponse>(jsonResponse);
             return whisperResponse.transcription;
         }
-        catch
+        catch (Exception e)
         {
-            Debug.LogError("Failed to parse Whisper response.");
+            Debug.LogError("Failed to parse Whisper response: " + e.Message);
             return null;
         }
     }
@@ -207,5 +217,35 @@ public class WhisperHandler : MonoBehaviour
         fileStream.Write(System.BitConverter.GetBytes(fileSize - 36), 0, 4); // Subchunk2 Size
 
         Debug.Log("WAV header written successfully.");
+    }
+
+    private string CaptureScreenToBase64()
+    {
+        if (desktopDuplication == null)
+        {
+            Debug.LogError("DesktopDuplication reference is not set in WhisperHandler!");
+            return null;
+        }
+
+        // Capture the screen using DesktopDuplication
+        Texture2D screenTexture = desktopDuplication.CaptureScreen();
+
+        if (screenTexture == null)
+        {
+            Debug.LogError("Failed to capture screen from DesktopDuplication!");
+            return null;
+        }
+
+        // Convert the texture to PNG bytes
+        byte[] pngBytes = screenTexture.EncodeToPNG();
+
+        // Destroy the temporary texture
+        Destroy(screenTexture);
+
+        // Convert the PNG bytes to a Base64 string
+        string base64String = Convert.ToBase64String(pngBytes);
+
+        Debug.Log("Screen captured and converted to Base64 string.");
+        return base64String;
     }
 }

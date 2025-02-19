@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using HyperDesktopDuplication;
@@ -185,23 +186,6 @@ public class DesktopDuplication : MonoBehaviour
                 data.mouseUI.rectTransform.anchoredPosition = anchoredPos;
             }
         }
-
-        // if (Time.timeSinceLevelLoad >= 10f && !exported)
-        // {
-        //     try
-        //     {
-        //         SaveDesktopToPNG(
-        //             GameObject.Find("DesktopRawImage").GetComponent<RawImage>(),
-        //             "D:\\mr-coding-tutor-unity\\mouse.png"
-        //         );
-        //         exported = true;
-        //         Debug.Log("Exported desktop to PNG");
-        //     }
-        //     catch (System.Exception e)
-        //     {
-        //         Debug.LogError($"Error exporting desktop: {e}");
-        //     }
-        // }
     }
 
     /// <summary>
@@ -315,17 +299,20 @@ public class DesktopDuplication : MonoBehaviour
         };
     }
 
-    // using System.IO;
-
-    public void SaveDesktopToPNG(RawImage desktopRawImage, string filePath)
+    /// <summary>
+    /// Captures the screen from the desktop RawImage and returns a Texture2D.
+    /// </summary>
+    public Texture2D CaptureScreen()
     {
-        var srcTexture = desktopRawImage.texture;
-        if (srcTexture == null)
+        // Find the RawImage displaying the desktop
+        RawImage desktopRawImage = GameObject.Find("DesktopRawImage")?.GetComponent<RawImage>();
+        if (desktopRawImage == null || desktopRawImage.texture == null)
         {
-            Debug.LogWarning($"ExportDesktopToPNG: Desktop texture is null");
-            return;
+            Debug.LogError("Desktop RawImage not found or texture is null!");
+            return null;
         }
 
+        Texture srcTexture = desktopRawImage.texture;
         RenderTexture prevRT = RenderTexture.active;
         Texture2D exportTex = null;
 
@@ -348,38 +335,83 @@ public class DesktopDuplication : MonoBehaviour
                 exportTex.SetPixels(tex2D.GetPixels());
                 exportTex.Apply();
             }
-            catch
+            catch (System.Exception e)
             {
                 Debug.LogWarning(
-                    "ExportDesktopToPNG: Could not copy pixels from Texture2D. "
+                    "CaptureScreen: Could not copy pixels from Texture2D. "
                         + "Make sure it is marked 'readable'."
                 );
-                return;
+                return null;
             }
         }
         else
         {
             Debug.LogWarning(
-                "ExportDesktopToPNG: Unknown texture type. Expected RenderTexture or Texture2D."
+                "CaptureScreen: Unknown texture type. Expected RenderTexture or Texture2D."
             );
-            return;
+            return null;
         }
 
         RenderTexture.active = prevRT; // restore
 
         // --- 2) Flip vertically to match normal top-down orientation ---
         FlipTextureVertically(exportTex);
+        return exportTex;
+    }
 
-        // --- 3) Encode to PNG and save ---
-        byte[] pngData = exportTex.EncodeToPNG();
+    /// <summary>
+    /// Captures the screen and saves it to a PNG file.
+    /// If filePath is null, it only returns the byte array.
+    /// </summary>
+    public byte[] CaptureScreenToPNG(string filePath = null)
+    {
+        Texture2D capturedTexture = CaptureScreen();
+        if (capturedTexture == null)
+        {
+            Debug.LogError("CaptureScreenToPNG: Failed to capture screen.");
+            return null;
+        }
+
+        byte[] pngData = capturedTexture.EncodeToPNG();
+        DestroyImmediate(capturedTexture); // Clean up
+
+        if (!string.IsNullOrEmpty(filePath))
+        {
+            try
+            {
+                File.WriteAllBytes(filePath, pngData);
+                Debug.Log($"CaptureScreenToPNG: Saved desktop to '{filePath}'.");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"CaptureScreenToPNG: Failed to write file. {e}");
+                return null;
+            }
+        }
+
+        return pngData;
+    }
+
+    /// <summary>
+    /// Captures the screen and returns a Base64 encoded string of the PNG data.
+    /// </summary>
+    public string CaptureScreenToBase64()
+    {
+        byte[] pngData = CaptureScreenToPNG();
+        if (pngData == null)
+        {
+            Debug.LogError("CaptureScreenToBase64: Failed to capture screen or encode to PNG.");
+            return null;
+        }
+
         try
         {
-            File.WriteAllBytes(filePath, pngData);
-            Debug.Log($"ExportDesktopToPNG: Saved desktop to '{filePath}'.");
+            return Convert.ToBase64String(pngData);
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
-            Debug.LogError($"ExportDesktopToPNG: Failed to write file. {e}");
+            Debug.LogError($"CaptureScreenToBase64: Failed to convert to Base64. {e}");
+            return null;
         }
     }
 

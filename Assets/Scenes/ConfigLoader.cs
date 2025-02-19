@@ -1,26 +1,20 @@
+using System;
 using System.IO;
-using Newtonsoft.Json; // Make sure Newtonsoft.Json is installed via Unity Package Manager
+using System.Reflection;
+using Newtonsoft.Json;
 using UnityEngine;
 
 [System.Serializable]
 public class AppConfig
 {
     public string systemPromptFilename { get; set; }
-
     public string ffmpegPath { get; set; }
-
     public string imageServerUrl { get; set; }
-
     public string openaiApiKey { get; set; }
-
     public string openaiApiUrl { get; set; }
-
     public string ttsServerUrl { get; set; }
-
     public string whisperServerUrl { get; set; }
-
     public string ttsOutputFilename { get; set; }
-
     public string whisperOutputFilename { get; set; }
 }
 
@@ -33,7 +27,6 @@ public class ConfigLoader : MonoBehaviour
 
     private void Awake()
     {
-        // Singleton pattern
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -60,17 +53,54 @@ public class ConfigLoader : MonoBehaviour
             string jsonContent = File.ReadAllText(filePath);
             ConfigData = JsonConvert.DeserializeObject<AppConfig>(jsonContent);
 
-            Debug.Log("Configuration loaded successfully.");
-            Debug.Log($"System Prompt Filename: {ConfigData.systemPromptFilename}");
-            Debug.Log($"FFmpeg Path: {ConfigData.ffmpegPath}");
-            Debug.Log($"Image Server URL: {ConfigData.imageServerUrl}");
-            Debug.Log($"OpenAI API Key: {ConfigData.openaiApiKey}");
-            Debug.Log($"OpenAI API URL: {ConfigData.openaiApiUrl}");
-            Debug.Log($"TTS Server URL: {ConfigData.ttsServerUrl}");
+            if (ConfigData != null)
+            {
+                if (ValidateConfigData(ConfigData))
+                {
+                    Debug.Log("Configuration loaded successfully.");
+                    LogConfigData(ConfigData);
+                }
+                else
+                {
+                    ConfigData = null;
+                }
+            }
+            else
+            {
+                Debug.LogError("Failed to deserialize configuration data.");
+            }
         }
-        catch (System.Exception ex)
+        catch (Exception ex)
         {
             Debug.LogError($"Error loading configuration: {ex.Message}");
+        }
+    }
+
+    private bool ValidateConfigData(AppConfig config)
+    {
+        bool isValid = true;
+
+        foreach (PropertyInfo property in typeof(AppConfig).GetProperties())
+        {
+            if (property.PropertyType == typeof(string))
+            {
+                string value = (string)property.GetValue(config);
+                if (string.IsNullOrEmpty(value))
+                {
+                    Debug.LogError($"{property.Name} is missing in the configuration.");
+                    isValid = false;
+                }
+            }
+        }
+
+        return isValid;
+    }
+
+    private void LogConfigData(AppConfig config)
+    {
+        foreach (PropertyInfo property in typeof(AppConfig).GetProperties())
+        {
+            Debug.Log($"{property.Name}: {property.GetValue(config)}");
         }
     }
 }
