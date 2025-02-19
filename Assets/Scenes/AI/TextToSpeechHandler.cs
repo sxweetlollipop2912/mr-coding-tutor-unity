@@ -23,7 +23,10 @@ public class TextToSpeechHandler : MonoBehaviour
             var config = ConfigLoader.Instance.ConfigData;
 
             ttsServerUrl = config.ttsServerUrl;
-            outputFilePath = Path.Combine(Application.streamingAssetsPath, config.ttsOutputFilename);
+            outputFilePath = Path.Combine(
+                Application.streamingAssetsPath,
+                config.ttsOutputFilename
+            );
 
             if (string.IsNullOrEmpty(ttsServerUrl))
             {
