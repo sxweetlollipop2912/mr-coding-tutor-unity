@@ -6,7 +6,7 @@ public class XRInputHandler : MonoBehaviour
     private WhisperHandler whisperHandler;
 
     [SerializeField]
-    private ChatGPTHandler chatGPTHandler;
+    private GPTHandler chatGPTHandler;
 
     [SerializeField]
     private TextToSpeechHandler textToSpeechHandler;

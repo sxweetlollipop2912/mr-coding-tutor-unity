@@ -11,10 +11,10 @@ public class WhisperHandler : MonoBehaviour
     private string outputFilePath;
 
     [SerializeField]
-    private ChatGPTHandler chatGPTHandler; // Reference to ChatGPTHandler
+    private GPTHandler GPTHandler;
 
     [SerializeField]
-    private DesktopDuplication desktopDuplication; // Reference to DesktopDuplication
+    private DesktopDuplication desktopDuplication;
 
     private void Start()
     {
@@ -23,37 +23,18 @@ public class WhisperHandler : MonoBehaviour
 
     private void LoadConfigs()
     {
-        // Ensure ConfigLoader is initialized
-        if (ConfigLoader.Instance != null && ConfigLoader.Instance.ConfigData != null)
-        {
-            var config = ConfigLoader.Instance.ConfigData;
-
-            // Fetch server URL and output file path from ConfigLoader
-            whisperServerUrl = config.whisperServerUrl;
-            outputFilePath = Path.Combine(
-                Application.streamingAssetsPath,
-                config.whisperOutputFilename
-            );
-
-            if (string.IsNullOrEmpty(whisperServerUrl))
-            {
-                Debug.LogError("Whisper server URL is missing in the configuration.");
-                return;
-            }
-
-            if (string.IsNullOrEmpty(outputFilePath))
-            {
-                Debug.LogError("Whisper output file path is missing in the configuration.");
-                return;
-            }
-
-            Debug.Log("Whisper server URL loaded: " + whisperServerUrl);
-            Debug.Log("Whisper output file path loaded: " + outputFilePath);
-        }
-        else
+        var config = ConfigLoader.Instance?.ConfigData;
+        if (config == null)
         {
             Debug.LogError("ConfigLoader instance or configuration data is not available.");
+            return;
         }
+
+        whisperServerUrl = config.whisperServerUrl;
+        outputFilePath = Path.Combine(
+            Application.streamingAssetsPath,
+            config.whisperOutputFilename
+        );
     }
 
     public void StartRecording()
@@ -119,7 +100,7 @@ public class WhisperHandler : MonoBehaviour
 
                 // Capture screen and send to ChatGPT
                 string base64Image = CaptureScreenToBase64();
-                chatGPTHandler.SendTextAndImageToGPT(transcription, base64Image);
+                GPTHandler.SendTextAndImageToGPT(transcription, base64Image);
             }
             else
             {

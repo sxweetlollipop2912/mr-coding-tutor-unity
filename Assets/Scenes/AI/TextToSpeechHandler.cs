@@ -17,36 +17,15 @@ public class TextToSpeechHandler : MonoBehaviour
 
     private void LoadConfigs()
     {
-        // Fetch the TTS server URL and output file path from the ConfigLoader
-        if (ConfigLoader.Instance != null && ConfigLoader.Instance.ConfigData != null)
-        {
-            var config = ConfigLoader.Instance.ConfigData;
-
-            ttsServerUrl = config.ttsServerUrl;
-            outputFilePath = Path.Combine(
-                Application.streamingAssetsPath,
-                config.ttsOutputFilename
-            );
-
-            if (string.IsNullOrEmpty(ttsServerUrl))
-            {
-                Debug.LogError("TTS server URL is missing in the configuration.");
-                return;
-            }
-
-            if (string.IsNullOrEmpty(outputFilePath))
-            {
-                Debug.LogError("TTS output file path is missing in the configuration.");
-                return;
-            }
-
-            Debug.Log("TTS Server URL loaded: " + ttsServerUrl);
-            Debug.Log("TTS Output File Path loaded: " + outputFilePath);
-        }
-        else
+        var config = ConfigLoader.Instance?.ConfigData;
+        if (config == null)
         {
             Debug.LogError("ConfigLoader instance or configuration data is not available.");
+            return;
         }
+
+        ttsServerUrl = config.ttsServerUrl;
+        outputFilePath = Path.Combine(Application.streamingAssetsPath, config.ttsOutputFilename);
     }
 
     public void SpeakText(string text)

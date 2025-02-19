@@ -8,14 +8,13 @@ using UnityEngine;
 public class AppConfig
 {
     public string systemPromptFilename { get; set; }
-    public string ffmpegPath { get; set; }
-    public string imageServerUrl { get; set; }
     public string openaiApiKey { get; set; }
     public string openaiApiUrl { get; set; }
     public string ttsServerUrl { get; set; }
-    public string whisperServerUrl { get; set; }
     public string ttsOutputFilename { get; set; }
+    public string whisperServerUrl { get; set; }
     public string whisperOutputFilename { get; set; }
+    public string gptResponseFormatFilename { get; set; }
 }
 
 public class ConfigLoader : MonoBehaviour

@@ -1,0 +1,51 @@
+{
+    "name": "ai_tutor_response",
+    "strict": true,
+    "schema": {
+        "type": "object",
+        "properties": {
+            "pointed_at": {
+                "type": "object",
+                "properties": {
+                    "part": {
+                        "type": "string",
+                        "description": "Describes which portion of the scene is being pointed at.",
+                        "enum": [
+                            "top",
+                            "upper-middle",
+                            "lower-middle",
+                            "bottom"
+                        ]
+                    },
+                    "coordinates": {
+                        "type": "object",
+                        "properties": {
+                            "x": {
+                                "type": "number",
+                                "description": "The X coordinate of the point being highlighted."
+                            },
+                            "y": {
+                                "type": "number",
+                                "description": "The Y coordinate of the point being highlighted."
+                            }
+                        },
+                        "required": ["x", "y"],
+                        "additionalProperties": false
+                    }
+                },
+                "required": ["part", "coordinates"],
+                "additionalProperties": false
+            },
+            "voice_response": {
+                "type": "string",
+                "description": "The verbal response from the AI tutor, which can be used for text-to-speech, with all response formatted in plaintext, no markdown."
+            },
+            "text_summary": {
+                "type": "string",
+                "description": "A text summary that aids the user in understanding the voice response, with all response formatted in plaintext, no markdown."
+            }
+        },
+        "required": ["pointed_at", "voice_response", "text_summary"],
+        "additionalProperties": false
+    }
+}

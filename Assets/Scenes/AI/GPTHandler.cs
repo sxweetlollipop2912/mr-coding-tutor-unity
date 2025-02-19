@@ -1,12 +1,15 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using ReadyPlayerMe.Core.Editor;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
 
-public class ChatGPTHandler : MonoBehaviour
+public class GPTHandler : MonoBehaviour
 {
     [SerializeField]
     private TMP_InputField userInputField;
@@ -28,6 +31,12 @@ public class ChatGPTHandler : MonoBehaviour
     private const float TOP_P = 1f;
     private const float FREQUENCY_PENALTY = 0f;
     private const float PRESENCE_PENALTY = 0f;
+    private const string MODEL = "gpt-4o";
+
+    private bool configsLoaded = false;
+    public bool ConfigsLoaded => configsLoaded;
+
+    private string responseFormatJson; // Store the loaded response format as JSON
 
     private void Start()
     {
@@ -36,62 +45,56 @@ public class ChatGPTHandler : MonoBehaviour
 
     private void LoadConfigs()
     {
-        if (ConfigLoader.Instance != null && ConfigLoader.Instance.ConfigData != null)
-        {
-            var config = ConfigLoader.Instance.ConfigData;
-
-            openaiApiKey = config.openaiApiKey;
-            openaiApiUrl = config.openaiApiUrl;
-
-            if (string.IsNullOrEmpty(openaiApiKey) || string.IsNullOrEmpty(openaiApiUrl))
-            {
-                Debug.LogError("API Key or API URL is missing in the configuration.");
-                return;
-            }
-
-            string systemPromptPath = Path.Combine(
-                Application.streamingAssetsPath,
-                config.systemPromptFilename
-            );
-            Debug.Log("Loading system prompt from: " + systemPromptPath);
-
-            if (File.Exists(systemPromptPath))
-            {
-                systemPrompt = File.ReadAllText(systemPromptPath);
-
-                if (!string.IsNullOrEmpty(systemPrompt))
-                {
-                    Debug.Log("System prompt successfully loaded from: " + systemPromptPath);
-
-                    if (conversationHistory.Count == 0)
-                    {
-                        conversationHistory.Add(
-                            new ChatMessage
-                            {
-                                role = "system",
-                                content = new List<ContentItem>
-                                {
-                                    new ContentItem { type = "text", text = systemPrompt },
-                                },
-                            }
-                        );
-                        Debug.Log("System prompt added to conversation history: " + systemPrompt);
-                    }
-                }
-                else
-                {
-                    Debug.LogError("System prompt file is empty.");
-                }
-            }
-            else
-            {
-                Debug.LogError("System prompt file not found: " + systemPromptPath);
-            }
-        }
-        else
+        var config = ConfigLoader.Instance?.ConfigData;
+        if (config == null)
         {
             Debug.LogError("ConfigLoader instance or configuration data is not available.");
+            return;
         }
+
+        openaiApiKey = config.openaiApiKey;
+        openaiApiUrl = config.openaiApiUrl;
+        systemPrompt = LoadSystemPrompt(config.systemPromptFilename);
+        responseFormatJson = LoadResponseFormatJson(config.gptResponseFormatFilename);
+
+        Debug.Log("API Key: " + openaiApiKey);
+        Debug.Log("API URL: " + openaiApiUrl);
+        Debug.Log("System prompt loaded: " + systemPrompt);
+        Debug.Log("Response format loaded: " + responseFormatJson);
+
+        configsLoaded = true;
+    }
+
+    private string LoadSystemPrompt(string systemPromptFilename)
+    {
+        string systemPromptPath = Path.Combine(
+            Application.streamingAssetsPath,
+            systemPromptFilename
+        );
+
+        if (!File.Exists(systemPromptPath))
+        {
+            Debug.LogError("System prompt file not found: " + systemPromptPath);
+            return null;
+        }
+
+        return File.ReadAllText(systemPromptPath);
+    }
+
+    private string LoadResponseFormatJson(string responseFormatFilename)
+    {
+        string responseFormatPath = Path.Combine(
+            Application.streamingAssetsPath,
+            responseFormatFilename
+        );
+
+        if (!File.Exists(responseFormatPath))
+        {
+            Debug.LogError("Response format file not found: " + responseFormatPath);
+            return null;
+        }
+
+        return File.ReadAllText(responseFormatPath);
     }
 
     public void SendInputFieldContentToGPT()
@@ -205,80 +208,12 @@ public class ChatGPTHandler : MonoBehaviour
         // Construct the payload using the defined structs
         var payload = new ChatRequest
         {
-            model = "gpt-4o",
+            model = MODEL,
             messages = messages.ToArray(),
             response_format = new ResponseFormat
             {
-                type = "json_object",
-                json_object = new JsonObject
-                {
-                    name = "ai_tutor_response",
-                    strict = true,
-                    schema = new TutorResponseSchema
-                    {
-                        type = "object",
-                        properties = new TutorResponseProperties
-                        {
-                            pointed_at = new PointedAtProperty
-                            {
-                                type = "object",
-                                properties = new PointedAtProperties
-                                {
-                                    part = new PartProperty
-                                    {
-                                        type = "string",
-                                        description =
-                                            "Describes which portion of the scene is being pointed at.",
-                                        @enum = new string[]
-                                        {
-                                            "top",
-                                            "upper-middle",
-                                            "lower-middle",
-                                            "bottom",
-                                        },
-                                    },
-                                    coordinates = new CoordinatesProperty
-                                    {
-                                        type = "object",
-                                        properties = new CoordinateProperties
-                                        {
-                                            x = new NumberProperty
-                                            {
-                                                type = "number",
-                                                description =
-                                                    "The X coordinate of the point being highlighted.",
-                                            },
-                                            y = new NumberProperty
-                                            {
-                                                type = "number",
-                                                description =
-                                                    "The Y coordinate of the point being highlighted.",
-                                            },
-                                        },
-                                        required = new string[] { "x", "y" },
-                                        additionalProperties = false,
-                                    },
-                                },
-                                required = new string[] { "part", "coordinates" },
-                                additionalProperties = false,
-                            },
-                            voice_response = new VoiceResponseProperty
-                            {
-                                type = "string",
-                                description =
-                                    "The verbal response from the AI tutor, which can be used for text-to-speech, with all response formatted in plaintext, no markdown.",
-                            },
-                            text_summary = new TextSummaryProperty
-                            {
-                                type = "string",
-                                description =
-                                    "A text summary that aids the user in understanding the voice response, with all response formatted in plaintext, no markdown.",
-                            },
-                        },
-                        required = new string[] { "pointed_at", "voice_response", "text_summary" },
-                        additionalProperties = false,
-                    },
-                },
+                type = "json_schema",
+                json_schema = JObject.Parse(responseFormatJson),
             },
             temperature = TEMPERATURE,
             max_completion_tokens = MAX_COMPLETION_TOKENS,
@@ -289,11 +224,16 @@ public class ChatGPTHandler : MonoBehaviour
 
         string jsonPayload = JsonConvert.SerializeObject(
             payload,
-            Newtonsoft.Json.Formatting.Indented,
+            Formatting.Indented,
             new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }
         );
 
         Debug.Log("Request to GPT: " + jsonPayload);
+        // Also log the JSON payload to a file
+        File.WriteAllText(
+            Path.Combine(Application.streamingAssetsPath, "gpt_request.json"),
+            jsonPayload
+        );
 
         UnityWebRequest request = new UnityWebRequest(openaiApiUrl, "POST");
         byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonPayload);
@@ -308,12 +248,12 @@ public class ChatGPTHandler : MonoBehaviour
         {
             Debug.Log("Response received: " + request.downloadHandler.text);
 
-            string responseContent = ParseResponse(request.downloadHandler.text);
-            responseText.text = responseContent;
+            // Parse the response to the TutorResponseSchema
+            TutorResponseSchema parsedResponse = ParseResponse(request.downloadHandler.text);
 
-            //conversationHistory.Add(new Message { role = "assistant", content = responseContent });
-
-            textToSpeechHandler.SpeakText(responseContent);
+            // Update the UI with the parsed response
+            responseText.text = parsedResponse.text_summary;
+            textToSpeechHandler.SpeakText(parsedResponse.voice_response);
         }
         else
         {
@@ -324,25 +264,27 @@ public class ChatGPTHandler : MonoBehaviour
         }
     }
 
-    private string ParseResponse(string jsonResponse)
+    private TutorResponseSchema ParseResponse(string jsonResponse)
     {
         try
         {
+            // Deserialize the entire response
             ChatGPTResponse response = JsonConvert.DeserializeObject<ChatGPTResponse>(jsonResponse);
 
-            if (response.choices != null && response.choices.Length > 0)
-            {
-                return response.choices[0].message.content.Trim();
-            }
-            else
-            {
-                return "Unexpected response format.";
-            }
+            // Extract the content string
+            string contentString = response.choices[0].message.content;
+
+            // Deserialize the content string into TutorResponseSchema
+            TutorResponseSchema parsedResponse = JsonConvert.DeserializeObject<TutorResponseSchema>(
+                contentString
+            );
+
+            return parsedResponse;
         }
-        catch (System.Exception ex)
+        catch (Exception ex)
         {
             Debug.LogError("Failed to parse response: " + ex.Message);
-            return "Error parsing GPT response.";
+            return null;
         }
     }
 
@@ -393,6 +335,7 @@ public class ChatGPTHandler : MonoBehaviour
         public string model;
         public object[] messages;
         public ResponseFormat response_format;
+
         public float temperature;
         public int max_completion_tokens;
         public float top_p;
@@ -404,32 +347,15 @@ public class ChatGPTHandler : MonoBehaviour
     public class ResponseFormat
     {
         public string type;
-        public JsonObject json_object;
-    }
-
-    [System.Serializable]
-    public class JsonObject
-    {
-        public string name;
-        public bool strict;
-        public TutorResponseSchema schema;
+        public JObject json_schema;
     }
 
     [System.Serializable]
     public class TutorResponseSchema
     {
-        public string type;
-        public TutorResponseProperties properties;
-        public string[] required;
-        public bool additionalProperties;
-    }
-
-    [System.Serializable]
-    public class TutorResponseProperties
-    {
         public PointedAtProperty pointed_at;
-        public VoiceResponseProperty voice_response;
-        public TextSummaryProperty text_summary;
+        public string voice_response;
+        public string text_summary;
     }
 
     [System.Serializable]
@@ -459,10 +385,8 @@ public class ChatGPTHandler : MonoBehaviour
     [System.Serializable]
     public class CoordinatesProperty
     {
-        public string type;
-        public CoordinateProperties properties;
-        public string[] required;
-        public bool additionalProperties;
+        public NumberProperty x;
+        public NumberProperty y;
     }
 
     [System.Serializable]
