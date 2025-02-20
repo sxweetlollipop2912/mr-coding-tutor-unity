@@ -379,6 +379,8 @@ public class DesktopDuplication : MonoBehaviour
         {
             try
             {
+                // streaming assets path
+                filePath = Path.Combine(Application.streamingAssetsPath, filePath);
                 File.WriteAllBytes(filePath, pngData);
                 Debug.Log($"CaptureScreenToPNG: Saved desktop to '{filePath}'.");
             }
@@ -397,7 +399,7 @@ public class DesktopDuplication : MonoBehaviour
     /// </summary>
     public string CaptureScreenToBase64()
     {
-        byte[] pngData = CaptureScreenToPNG();
+        byte[] pngData = CaptureScreenToPNG("CapturedScreen.png");
         if (pngData == null)
         {
             Debug.LogError("CaptureScreenToBase64: Failed to capture screen or encode to PNG.");
