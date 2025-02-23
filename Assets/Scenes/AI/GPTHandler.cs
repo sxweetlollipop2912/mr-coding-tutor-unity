@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using ReadyPlayerMe.Core.Editor;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
