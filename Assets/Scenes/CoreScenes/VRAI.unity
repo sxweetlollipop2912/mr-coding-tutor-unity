@@ -1596,201 +1596,6 @@ MonoBehaviour:
 
 
     for i in range(10): if i == 5: break # Exits the loop if i % 2
-    == 0: continue # Skips even numbers print(i)
-
-
-    You can create a for loop
-    in Python using the for keyword, followed by a variable name, the in keyword,
-    and an iterable (such as a list, tuple, range, or string). The loop body is indented.
-
-
-    Example
-    1: Looping through a list
-
-
-    for item in [1, 2, 3, 4, 5]: print(item)
-
-
-    Example
-    2: Using range()
-
-
-    for i in range(5): print(i) # Prints 0 to 4
-
-
-    Example
-    3: Iterating over a string
-
-
-    for char in "hello": print(char)
-
-
-    Example
-    4: Looping with index using enumerate()
-
-
-    for index, value in enumerate(["a",
-    "b", "c"]): print(index, value)
-
-
-    Example 5: Looping through a dictionary
-
-
-    data
-    = {"name": "Alice", "age": 25} for key, value in data.items(): print(key, value)
-
-
-    Example
-    6: Using break and continue
-
-
-    for i in range(10): if i == 5: break # Exits
-    the loop if i % 2 == 0: continue # Skips even numbers print(i)
-
-    You can create
-    a for loop in Python using the for keyword, followed by a variable name, the
-    in keyword, and an iterable (such as a list, tuple, range, or string). The loop
-    body is indented.
-
-
-    Example 1: Looping through a list
-
-
-    for item in [1,
-    2, 3, 4, 5]: print(item)
-
-
-    Example 2: Using range()
-
-
-    for i in range(5):
-    print(i) # Prints 0 to 4
-
-
-    Example 3: Iterating over a string
-
-
-    for char
-    in "hello": print(char)
-
-
-    Example 4: Looping with index using enumerate()
-
-
-    for
-    index, value in enumerate(["a", "b", "c"]): print(index, value)
-
-
-    Example
-    5: Looping through a dictionary
-
-
-    data = {"name": "Alice", "age": 25} for
-    key, value in data.items(): print(key, value)
-
-
-    Example 6: Using break and
-    continue
-
-
-    for i in range(10): if i == 5: break # Exits the loop if i % 2
-    == 0: continue # Skips even numbers print(i)
-
-    You can create a for loop in
-    Python using the for keyword, followed by a variable name, the in keyword, and
-    an iterable (such as a list, tuple, range, or string). The loop body is indented.
-
-
-    Example
-    1: Looping through a list
-
-
-    for item in [1, 2, 3, 4, 5]: print(item)
-
-
-    Example
-    2: Using range()
-
-
-    for i in range(5): print(i) # Prints 0 to 4
-
-
-    Example
-    3: Iterating over a string
-
-
-    for char in "hello": print(char)
-
-
-    Example
-    4: Looping with index using enumerate()
-
-
-    for index, value in enumerate(["a",
-    "b", "c"]): print(index, value)
-
-
-    Example 5: Looping through a dictionary
-
-
-    data
-    = {"name": "Alice", "age": 25} for key, value in data.items(): print(key, value)
-
-
-    Example
-    6: Using break and continue
-
-
-    for i in range(10): if i == 5: break # Exits
-    the loop if i % 2 == 0: continue # Skips even numbers print(i)
-
-    You can create
-    a for loop in Python using the for keyword, followed by a variable name, the
-    in keyword, and an iterable (such as a list, tuple, range, or string). The loop
-    body is indented.
-
-
-    Example 1: Looping through a list
-
-
-    for item in [1,
-    2, 3, 4, 5]: print(item)
-
-
-    Example 2: Using range()
-
-
-    for i in range(5):
-    print(i) # Prints 0 to 4
-
-
-    Example 3: Iterating over a string
-
-
-    for char
-    in "hello": print(char)
-
-
-    Example 4: Looping with index using enumerate()
-
-
-    for
-    index, value in enumerate(["a", "b", "c"]): print(index, value)
-
-
-    Example
-    5: Looping through a dictionary
-
-
-    data = {"name": "Alice", "age": 25} for
-    key, value in data.items(): print(key, value)
-
-
-    Example 6: Using break and
-    continue
-
-
-    for i in range(10): if i == 5: break # Exits the loop if i % 2
     == 0: continue # Skips even numbers print(i)'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -2038,7 +1843,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   chatGPTHandler: {fileID: 1012277840}
-  desktopDuplication: {fileID: 0}
 --- !u!4 &1138392152
 Transform:
   m_ObjectHideFlags: 0
@@ -7346,10 +7150,6 @@ PrefabInstance:
       propertyPath: m_SizeDelta.x
       value: 800
       objectReference: {fileID: 0}
-    - target: {fileID: 386189843, guid: 6d0daa33399ecd14bb5adf1b1ea21830, type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 1600
-      objectReference: {fileID: 0}
     - target: {fileID: 386189852, guid: 6d0daa33399ecd14bb5adf1b1ea21830, type: 3}
       propertyPath: m_DynamicPixelsPerUnit
       value: 10
@@ -9460,11 +9260,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3335504150923645946, guid: 6d0daa33399ecd14bb5adf1b1ea21830, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3335504150923645946, guid: 6d0daa33399ecd14bb5adf1b1ea21830, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3335504150923645946, guid: 6d0daa33399ecd14bb5adf1b1ea21830, type: 3}
       propertyPath: m_SizeDelta.x
@@ -9472,7 +9272,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3335504150923645946, guid: 6d0daa33399ecd14bb5adf1b1ea21830, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 1490
+      value: 502
       objectReference: {fileID: 0}
     - target: {fileID: 3335504151033668841, guid: 6d0daa33399ecd14bb5adf1b1ea21830, type: 3}
       propertyPath: m_AnchorMax.y
