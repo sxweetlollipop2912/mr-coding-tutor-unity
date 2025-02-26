@@ -117,7 +117,10 @@ public class GPTHandler : MonoBehaviour
     {
         if (!string.IsNullOrEmpty(message))
         {
-            userInputField.text = message;
+            if (userInputField != null)
+            {
+                userInputField.text = message;
+            }
 
             // Add user's message with image to conversation history
             AddUserMessageToConversation(message, base64Image);
@@ -277,6 +280,15 @@ public class GPTHandler : MonoBehaviour
             TutorResponseSchema parsedResponse = JsonConvert.DeserializeObject<TutorResponseSchema>(
                 contentString
             );
+            Debug.Log("Parsed voice response: " + parsedResponse.voice_response);
+            Debug.Log("Parsed text summary: " + parsedResponse.text_summary);
+            Debug.Log("Parsed pointed at - part: " + parsedResponse.pointed_at.part);
+            Debug.Log(
+                "Parsed pointed at - coordinates: "
+                    + parsedResponse.pointed_at.coordinates.x
+                    + ", "
+                    + parsedResponse.pointed_at.coordinates.y
+            );
 
             return parsedResponse;
         }
@@ -360,46 +372,15 @@ public class GPTHandler : MonoBehaviour
     [System.Serializable]
     public class PointedAtProperty
     {
-        public string type;
-        public PointedAtProperties properties;
-        public string[] required;
-        public bool additionalProperties;
+        public string part;
+        public Coordinates coordinates;
     }
 
     [System.Serializable]
-    public class PointedAtProperties
+    public class Coordinates
     {
-        public PartProperty part;
-        public CoordinatesProperty coordinates;
-    }
-
-    [System.Serializable]
-    public class PartProperty
-    {
-        public string type;
-        public string description;
-        public string[] @enum;
-    }
-
-    [System.Serializable]
-    public class CoordinatesProperty
-    {
-        public NumberProperty x;
-        public NumberProperty y;
-    }
-
-    [System.Serializable]
-    public class CoordinateProperties
-    {
-        public NumberProperty x;
-        public NumberProperty y;
-    }
-
-    [System.Serializable]
-    public class NumberProperty
-    {
-        public string type;
-        public string description;
+        public float x;
+        public float y;
     }
 
     [System.Serializable]

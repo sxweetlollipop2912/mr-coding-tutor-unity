@@ -14,7 +14,7 @@ public class WhisperHandler : MonoBehaviour
     private GPTHandler GPTHandler;
 
     [SerializeField]
-    private DesktopDuplication desktopDuplication;
+    private MockDD desktopDuplication; // TODO: replace with DesktopDuplication
 
     private void Start()
     {
@@ -40,12 +40,13 @@ public class WhisperHandler : MonoBehaviour
     public void StartRecording()
     {
         // Start recording from the microphone
-        audioClip = Microphone.Start(null, false, 10, 16000); // Record for 10 seconds at 16kHz
+        audioClip = Microphone.Start(null, false, 15, 16000); // Record for 10 seconds at 16kHz
         Debug.Log("Recording started...");
     }
 
     public void StopRecording()
     {
+        Debug.Log("Microphone.IsRecording: " + Microphone.IsRecording(null));
         if (Microphone.IsRecording(null))
         {
             // Stop recording
