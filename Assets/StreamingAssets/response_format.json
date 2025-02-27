@@ -1,6 +1,5 @@
 {
     "name": "ai_tutor_response",
-    "strict": true,
     "schema": {
         "type": "object",
         "properties": {
@@ -10,23 +9,18 @@
                     "part": {
                         "type": "string",
                         "description": "Describes which portion of the scene is being pointed at.",
-                        "enum": [
-                            "top",
-                            "upper-middle",
-                            "lower-middle",
-                            "bottom"
-                        ]
+                        "enum": ["top", "middle", "bottom"]
                     },
                     "coordinates": {
                         "type": "object",
                         "properties": {
                             "x": {
                                 "type": "number",
-                                "description": "The X coordinate of the point being highlighted."
+                                "description": "The X coordinate of the point being highlighted, which is a float value ranging from 0 (left) to 1 (right)."
                             },
                             "y": {
                                 "type": "number",
-                                "description": "The Y coordinate of the point being highlighted."
+                                "description": "The Y coordinate of the point being highlighted, which is a float value ranging from 0 (bottom) to 1 (top)."
                             }
                         },
                         "required": ["x", "y"],
@@ -42,10 +36,11 @@
             },
             "text_summary": {
                 "type": "string",
-                "description": "A text summary that aids the user in understanding the voice response, with all response formatted in plaintext, no markdown."
+                "description": "A text summary that aids the user in understanding the voice response, with all response formatted in plaintext, no markdown, but can have code snippets or similar thing, just not formatted in markdown but can only have spaces and newlines."
             }
         },
         "required": ["pointed_at", "voice_response", "text_summary"],
         "additionalProperties": false
-    }
+    },
+    "strict": true
 }
