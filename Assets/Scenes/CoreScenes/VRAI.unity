@@ -9144,7 +9144,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   GPTHandler: {fileID: 303902812}
-  desktopDuplication: {fileID: 1112534061}
+  desktopDuplication: {fileID: 382828246}
 --- !u!4 &1138392152
 Transform:
   m_ObjectHideFlags: 0
