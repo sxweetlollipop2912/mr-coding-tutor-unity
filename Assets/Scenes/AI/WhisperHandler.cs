@@ -11,6 +11,7 @@ public class WhisperHandler : MonoBehaviour
     private string whisperServerUrl;
     private string outputFilePath;
     private string selectedMicrophoneDevice;
+    private bool isCurrentlyRecording = false;
 
     [SerializeField]
     private GPTHandler GPTHandler;
@@ -28,6 +29,12 @@ public class WhisperHandler : MonoBehaviour
     {
         LoadConfigs();
         InitializeMicrophones();
+        isCurrentlyRecording = false;
+        if (Microphone.IsRecording(null))
+        {
+            Debug.LogWarning("[WhisperHandler] Found active recording on start, stopping it.");
+            Microphone.End(null);
+        }
     }
 
     private void InitializeMicrophones()
@@ -108,6 +115,13 @@ public class WhisperHandler : MonoBehaviour
 
     public void StartRecording()
     {
+        Debug.Log(
+            $"[WhisperHandler] StartRecording called. Current state:"
+                + $"\n- Selected device: {selectedMicrophoneDevice}"
+                + $"\n- Is currently recording (internal state): {isCurrentlyRecording}"
+                + $"\n- Microphone.IsRecording: {Microphone.IsRecording(selectedMicrophoneDevice)}"
+        );
+
         if (string.IsNullOrEmpty(selectedMicrophoneDevice))
         {
             Debug.LogError("[WhisperHandler] No microphone selected!");
@@ -115,26 +129,90 @@ public class WhisperHandler : MonoBehaviour
             return;
         }
 
-        if (Microphone.IsRecording(selectedMicrophoneDevice))
+        if (isCurrentlyRecording || Microphone.IsRecording(selectedMicrophoneDevice))
         {
-            Debug.LogWarning("[WhisperHandler] Already recording with selected microphone!");
+            Debug.LogWarning(
+                $"[WhisperHandler] Already recording with device: {selectedMicrophoneDevice}"
+            );
             return;
         }
 
-        progressStatus.UpdateLabel($"Listening... ({selectedMicrophoneDevice})");
-        Debug.Log($"[WhisperHandler] Recording starting with device: {selectedMicrophoneDevice}");
-        audioClip = Microphone.Start(selectedMicrophoneDevice, false, 15, 16000);
-        Debug.Log($"[WhisperHandler] Audio clip: {audioClip}");
+        try
+        {
+            progressStatus.UpdateLabel($"Listening... ({selectedMicrophoneDevice})");
+            audioClip = Microphone.Start(selectedMicrophoneDevice, false, 15, 16000);
+
+            if (audioClip == null)
+            {
+                Debug.LogError("[WhisperHandler] Failed to create AudioClip");
+                progressStatus.UpdateLabel("Error: Failed to start recording");
+                isCurrentlyRecording = false;
+                return;
+            }
+
+            isCurrentlyRecording = true;
+            Debug.Log(
+                $"[WhisperHandler] Recording started successfully:"
+                    + $"\n- AudioClip: {audioClip}"
+                    + $"\n- Samples: {(audioClip != null ? audioClip.samples.ToString() : "null")}"
+                    + $"\n- Channels: {(audioClip != null ? audioClip.channels.ToString() : "null")}"
+                    + $"\n- Frequency: {(audioClip != null ? audioClip.frequency.ToString() : "null")}"
+            );
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError(
+                $"[WhisperHandler] Error starting recording: {e.Message}\n{e.StackTrace}"
+            );
+            progressStatus.UpdateLabel("Error: Failed to start recording");
+            isCurrentlyRecording = false;
+        }
     }
 
     public void StopRecording()
     {
-        if (Microphone.IsRecording(selectedMicrophoneDevice))
+        Debug.Log(
+            $"[WhisperHandler] StopRecording called. Current state:"
+                + $"\n- Selected device: {selectedMicrophoneDevice}"
+                + $"\n- Is currently recording (internal state): {isCurrentlyRecording}"
+                + $"\n- Microphone.IsRecording: {Microphone.IsRecording(selectedMicrophoneDevice)}"
+        );
+
+        if (!isCurrentlyRecording && !Microphone.IsRecording(selectedMicrophoneDevice))
+        {
+            Debug.LogWarning("[WhisperHandler] StopRecording called but no active recording found");
+            return;
+        }
+
+        try
         {
             progressStatus.UpdateLabel("Processing audio...");
             Microphone.End(selectedMicrophoneDevice);
-            Debug.Log($"[WhisperHandler] Recording stopped for device: {selectedMicrophoneDevice}");
-            StartCoroutine(SendAudioToWhisper());
+            isCurrentlyRecording = false;
+
+            if (audioClip != null)
+            {
+                Debug.Log(
+                    $"[WhisperHandler] Recording stopped successfully. AudioClip info:"
+                        + $"\n- Samples: {audioClip.samples}"
+                        + $"\n- Channels: {audioClip.channels}"
+                        + $"\n- Frequency: {audioClip.frequency}"
+                );
+                StartCoroutine(SendAudioToWhisper());
+            }
+            else
+            {
+                Debug.LogError("[WhisperHandler] AudioClip is null after recording");
+                progressStatus.UpdateLabel("Error: No audio recorded");
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError(
+                $"[WhisperHandler] Error stopping recording: {e.Message}\n{e.StackTrace}"
+            );
+            progressStatus.UpdateLabel("Error: Failed to stop recording");
+            isCurrentlyRecording = false;
         }
     }
 
