@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -9,6 +10,7 @@ public class WhisperHandler : MonoBehaviour
     private AudioClip audioClip;
     private string whisperServerUrl;
     private string outputFilePath;
+    private string selectedMicrophoneDevice;
 
     [SerializeField]
     private GPTHandler GPTHandler;
@@ -19,9 +21,71 @@ public class WhisperHandler : MonoBehaviour
     [SerializeField]
     private AIProgressStatus progressStatus;
 
+    [SerializeField]
+    private TMPro.TMP_Dropdown microphoneDropdown; // Add this if you want UI selection
+
     private void Start()
     {
         LoadConfigs();
+        InitializeMicrophones();
+    }
+
+    private void InitializeMicrophones()
+    {
+        string[] devices = Microphone.devices;
+
+        if (devices.Length == 0)
+        {
+            Debug.LogError("No microphone devices found!");
+            progressStatus.UpdateLabel("Error: No microphone found");
+            return;
+        }
+
+        // Print detailed information about each microphone
+        Debug.Log("=== Available Microphone Devices ===");
+        for (int i = 0; i < devices.Length; i++)
+        {
+            int minFreq,
+                maxFreq;
+            Microphone.GetDeviceCaps(devices[i], out minFreq, out maxFreq);
+
+            string deviceInfo =
+                $"\nDevice {i + 1}:"
+                + $"\n- Name: {devices[i]}"
+                + $"\n- Minimum Frequency: {(minFreq == 0 ? "Any" : minFreq.ToString() + " Hz")}"
+                + $"\n- Maximum Frequency: {(maxFreq == 0 ? "Any" : maxFreq.ToString() + " Hz")}";
+
+            Debug.Log(deviceInfo);
+        }
+        Debug.Log("================================");
+
+        // If we have a dropdown UI, populate it
+        if (microphoneDropdown != null)
+        {
+            microphoneDropdown.ClearOptions();
+            microphoneDropdown.AddOptions(new List<string>(devices));
+            microphoneDropdown.onValueChanged.AddListener(OnMicrophoneSelected);
+        }
+
+        // Set default microphone
+        selectedMicrophoneDevice = devices[0];
+        int defaultMinFreq,
+            defaultMaxFreq;
+        Microphone.GetDeviceCaps(selectedMicrophoneDevice, out defaultMinFreq, out defaultMaxFreq);
+        Debug.Log(
+            $"Selected default microphone: {selectedMicrophoneDevice}"
+                + $"\n- Minimum Frequency: {(defaultMinFreq == 0 ? "Any" : defaultMinFreq.ToString() + " Hz")}"
+                + $"\n- Maximum Frequency: {(defaultMaxFreq == 0 ? "Any" : defaultMaxFreq.ToString() + " Hz")}"
+        );
+    }
+
+    private void OnMicrophoneSelected(int index)
+    {
+        if (index >= 0 && index < Microphone.devices.Length)
+        {
+            selectedMicrophoneDevice = Microphone.devices[index];
+            Debug.Log($"Switched to microphone: {selectedMicrophoneDevice}");
+        }
     }
 
     private void LoadConfigs()
@@ -42,21 +106,59 @@ public class WhisperHandler : MonoBehaviour
 
     public void StartRecording()
     {
-        progressStatus.UpdateLabel("Listening...");
-        audioClip = Microphone.Start(null, false, 15, 16000);
-        Debug.Log("Recording started...");
+        if (string.IsNullOrEmpty(selectedMicrophoneDevice))
+        {
+            Debug.LogError("No microphone selected!");
+            progressStatus.UpdateLabel("Error: No microphone selected");
+            return;
+        }
+
+        if (Microphone.IsRecording(selectedMicrophoneDevice))
+        {
+            Debug.LogWarning("Already recording with selected microphone!");
+            return;
+        }
+
+        progressStatus.UpdateLabel($"Listening... ({selectedMicrophoneDevice})");
+        audioClip = Microphone.Start(selectedMicrophoneDevice, false, 15, 16000);
+        Debug.Log($"Recording started with device: {selectedMicrophoneDevice}");
     }
 
     public void StopRecording()
     {
-        Debug.Log("Microphone.IsRecording: " + Microphone.IsRecording(null));
-        if (Microphone.IsRecording(null))
+        if (Microphone.IsRecording(selectedMicrophoneDevice))
         {
             progressStatus.UpdateLabel("Processing audio...");
-            Microphone.End(null);
-            Debug.Log("Recording stopped.");
+            Microphone.End(selectedMicrophoneDevice);
+            Debug.Log($"Recording stopped for device: {selectedMicrophoneDevice}");
             StartCoroutine(SendAudioToWhisper());
         }
+    }
+
+    // Method to manually change microphone
+    public void SetMicrophone(string deviceName)
+    {
+        if (Array.IndexOf(Microphone.devices, deviceName) != -1)
+        {
+            selectedMicrophoneDevice = deviceName;
+            Debug.Log($"Manually switched to microphone: {selectedMicrophoneDevice}");
+        }
+        else
+        {
+            Debug.LogError($"Microphone device '{deviceName}' not found!");
+        }
+    }
+
+    // Method to get current microphone
+    public string GetCurrentMicrophone()
+    {
+        return selectedMicrophoneDevice;
+    }
+
+    // Method to get all available microphones
+    public string[] GetAvailableMicrophones()
+    {
+        return Microphone.devices;
     }
 
     private IEnumerator SendAudioToWhisper()
