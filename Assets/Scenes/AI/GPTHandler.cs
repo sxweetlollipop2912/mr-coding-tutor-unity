@@ -19,6 +19,9 @@ public class GPTHandler : MonoBehaviour
     [SerializeField]
     private TextToSpeechHandler textToSpeechHandler;
 
+    [SerializeField]
+    private AIProgressStatus progressStatus;
+
     private string openaiApiKey;
     private string systemPrompt;
     private string openaiApiUrl;
@@ -103,13 +106,12 @@ public class GPTHandler : MonoBehaviour
         if (string.IsNullOrEmpty(userMessage))
         {
             responseText.text = "Please enter a message!";
+            progressStatus.UpdateLabel("Error: Empty message");
             return;
         }
 
-        // Add user's message to conversation history
+        progressStatus.UpdateLabel("Sending to AI assistant...");
         AddUserMessageToConversation(userMessage);
-
-        // Start coroutine to send the conversation to ChatGPT
         StartCoroutine(SendPostRequest(userMessage, null));
     }
 
@@ -122,14 +124,13 @@ public class GPTHandler : MonoBehaviour
                 userInputField.text = message;
             }
 
-            // Add user's message with image to conversation history
+            progressStatus.UpdateLabel("Processing with AI assistant...");
             AddUserMessageToConversation(message, base64Image);
-
-            // Start coroutine to send the conversation to ChatGPT
             StartCoroutine(SendPostRequest(message, base64Image));
         }
         else
         {
+            progressStatus.UpdateLabel("Error: Empty message");
             Debug.LogError("Received empty transcription from Whisper.");
         }
     }
@@ -160,6 +161,7 @@ public class GPTHandler : MonoBehaviour
         if (string.IsNullOrEmpty(openaiApiKey) || string.IsNullOrEmpty(openaiApiUrl))
         {
             Debug.LogError("API Key or API URL is not set.");
+            progressStatus.UpdateLabel("Error: API configuration missing");
             yield break;
         }
 
@@ -250,18 +252,27 @@ public class GPTHandler : MonoBehaviour
         {
             Debug.Log("Response received: " + request.downloadHandler.text);
 
-            // Parse the response to the TutorResponseSchema
+            progressStatus.UpdateLabel("Processing AI response...");
             TutorResponseSchema parsedResponse = ParseResponse(request.downloadHandler.text);
 
-            // Update the UI with the parsed response
-            responseText.text = parsedResponse.text_summary;
-            textToSpeechHandler.SpeakText(parsedResponse.voice_response);
+            if (parsedResponse != null)
+            {
+                responseText.text = parsedResponse.text_summary;
+                progressStatus.UpdateLabel("Converting response to speech...");
+                textToSpeechHandler.SpeakText(parsedResponse.voice_response);
+            }
+            else
+            {
+                progressStatus.UpdateLabel("Error: Failed to process AI response");
+                responseText.text = "Error processing AI response. Please try again.";
+            }
         }
         else
         {
             Debug.LogError("Request error: " + request.error);
             Debug.LogError("Response: " + request.downloadHandler.text);
 
+            progressStatus.UpdateLabel("Error: Failed to get AI response");
             responseText.text = "Error talking to GPT. Please try again.";
         }
     }

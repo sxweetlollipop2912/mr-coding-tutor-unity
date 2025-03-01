@@ -7,6 +7,10 @@ public class TextToSpeechHandler : MonoBehaviour
 {
     [SerializeField]
     private AudioSource audioSource; // AudioSource to play the TTS audio
+
+    [SerializeField]
+    private AIProgressStatus progressStatus;
+
     private string ttsServerUrl;
     private string outputFilePath;
 
@@ -33,15 +37,18 @@ public class TextToSpeechHandler : MonoBehaviour
         if (string.IsNullOrWhiteSpace(text))
         {
             Debug.LogError("TTS: No text provided to speak.");
+            progressStatus.UpdateLabel("Error: No text to speak");
             return;
         }
 
         if (string.IsNullOrWhiteSpace(ttsServerUrl))
         {
             Debug.LogError("TTS: Server URL is not set.");
+            progressStatus.UpdateLabel("Error: TTS not configured");
             return;
         }
 
+        progressStatus.UpdateLabel("Converting text to speech...");
         StartCoroutine(SendTextToTTS(text));
     }
 
@@ -65,19 +72,21 @@ public class TextToSpeechHandler : MonoBehaviour
         if (request.result == UnityWebRequest.Result.Success)
         {
             Debug.Log("TTS audio received.");
+            progressStatus.UpdateLabel("Processing audio response...");
 
             // Save audio file to the configured output path
             File.WriteAllBytes(outputFilePath, request.downloadHandler.data);
 
             Debug.Log($"Audio saved at: {outputFilePath}");
 
-            // Play the saved audio
+            progressStatus.UpdateLabel("Playing audio response...");
             StartCoroutine(PlayAudio(outputFilePath));
         }
         else
         {
             Debug.LogError("TTS Error: " + request.error);
             Debug.LogError("Response: " + request.downloadHandler.text);
+            progressStatus.UpdateLabel("Error: Failed to generate speech");
         }
     }
 
@@ -97,10 +106,12 @@ public class TextToSpeechHandler : MonoBehaviour
                 AudioClip audioClip = DownloadHandlerAudioClip.GetContent(request);
                 audioSource.clip = audioClip;
                 audioSource.Play();
+                progressStatus.UpdateLabel(""); // Clear the status when audio starts playing
             }
             else
             {
                 Debug.LogError("Failed to load audio: " + request.error);
+                progressStatus.UpdateLabel("Error: Failed to play audio");
             }
         }
     }

@@ -16,6 +16,9 @@ public class WhisperHandler : MonoBehaviour
     [SerializeField]
     private DesktopDuplication desktopDuplication; // TODO: replace with DesktopDuplication
 
+    [SerializeField]
+    private AIProgressStatus progressStatus;
+
     private void Start()
     {
         LoadConfigs();
@@ -39,8 +42,8 @@ public class WhisperHandler : MonoBehaviour
 
     public void StartRecording()
     {
-        // Start recording from the microphone
-        audioClip = Microphone.Start(null, false, 15, 16000); // Record for 10 seconds at 16kHz
+        progressStatus.UpdateLabel("Listening...");
+        audioClip = Microphone.Start(null, false, 15, 16000);
         Debug.Log("Recording started...");
     }
 
@@ -49,18 +52,16 @@ public class WhisperHandler : MonoBehaviour
         Debug.Log("Microphone.IsRecording: " + Microphone.IsRecording(null));
         if (Microphone.IsRecording(null))
         {
-            // Stop recording
+            progressStatus.UpdateLabel("Processing audio...");
             Microphone.End(null);
             Debug.Log("Recording stopped.");
-
-            // Start coroutine to send the recorded audio to Whisper
             StartCoroutine(SendAudioToWhisper());
         }
     }
 
     private IEnumerator SendAudioToWhisper()
     {
-        // Save audio clip to WAV file in the configured output path
+        progressStatus.UpdateLabel("Converting speech to text...");
         SaveAudioClipToWav(audioClip, outputFilePath);
 
         Debug.Log("WAV file saved at: " + outputFilePath);
@@ -93,23 +94,23 @@ public class WhisperHandler : MonoBehaviour
         {
             Debug.Log("Whisper Response: " + request.downloadHandler.text);
 
-            // Pass the transcription to ChatGPTHandler
             string transcription = ParseWhisperResponse(request.downloadHandler.text);
             if (!string.IsNullOrEmpty(transcription))
             {
                 Debug.Log("Transcription received: " + transcription);
-
-                // Capture screen and send to ChatGPT
+                progressStatus.UpdateLabel("Sending to AI assistant...");
                 string base64Image = desktopDuplication.CaptureScreenToBase64();
                 GPTHandler.SendTextAndImageToGPT(transcription, base64Image);
             }
             else
             {
+                progressStatus.UpdateLabel("Error: Failed to understand speech");
                 Debug.LogError("Failed to parse transcription from Whisper response.");
             }
         }
         else
         {
+            progressStatus.UpdateLabel("Error: Failed to process speech");
             Debug.LogError("Whisper Error: " + request.error);
             Debug.LogError("Response Text: " + request.downloadHandler.text);
         }
