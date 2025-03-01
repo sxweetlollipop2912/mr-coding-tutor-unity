@@ -15,7 +15,7 @@ public class MockWhisperTrigger : MonoBehaviour
         yield return new WaitForSeconds(1f);
         startTime = Time.time;
 
-        Debug.Log("Starting recording..., time: " + startTime);
+        Debug.Log("[MockWhisperTrigger] Starting recording..., time: " + startTime);
         whisperHandler.StartRecording();
         recordingStarted = true;
     }
@@ -26,7 +26,7 @@ public class MockWhisperTrigger : MonoBehaviour
         {
             if (Time.time - startTime >= 10f)
             {
-                Debug.Log("Stopping recording..., time: " + Time.time);
+                Debug.Log("[MockWhisperTrigger] Stopping recording..., time: " + Time.time);
                 whisperHandler.StopRecording();
                 recordingStarted = false; // Ensure this only runs once
             }

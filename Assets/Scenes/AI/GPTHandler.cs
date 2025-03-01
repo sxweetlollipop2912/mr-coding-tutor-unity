@@ -50,7 +50,7 @@ public class GPTHandler : MonoBehaviour
         var config = ConfigLoader.Instance?.ConfigData;
         if (config == null)
         {
-            Debug.LogError("ConfigLoader instance or configuration data is not available.");
+            Debug.LogError("[GPTHandler] ConfigLoader instance or configuration data is not available.");
             return;
         }
 
@@ -59,10 +59,10 @@ public class GPTHandler : MonoBehaviour
         systemPrompt = LoadSystemPrompt(config.systemPromptFilename);
         responseFormatJson = LoadResponseFormatJson(config.gptResponseFormatFilename);
 
-        Debug.Log("API Key: " + openaiApiKey);
-        Debug.Log("API URL: " + openaiApiUrl);
-        Debug.Log("System prompt loaded: " + systemPrompt);
-        Debug.Log("Response format loaded: " + responseFormatJson);
+        Debug.Log("[GPTHandler] API Key: " + openaiApiKey);
+        Debug.Log("[GPTHandler] API URL: " + openaiApiUrl);
+        Debug.Log("[GPTHandler] System prompt loaded: " + systemPrompt);
+        Debug.Log("[GPTHandler] Response format loaded: " + responseFormatJson);
 
         configsLoaded = true;
     }
@@ -76,7 +76,7 @@ public class GPTHandler : MonoBehaviour
 
         if (!File.Exists(systemPromptPath))
         {
-            Debug.LogError("System prompt file not found: " + systemPromptPath);
+            Debug.LogError("[GPTHandler] System prompt file not found: " + systemPromptPath);
             return null;
         }
 
@@ -92,7 +92,7 @@ public class GPTHandler : MonoBehaviour
 
         if (!File.Exists(responseFormatPath))
         {
-            Debug.LogError("Response format file not found: " + responseFormatPath);
+            Debug.LogError("[GPTHandler] Response format file not found: " + responseFormatPath);
             return null;
         }
 
@@ -131,7 +131,7 @@ public class GPTHandler : MonoBehaviour
         else
         {
             progressStatus.UpdateLabel("Error: Empty message");
-            Debug.LogError("Received empty transcription from Whisper.");
+            Debug.LogError("[GPTHandler] Received empty transcription from Whisper.");
         }
     }
 
@@ -232,7 +232,7 @@ public class GPTHandler : MonoBehaviour
             new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }
         );
 
-        Debug.Log("Request to GPT: " + jsonPayload);
+        Debug.Log("[GPTHandler] Request to GPT: " + jsonPayload);
         // Also log the JSON payload to a file
         File.WriteAllText(
             Path.Combine(Application.streamingAssetsPath, "gpt_request.json"),
@@ -250,7 +250,7 @@ public class GPTHandler : MonoBehaviour
 
         if (request.result == UnityWebRequest.Result.Success)
         {
-            Debug.Log("Response received: " + request.downloadHandler.text);
+            Debug.Log("[GPTHandler] Response received: " + request.downloadHandler.text);
 
             progressStatus.UpdateLabel("Processing AI response...");
             TutorResponseSchema parsedResponse = ParseResponse(request.downloadHandler.text);
@@ -291,11 +291,11 @@ public class GPTHandler : MonoBehaviour
             TutorResponseSchema parsedResponse = JsonConvert.DeserializeObject<TutorResponseSchema>(
                 contentString
             );
-            Debug.Log("Parsed voice response: " + parsedResponse.voice_response);
-            Debug.Log("Parsed text summary: " + parsedResponse.text_summary);
-            Debug.Log("Parsed pointed at - part: " + parsedResponse.pointed_at.part);
+            Debug.Log("[GPTHandler] Parsed voice response: " + parsedResponse.voice_response);
+            Debug.Log("[GPTHandler] Parsed text summary: " + parsedResponse.text_summary);
+            Debug.Log("[GPTHandler] Parsed pointed at - part: " + parsedResponse.pointed_at.part);
             Debug.Log(
-                "Parsed pointed at - coordinates: "
+                "[GPTHandler] Parsed pointed at - coordinates: "
                     + parsedResponse.pointed_at.coordinates.x
                     + ", "
                     + parsedResponse.pointed_at.coordinates.y
@@ -305,7 +305,7 @@ public class GPTHandler : MonoBehaviour
         }
         catch (Exception ex)
         {
-            Debug.LogError("Failed to parse response: " + ex.Message);
+            Debug.LogError("[GPTHandler] Failed to parse response: " + ex.Message);
             return null;
         }
     }

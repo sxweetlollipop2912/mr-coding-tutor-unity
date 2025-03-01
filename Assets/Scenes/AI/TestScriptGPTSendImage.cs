@@ -20,15 +20,15 @@ public class TestScriptGPTSendImage : MonoBehaviour
         // Wait until GPTHandler's configurations are loaded
         while (!GPTHandler.ConfigsLoaded)
         {
-            Debug.Log("Waiting for GPTHandler configs to load...");
+            Debug.Log("[TestScriptGPTSendImage] Waiting for GPTHandler configs to load...");
             yield return null; // Wait for the next frame
         }
 
-        Debug.Log("GPTHandler configs loaded, proceeding...");
+        Debug.Log("[TestScriptGPTSendImage] GPTHandler configs loaded, proceeding...");
 
         if (GPTHandler == null)
         {
-            Debug.LogError("ChatGPTHandler not assigned. Please assign in the inspector.");
+            Debug.LogError("[TestScriptGPTSendImage] ChatGPTHandler not assigned. Please assign in the inspector.");
             yield break;
         }
 
@@ -36,7 +36,7 @@ public class TestScriptGPTSendImage : MonoBehaviour
 
         if (!File.Exists(imagePath))
         {
-            Debug.LogError("Image file not found: " + imagePath);
+            Debug.LogError("[TestScriptGPTSendImage] Image file not found: " + imagePath);
             yield break;
         }
 

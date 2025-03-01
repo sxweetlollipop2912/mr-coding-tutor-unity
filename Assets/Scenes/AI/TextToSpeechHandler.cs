@@ -24,7 +24,7 @@ public class TextToSpeechHandler : MonoBehaviour
         var config = ConfigLoader.Instance?.ConfigData;
         if (config == null)
         {
-            Debug.LogError("ConfigLoader instance or configuration data is not available.");
+            Debug.LogError("[TextToSpeechHandler] ConfigLoader instance or configuration data is not available.");
             return;
         }
 
@@ -36,14 +36,14 @@ public class TextToSpeechHandler : MonoBehaviour
     {
         if (string.IsNullOrWhiteSpace(text))
         {
-            Debug.LogError("TTS: No text provided to speak.");
+            Debug.LogError("[TextToSpeechHandler] TTS: No text provided to speak.");
             progressStatus.UpdateLabel("Error: No text to speak");
             return;
         }
 
         if (string.IsNullOrWhiteSpace(ttsServerUrl))
         {
-            Debug.LogError("TTS: Server URL is not set.");
+            Debug.LogError("[TextToSpeechHandler] TTS: Server URL is not set.");
             progressStatus.UpdateLabel("Error: TTS not configured");
             return;
         }
@@ -58,7 +58,7 @@ public class TextToSpeechHandler : MonoBehaviour
         TTSRequest ttsRequest = new TTSRequest { text = text };
         string jsonPayload = JsonUtility.ToJson(ttsRequest);
 
-        Debug.Log("Sending JSON payload to TTS server: " + jsonPayload);
+        Debug.Log("[TextToSpeechHandler] Sending JSON payload to TTS server: " + jsonPayload);
 
         // Configure UnityWebRequest
         UnityWebRequest request = new UnityWebRequest(ttsServerUrl, "POST");
@@ -71,21 +71,21 @@ public class TextToSpeechHandler : MonoBehaviour
 
         if (request.result == UnityWebRequest.Result.Success)
         {
-            Debug.Log("TTS audio received.");
+            Debug.Log("[TextToSpeechHandler] TTS audio received.");
             progressStatus.UpdateLabel("Processing audio response...");
 
             // Save audio file to the configured output path
             File.WriteAllBytes(outputFilePath, request.downloadHandler.data);
 
-            Debug.Log($"Audio saved at: {outputFilePath}");
+            Debug.Log($"[TextToSpeechHandler] Audio saved at: {outputFilePath}");
 
             progressStatus.UpdateLabel("Playing audio response...");
             StartCoroutine(PlayAudio(outputFilePath));
         }
         else
         {
-            Debug.LogError("TTS Error: " + request.error);
-            Debug.LogError("Response: " + request.downloadHandler.text);
+            Debug.LogError("[TextToSpeechHandler] TTS Error: " + request.error);
+            Debug.LogError("[TextToSpeechHandler] Response: " + request.downloadHandler.text);
             progressStatus.UpdateLabel("Error: Failed to generate speech");
         }
     }
@@ -110,7 +110,7 @@ public class TextToSpeechHandler : MonoBehaviour
             }
             else
             {
-                Debug.LogError("Failed to load audio: " + request.error);
+                Debug.LogError("[TextToSpeechHandler] Failed to load audio: " + request.error);
                 progressStatus.UpdateLabel("Error: Failed to play audio");
             }
         }

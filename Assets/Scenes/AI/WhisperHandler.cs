@@ -36,13 +36,13 @@ public class WhisperHandler : MonoBehaviour
 
         if (devices.Length == 0)
         {
-            Debug.LogError("No microphone devices found!");
+            Debug.LogError("[WhisperHandler] No microphone devices found!");
             progressStatus.UpdateLabel("Error: No microphone found");
             return;
         }
 
         // Print detailed information about each microphone
-        Debug.Log("=== Available Microphone Devices ===");
+        Debug.Log("[WhisperHandler] === Available Microphone Devices ===");
         for (int i = 0; i < devices.Length; i++)
         {
             int minFreq,
@@ -57,7 +57,7 @@ public class WhisperHandler : MonoBehaviour
 
             Debug.Log(deviceInfo);
         }
-        Debug.Log("================================");
+        Debug.Log("[WhisperHandler] =================================");
 
         // If we have a dropdown UI, populate it
         if (microphoneDropdown != null)
@@ -73,7 +73,7 @@ public class WhisperHandler : MonoBehaviour
             defaultMaxFreq;
         Microphone.GetDeviceCaps(selectedMicrophoneDevice, out defaultMinFreq, out defaultMaxFreq);
         Debug.Log(
-            $"Selected default microphone: {selectedMicrophoneDevice}"
+            $"[WhisperHandler] Selected default microphone: {selectedMicrophoneDevice}"
                 + $"\n- Minimum Frequency: {(defaultMinFreq == 0 ? "Any" : defaultMinFreq.ToString() + " Hz")}"
                 + $"\n- Maximum Frequency: {(defaultMaxFreq == 0 ? "Any" : defaultMaxFreq.ToString() + " Hz")}"
         );
@@ -84,7 +84,7 @@ public class WhisperHandler : MonoBehaviour
         if (index >= 0 && index < Microphone.devices.Length)
         {
             selectedMicrophoneDevice = Microphone.devices[index];
-            Debug.Log($"Switched to microphone: {selectedMicrophoneDevice}");
+            Debug.Log($"[WhisperHandler] Switched to microphone: {selectedMicrophoneDevice}");
         }
     }
 
@@ -93,7 +93,9 @@ public class WhisperHandler : MonoBehaviour
         var config = ConfigLoader.Instance?.ConfigData;
         if (config == null)
         {
-            Debug.LogError("ConfigLoader instance or configuration data is not available.");
+            Debug.LogError(
+                "[WhisperHandler] ConfigLoader instance or configuration data is not available."
+            );
             return;
         }
 
@@ -108,20 +110,21 @@ public class WhisperHandler : MonoBehaviour
     {
         if (string.IsNullOrEmpty(selectedMicrophoneDevice))
         {
-            Debug.LogError("No microphone selected!");
+            Debug.LogError("[WhisperHandler] No microphone selected!");
             progressStatus.UpdateLabel("Error: No microphone selected");
             return;
         }
 
         if (Microphone.IsRecording(selectedMicrophoneDevice))
         {
-            Debug.LogWarning("Already recording with selected microphone!");
+            Debug.LogWarning("[WhisperHandler] Already recording with selected microphone!");
             return;
         }
 
         progressStatus.UpdateLabel($"Listening... ({selectedMicrophoneDevice})");
+        Debug.Log($"[WhisperHandler] Recording starting with device: {selectedMicrophoneDevice}");
         audioClip = Microphone.Start(selectedMicrophoneDevice, false, 15, 16000);
-        Debug.Log($"Recording started with device: {selectedMicrophoneDevice}");
+        Debug.Log($"[WhisperHandler] Audio clip: {audioClip}");
     }
 
     public void StopRecording()
@@ -130,7 +133,7 @@ public class WhisperHandler : MonoBehaviour
         {
             progressStatus.UpdateLabel("Processing audio...");
             Microphone.End(selectedMicrophoneDevice);
-            Debug.Log($"Recording stopped for device: {selectedMicrophoneDevice}");
+            Debug.Log($"[WhisperHandler] Recording stopped for device: {selectedMicrophoneDevice}");
             StartCoroutine(SendAudioToWhisper());
         }
     }
@@ -141,11 +144,13 @@ public class WhisperHandler : MonoBehaviour
         if (Array.IndexOf(Microphone.devices, deviceName) != -1)
         {
             selectedMicrophoneDevice = deviceName;
-            Debug.Log($"Manually switched to microphone: {selectedMicrophoneDevice}");
+            Debug.Log(
+                $"[WhisperHandler] Manually switched to microphone: {selectedMicrophoneDevice}"
+            );
         }
         else
         {
-            Debug.LogError($"Microphone device '{deviceName}' not found!");
+            Debug.LogError($"[WhisperHandler] Microphone device '{deviceName}' not found!");
         }
     }
 
@@ -166,24 +171,24 @@ public class WhisperHandler : MonoBehaviour
         progressStatus.UpdateLabel("Converting speech to text...");
         SaveAudioClipToWav(audioClip, outputFilePath);
 
-        Debug.Log("WAV file saved at: " + outputFilePath);
+        Debug.Log("[WhisperHandler] WAV file saved at: " + outputFilePath);
 
         // Check if the file exists before sending
         if (!File.Exists(outputFilePath))
         {
-            Debug.LogError("WAV file not created or path is incorrect!");
+            Debug.LogError("[WhisperHandler] WAV file not created or path is incorrect!");
             yield break;
         }
 
         // Read the audio file as bytes
         byte[] audioData = File.ReadAllBytes(outputFilePath);
-        Debug.Log($"Audio file size: {audioData.Length} bytes");
+        Debug.Log($"[WhisperHandler] Audio file size: {audioData.Length} bytes");
 
         // Create a form and attach the file
         WWWForm form = new WWWForm();
         form.AddBinaryData("audio", audioData, Path.GetFileName(outputFilePath), "audio/wav");
 
-        Debug.Log("Sending file to Whisper server...");
+        Debug.Log("[WhisperHandler] Sending file to Whisper server...");
 
         // Create a UnityWebRequest to send the form
         UnityWebRequest request = UnityWebRequest.Post(whisperServerUrl, form);
@@ -194,12 +199,12 @@ public class WhisperHandler : MonoBehaviour
         // Handle the server response
         if (request.result == UnityWebRequest.Result.Success)
         {
-            Debug.Log("Whisper Response: " + request.downloadHandler.text);
+            Debug.Log("[WhisperHandler] Whisper Response: " + request.downloadHandler.text);
 
             string transcription = ParseWhisperResponse(request.downloadHandler.text);
             if (!string.IsNullOrEmpty(transcription))
             {
-                Debug.Log("Transcription received: " + transcription);
+                Debug.Log("[WhisperHandler] Transcription received: " + transcription);
                 progressStatus.UpdateLabel("Sending to AI assistant...");
                 string base64Image = desktopDuplication.CaptureScreenToBase64();
                 GPTHandler.SendTextAndImageToGPT(transcription, base64Image);
@@ -207,14 +212,16 @@ public class WhisperHandler : MonoBehaviour
             else
             {
                 progressStatus.UpdateLabel("Error: Failed to understand speech");
-                Debug.LogError("Failed to parse transcription from Whisper response.");
+                Debug.LogError(
+                    "[WhisperHandler] Failed to parse transcription from Whisper response."
+                );
             }
         }
         else
         {
             progressStatus.UpdateLabel("Error: Failed to process speech");
-            Debug.LogError("Whisper Error: " + request.error);
-            Debug.LogError("Response Text: " + request.downloadHandler.text);
+            Debug.LogError("[WhisperHandler] Whisper Error: " + request.error);
+            Debug.LogError("[WhisperHandler] Response Text: " + request.downloadHandler.text);
         }
     }
 
@@ -301,6 +308,6 @@ public class WhisperHandler : MonoBehaviour
         fileStream.Write(System.Text.Encoding.UTF8.GetBytes("data"), 0, 4); // Subchunk2 ID
         fileStream.Write(System.BitConverter.GetBytes(fileSize - 36), 0, 4); // Subchunk2 Size
 
-        Debug.Log("WAV header written successfully.");
+        Debug.Log("[WhisperHandler] WAV header written successfully.");
     }
 }
