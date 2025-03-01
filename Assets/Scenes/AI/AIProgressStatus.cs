@@ -1,7 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using TMPro;
+using UnityEngine;
 
 public class AIProgressStatus : MonoBehaviour
 {
@@ -11,23 +9,26 @@ public class AIProgressStatus : MonoBehaviour
     [SerializeField]
     private Transform labelObject;
 
-    // Start is called before the first frame update
     void Start()
     {
-        
+        // Initialize label visibility based on initial content
+        UpdateLabelVisibility();
     }
 
-    // Update is called once per frame
     void Update()
     {
-        if (label.text == "")
-        {
-
-        }
+        // No need to check constantly as we'll update visibility when the label changes
     }
 
-    void UpdateLabel(string status)
+    public void UpdateLabel(string status)
     {
         label.text = status;
+        UpdateLabelVisibility();
+    }
+
+    private void UpdateLabelVisibility()
+    {
+        // Enable/disable based on whether label has content
+        labelObject.gameObject.SetActive(!string.IsNullOrEmpty(label.text));
     }
 }
