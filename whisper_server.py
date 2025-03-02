@@ -13,13 +13,14 @@ def transcribe():
     audio = request.files["audio"]
     audio_path = "temp_audio.wav"
     audio.save(audio_path)
+    print(f"Audio file saved to {audio_path}")
 
     # Transcribe the audio file
     result = model.transcribe(audio_path)
     os.remove(audio_path)
+    print(f"Audio file removed from {audio_path}")
 
     return jsonify({"transcription": result["text"]})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5111)
-
