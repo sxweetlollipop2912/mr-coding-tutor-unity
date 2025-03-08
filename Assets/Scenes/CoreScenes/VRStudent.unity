@@ -11236,11 +11236,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e83fcde0583d64cf39f85b276e82aed9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _appIdInput: {fileID: 11400000, guid: 09fd6240a36724e2fa5bec6ea2398011, type: 2}
-  _appID: 
+  _appID: c192b5950ce0401298f9ac2e5c619b8d
   _token: 
   _channelName: 
   redDot: {fileID: 2112559518}
+  useExternalConfig: 1
   Uid1: 123
   Uid2: 456
 --- !u!223 &1142612797 stripped

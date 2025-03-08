@@ -10,10 +10,6 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
     {
         public class StudentAgoraScript : MonoBehaviour
         {
-            [FormerlySerializedAs("appIdInput")]
-            [SerializeField]
-            private AgoraStudentInput _appIdInput;
-
             [Header("_____________Basic Configuration_____________")]
             [FormerlySerializedAs("APP_ID")]
             [SerializeField]
@@ -29,6 +25,9 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
 
             [SerializeField]
             public Transform redDot;
+
+            [SerializeField]
+            private bool useExternalConfig = true;
 
             internal IRtcEngineEx RtcEngine = null;
 
@@ -50,11 +49,62 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             [ContextMenu("ShowAgoraBasicProfileData")]
             private void LoadAssetData()
             {
-                if (_appIdInput == null)
-                    return;
-                _appID = _appIdInput.appID;
-                _token = _appIdInput.token;
-                _channelName = _appIdInput.channelName;
+                if (useExternalConfig)
+                {
+                    // Load token and channel from external config file
+                    var config = AgoraConfigLoader.LoadConfig();
+                    _token = config.token;
+                    _channelName = config.channelName;
+                    
+                    Debug.Log("Loaded token and channel from external file");
+                }
+                else
+                {
+                    // When external config is disabled, use empty values
+                    // These would need to be set in the inspector
+                    Debug.LogWarning("External config disabled. Using values from inspector.");
+                }
+                
+                // The appID is now directly set in the inspector
+                Debug.Log("Using AppID set directly in the component");
+                
+                // Validate all parameters
+                ValidateParameters();
+            }
+            
+            /// <summary>
+            /// Validates that all required parameters are present and not empty.
+            /// </summary>
+            private void ValidateParameters()
+            {
+                bool hasError = false;
+                
+                if (string.IsNullOrEmpty(_appID))
+                {
+                    Debug.LogError("AppID is missing or empty. Please set it in the inspector.");
+                    hasError = true;
+                }
+                
+                if (string.IsNullOrEmpty(_token))
+                {
+                    Debug.LogError("Token is missing or empty. Please check external configuration or inspector.");
+                    hasError = true;
+                }
+                
+                if (string.IsNullOrEmpty(_channelName))
+                {
+                    Debug.LogError("Channel name is missing or empty. Please check external configuration or inspector.");
+                    hasError = true;
+                }
+                
+                if (hasError)
+                {
+                    Debug.LogError("Some Agora configuration parameters are missing. The application may not function correctly.");
+                }
+                else
+                {
+                    Debug.Log("All Agora configuration parameters are valid.");
+                }
             }
 
             private void JoinChannel()

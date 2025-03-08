@@ -624,10 +624,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 25e431023560e411696a4ef65e92eb90, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _appIdInput: {fileID: 11400000, guid: 42814dcb38ef649a5a5683d8a59325c5, type: 2}
-  _appID: 
+  _appID: c192b5950ce0401298f9ac2e5c619b8d
   _token: 
   _channelName: 
+  mouseMessagesPerSecond: 30
+  useExternalConfig: 1
   UidWebcam: 321
   UidScreen: 654
 --- !u!1 &1799350241
