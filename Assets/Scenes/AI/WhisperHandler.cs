@@ -25,6 +25,9 @@ public class WhisperHandler : MonoBehaviour
     [SerializeField]
     private TMPro.TMP_Dropdown microphoneDropdown; // Add this if you want UI selection
 
+    [SerializeField]
+    private YappingHandler yappingHandler; // Add reference to YappingHandler
+
     private void Start()
     {
         LoadConfigs();
@@ -198,6 +201,17 @@ public class WhisperHandler : MonoBehaviour
                         + $"\n- Channels: {audioClip.channels}"
                         + $"\n- Frequency: {audioClip.frequency}"
                 );
+
+                // Start the yapping while processing the audio
+                if (yappingHandler != null)
+                {
+                    yappingHandler.StartYapping();
+                }
+                else
+                {
+                    Debug.LogWarning("[WhisperHandler] YappingHandler reference is missing");
+                }
+
                 StartCoroutine(SendAudioToWhisper());
             }
             else

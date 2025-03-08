@@ -11,6 +11,9 @@ public class TextToSpeechHandler : MonoBehaviour
     [SerializeField]
     private AIProgressStatus progressStatus;
 
+    [SerializeField]
+    private YappingHandler yappingHandler; // Add reference to YappingHandler
+
     private string ttsServerUrl;
     private string outputFilePath;
 
@@ -24,7 +27,9 @@ public class TextToSpeechHandler : MonoBehaviour
         var config = ConfigLoader.Instance?.ConfigData;
         if (config == null)
         {
-            Debug.LogError("[TextToSpeechHandler] ConfigLoader instance or configuration data is not available.");
+            Debug.LogError(
+                "[TextToSpeechHandler] ConfigLoader instance or configuration data is not available."
+            );
             return;
         }
 
@@ -78,6 +83,22 @@ public class TextToSpeechHandler : MonoBehaviour
             File.WriteAllBytes(outputFilePath, request.downloadHandler.data);
 
             Debug.Log($"[TextToSpeechHandler] Audio saved at: {outputFilePath}");
+
+            // Stop the yapping gracefully before playing the response
+            if (yappingHandler != null)
+            {
+                Debug.Log(
+                    "[TextToSpeechHandler] Stopping yapping gracefully before playing response"
+                );
+                yield return StartCoroutine(yappingHandler.StopGraceful());
+
+                // Wait for 1 second to sound natural
+                yield return new WaitForSeconds(1f);
+            }
+            else
+            {
+                Debug.LogWarning("[TextToSpeechHandler] YappingHandler reference is missing");
+            }
 
             progressStatus.UpdateLabel("Playing audio response...");
             StartCoroutine(PlayAudio(outputFilePath));

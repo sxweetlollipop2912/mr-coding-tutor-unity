@@ -15,6 +15,9 @@ public class AppConfig
     public string whisperServerUrl { get; set; }
     public string whisperOutputFilename { get; set; }
     public string gptResponseFormatFilename { get; set; }
+
+    // Path to the folder containing yapping audio files, relative to project root
+    public string yappingAudioFolderPath { get; set; }
 }
 
 public class ConfigLoader : MonoBehaviour
