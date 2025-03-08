@@ -25,19 +25,22 @@ c. Copy the generated token to `agora_config.json` in BOTH app folders:
 
 ### 2. Start the Desktop Capture Server (Student Side)
 
-a. Open an Administrator terminal 
+a. Open an Administrator terminal
+
 b. Navigate to the student app folder:
-   ```
+   ```bash
    cd [path_to_VRStudent_app_folder]
    ```
+
 c. Run the desktop capture server:
-   ```
+   ```bash
    make shremdup
    ```
 
 ### 3. Launch the Applications
 
 a. Run `VRStudent` as administrator (so that it can interact with the desktop capture server)
+
 b. Run `Teacher` app
 
 ### Important Notes
