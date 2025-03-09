@@ -7,6 +7,7 @@ using Newtonsoft.Json.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.UI;
 
 public class GPTHandler : MonoBehaviour
 {
@@ -21,6 +22,9 @@ public class GPTHandler : MonoBehaviour
 
     [SerializeField]
     private AIProgressStatus progressStatus;
+
+    [SerializeField]
+    private VRAI_TeacherHand teacherHand;
 
     private string openaiApiKey;
     private string systemPrompt;
@@ -50,7 +54,9 @@ public class GPTHandler : MonoBehaviour
         var config = ConfigLoader.Instance?.ConfigData;
         if (config == null)
         {
-            Debug.LogError("[GPTHandler] ConfigLoader instance or configuration data is not available.");
+            Debug.LogError(
+                "[GPTHandler] ConfigLoader instance or configuration data is not available."
+            );
             return;
         }
 
@@ -300,6 +306,60 @@ public class GPTHandler : MonoBehaviour
                     + ", "
                     + parsedResponse.pointed_at.coordinates.y
             );
+
+            // Position the red dot based on the coordinates from the response
+            if (teacherHand != null)
+            {
+                // Check if we have valid coordinates (not 0,0 which is often the default)
+                if (
+                    parsedResponse.pointed_at.coordinates.x != 0
+                    || parsedResponse.pointed_at.coordinates.y != 0
+                )
+                {
+                    Debug.Log(
+                        "[GPTHandler] Positioning red dot at: "
+                            + parsedResponse.pointed_at.coordinates.x
+                            + ", "
+                            + parsedResponse.pointed_at.coordinates.y
+                    );
+
+                    // Call the PositionRedDot method with the normalized coordinates
+                    Vector2 normalizedCoordinate = new Vector2(
+                        parsedResponse.pointed_at.coordinates.x,
+                        parsedResponse.pointed_at.coordinates.y
+                    );
+
+                    // Use reflection to call the method to ensure it exists
+                    var positionMethod = teacherHand
+                        .GetType()
+                        .GetMethod(
+                            "PositionRedDot",
+                            System.Reflection.BindingFlags.Instance
+                                | System.Reflection.BindingFlags.Public
+                                | System.Reflection.BindingFlags.NonPublic
+                        );
+
+                    if (positionMethod != null)
+                    {
+                        positionMethod.Invoke(teacherHand, new object[] { normalizedCoordinate });
+                        Debug.Log("[GPTHandler] Successfully positioned red dot");
+                    }
+                    else
+                    {
+                        Debug.LogError(
+                            "[GPTHandler] PositionRedDot method not found on teacherHand"
+                        );
+                    }
+                }
+                else
+                {
+                    Debug.Log("[GPTHandler] Skipping red dot positioning - coordinates are (0,0)");
+                }
+            }
+            else
+            {
+                Debug.LogError("[GPTHandler] Teacher hand reference is missing!");
+            }
 
             return parsedResponse;
         }
