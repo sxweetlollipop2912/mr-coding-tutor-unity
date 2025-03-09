@@ -16,7 +16,7 @@ public class AppConfig
     public string whisperOutputFilename { get; set; }
     public string gptResponseFormatFilename { get; set; }
     public string agoraToken { get; set; } = "";
-    public string agoraChannelName { get; set; } = "main";
+    public string agoraChannelName { get; set; } = "";
 
     // Path to the folder containing yapping audio files, relative to project root
     public string yappingAudioFolderPath { get; set; }
