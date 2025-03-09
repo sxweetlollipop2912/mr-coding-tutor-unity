@@ -9666,7 +9666,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   GPTHandler: {fileID: 303902812}
-  desktopDuplication: {fileID: 1112534061}
+  desktopDuplication: {fileID: 382828246}
   progressStatus: {fileID: 1181691752}
   microphoneDropdown: {fileID: 0}
   yappingHandler: {fileID: 1161991240}

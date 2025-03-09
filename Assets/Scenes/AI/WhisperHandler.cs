@@ -17,7 +17,7 @@ public class WhisperHandler : MonoBehaviour
     private GPTHandler GPTHandler;
 
     [SerializeField]
-    private MockDD desktopDuplication; // TODO: replace with DesktopDuplication
+    private DesktopDuplication desktopDuplication; // TODO: replace with DesktopDuplication
 
     [SerializeField]
     private AIProgressStatus progressStatus;
