@@ -15,6 +15,8 @@ public class AppConfig
     public string whisperServerUrl { get; set; }
     public string whisperOutputFilename { get; set; }
     public string gptResponseFormatFilename { get; set; }
+    public string agoraToken { get; set; } = "";
+    public string agoraChannelName { get; set; } = "";
 
     // Path to the folder containing yapping audio files, relative to StreamingAssets folder
     public string yappingAudioFolderPath { get; set; }
@@ -65,6 +67,7 @@ public class ConfigLoader : MonoBehaviour
                 else
                 {
                     ConfigData = null;
+                    Debug.LogWarning("Configuration validation failed. Some values may be missing.");
                 }
             }
             else
@@ -102,7 +105,15 @@ public class ConfigLoader : MonoBehaviour
     {
         foreach (PropertyInfo property in typeof(AppConfig).GetProperties())
         {
-            Debug.Log($"{property.Name}: {property.GetValue(config)}");
+            // Mask API keys in logs for security
+            if (property.Name.Contains("ApiKey"))
+            {
+                Debug.Log($"{property.Name}: ****MASKED****");
+            }
+            else
+            {
+                Debug.Log($"{property.Name}: {property.GetValue(config)}");
+            }
         }
     }
 }

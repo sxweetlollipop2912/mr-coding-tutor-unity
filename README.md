@@ -15,11 +15,21 @@ a. Go to Agora Console at [https://console.agora.io/token/KJkokymWN](https://con
 
 b. Enter channel name as `main`, then click `Generate`. 
 
-c. Copy the generated token to `agora_config.json` in BOTH app folders:
+c. Copy the generated token to the `config.json` file in BOTH app folders:
+   - In each app folder, the file is located at: `Coding Tutor_Data/StreamingAssets/config.json`
+
    ```json
    {
-     "token": "YOUR_NEWLY_GENERATED_TOKEN",
-     "channelName": "main"
+     "systemPromptFilename": "system_prompt.txt",
+     "openaiApiKey": "YOUR_OPENAI_API_KEY",
+     "openaiApiUrl": "https://api.openai.com/v1/chat/completions",
+     "ttsServerUrl": "http://localhost:5002/api/tts",
+     "ttsOutputFilename": "tts_output.wav",
+     "whisperServerUrl": "http://localhost:5002/api/whisper",
+     "whisperOutputFilename": "whisper_output.txt",
+     "gptResponseFormatFilename": "response_format.txt",
+     "agoraToken": "YOUR_NEWLY_GENERATED_TOKEN",
+     "agoraChannelName": "main"
    }
    ```
 
@@ -54,7 +64,7 @@ b. Run `Teacher` app
 
 If you encounter issues with the applications:
 
-1. Check that both applications have identical `agora_config.json` files with the same token
+1. Check that both applications have identical `config.json` files with the same Agora token in their respective StreamingAssets folders
 2. Ensure the desktop capture server AND `VRStudent` app are running with administrator privileges
 3. Verify that all hardware (webcam, microphone) is properly connected and functioning
 4. Check that both computers are connected to the internet and not blocked by firewalls
