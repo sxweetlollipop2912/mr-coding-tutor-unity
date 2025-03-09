@@ -51,12 +51,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             {
                 if (useExternalConfig)
                 {
-                    // Load token and channel from external config file
-                    var config = AgoraConfigLoader.LoadConfig();
-                    _token = config.token;
-                    _channelName = config.channelName;
-                    
-                    Debug.Log("Loaded token and channel from external file");
+                    LoadConfigFromConfigLoader();
                 }
                 else
                 {
@@ -72,6 +67,21 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 ValidateParameters();
             }
             
+            private void LoadConfigFromConfigLoader()
+            {
+                var config = ConfigLoader.Instance?.ConfigData;
+                if (config == null)
+                {
+                    Debug.LogError("[StudentAgoraScript] ConfigLoader instance or configuration data is not available.");
+                    return;
+                }
+
+                _token = config.agoraToken;
+                _channelName = config.agoraChannelName;
+                
+                Debug.Log("Loaded token and channel from ConfigLoader");
+            }
+
             /// <summary>
             /// Validates that all required parameters are present and not empty.
             /// </summary>
