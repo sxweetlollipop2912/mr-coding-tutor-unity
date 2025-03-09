@@ -17,7 +17,9 @@ def generate_tts():
     # Generate audio from text
     output_path = "tts_output.wav"
     try:
-        tts.tts_to_file(text=text, file_path=output_path)  # Ensure no extra parameters are passed
+        # tts.tts_to_file(text=text, file_path=output_path)  # Ensure no extra parameters are passed
+
+        tts.tts_to_file(text=text, file_path=output_path, length_scale=0.9)
     except Exception as e:
         return {"error": str(e)}, 500
 
