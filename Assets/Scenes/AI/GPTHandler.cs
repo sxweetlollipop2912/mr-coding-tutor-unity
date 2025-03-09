@@ -37,7 +37,7 @@ public class GPTHandler : MonoBehaviour
     private const float TOP_P = 1f;
     private const float FREQUENCY_PENALTY = 0f;
     private const float PRESENCE_PENALTY = 0f;
-    private const string MODEL = "gpt-4o";
+    private string modelName = "gpt-4o"; // Default value, will be overridden by config
 
     private bool configsLoaded = false;
     public bool ConfigsLoaded => configsLoaded;
@@ -62,13 +62,36 @@ public class GPTHandler : MonoBehaviour
 
         openaiApiKey = config.openaiApiKey;
         openaiApiUrl = config.openaiApiUrl;
-        systemPrompt = LoadSystemPrompt(config.systemPromptFilename);
-        responseFormatJson = LoadResponseFormatJson(config.gptResponseFormatFilename);
+        modelName = config.gptModelName; // Load model name from config
+        Debug.Log($"[GPTHandler] Using GPT model: {modelName}");
 
-        Debug.Log("[GPTHandler] API Key: " + openaiApiKey);
-        Debug.Log("[GPTHandler] API URL: " + openaiApiUrl);
-        Debug.Log("[GPTHandler] System prompt loaded: " + systemPrompt);
-        Debug.Log("[GPTHandler] Response format loaded: " + responseFormatJson);
+        // Load system prompt
+        systemPrompt = LoadSystemPrompt(config.systemPromptFilename);
+        if (string.IsNullOrEmpty(systemPrompt))
+        {
+            Debug.LogError("[GPTHandler] Failed to load system prompt.");
+            return;
+        }
+
+        // Load response format JSON
+        responseFormatJson = LoadResponseFormatJson(config.gptResponseFormatFilename);
+        if (string.IsNullOrEmpty(responseFormatJson))
+        {
+            Debug.LogError("[GPTHandler] Failed to load response format JSON.");
+            return;
+        }
+
+        // Add system message to conversation history
+        conversationHistory.Add(
+            new ChatMessage
+            {
+                role = "system",
+                content = new List<ContentItem>
+                {
+                    new ContentItem { type = "text", text = systemPrompt },
+                },
+            }
+        );
 
         configsLoaded = true;
     }
@@ -218,7 +241,7 @@ public class GPTHandler : MonoBehaviour
         // Construct the payload using the defined structs
         var payload = new ChatRequest
         {
-            model = MODEL,
+            model = modelName, // Use the model name from config
             messages = messages.ToArray(),
             response_format = new ResponseFormat
             {

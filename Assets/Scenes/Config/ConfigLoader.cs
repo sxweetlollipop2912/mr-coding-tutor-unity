@@ -17,6 +17,7 @@ public class AppConfig
     public string gptResponseFormatFilename { get; set; }
     public string agoraToken { get; set; } = "";
     public string agoraChannelName { get; set; } = "";
+    public string gptModelName { get; set; } = "gpt-4o"; // Default to gpt-4o if not specified
 
     // Path to the folder containing yapping audio files, relative to StreamingAssets folder
     public string yappingAudioFolderPath { get; set; }
@@ -67,7 +68,9 @@ public class ConfigLoader : MonoBehaviour
                 else
                 {
                     ConfigData = null;
-                    Debug.LogWarning("Configuration validation failed. Some values may be missing.");
+                    Debug.LogWarning(
+                        "Configuration validation failed. Some values may be missing."
+                    );
                 }
             }
             else
