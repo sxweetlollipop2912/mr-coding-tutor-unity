@@ -16,7 +16,7 @@ public class AppConfig
     public string whisperOutputFilename { get; set; }
     public string gptResponseFormatFilename { get; set; }
 
-    // Path to the folder containing yapping audio files, relative to project root
+    // Path to the folder containing yapping audio files, relative to StreamingAssets folder
     public string yappingAudioFolderPath { get; set; }
 }
 

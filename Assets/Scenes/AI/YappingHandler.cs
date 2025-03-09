@@ -49,8 +49,8 @@ public class YappingHandler : MonoBehaviour
             return;
         }
 
-        // Use the path directly as specified in the config
-        string fullPath = yappingAudioFolderPath;
+        // Construct the full path by combining StreamingAssets path with the relative path from config
+        string fullPath = Path.Combine(Application.streamingAssetsPath, yappingAudioFolderPath);
 
         Debug.Log($"[YappingHandler] Looking for audio files in: {fullPath}");
 
