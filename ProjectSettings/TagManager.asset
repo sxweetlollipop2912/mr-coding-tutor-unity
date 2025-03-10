@@ -3,12 +3,24 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - QDSUISharedThemeColor
+  - QDSUIToggleButton
+  - QDSUIIcon
+  - QDSUITextSecondaryColor
+  - QDSUIBorderlessButton
+  - Locomotion
+  - PassThrough
+  - PassThroughButton
+  - LocoButton
+  - LocoText
+  - QDSUISecondaryButton
+  - QDSUIAccentColor
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - AvatarOnly
   - Water
   - UI
   - 

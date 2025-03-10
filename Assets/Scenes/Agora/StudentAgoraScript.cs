@@ -29,10 +29,37 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             [SerializeField]
             private bool useExternalConfig = true;
 
+            [Header("_____________Avatar Video Configuration_____________")]
+            [SerializeField]
+            private Camera avatarCamera;
+
+            [SerializeField]
+            private GameObject avatarObject;
+
+            [SerializeField]
+            private bool sendAvatarVideo = false;
+
+            [SerializeField]
+            private RenderTexture avatarRenderTexture;
+
+            [SerializeField]
+            private int avatarVideoWidth = 640;
+
+            [SerializeField]
+            private int avatarVideoHeight = 480;
+
+            [SerializeField]
+            private bool hideAvatarInMainView = false;
+
+            private Texture2D _avatarTexture2D;
+            private bool _isCapturingAvatar = false;
+            public uint UidAvatarStream = 789; // Unique ID for avatar video stream
+            private int _customVideoTrackId = -1;
+
             internal IRtcEngineEx RtcEngine = null;
 
-            public uint Uid1 = 123;
-            public uint Uid2 = 456;
+            public uint UidStudentWebcam = 123;
+            public uint UidStudentDesktop = 456;
             public static uint UidTeacherWebcam = 321;
             private static bool _isTeacherWebcamActive = false;
 
@@ -43,6 +70,11 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 InitEngine();
                 EnableUI();
                 JoinChannel();
+
+                if (sendAvatarVideo)
+                {
+                    SetupAvatarVideoCapture();
+                }
             }
 
             //Show data in AgoraBasicProfile
@@ -59,26 +91,28 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                     // These would need to be set in the inspector
                     Debug.LogWarning("External config disabled. Using values from inspector.");
                 }
-                
+
                 // The appID is now directly set in the inspector
                 Debug.Log("Using AppID set directly in the component");
-                
+
                 // Validate all parameters
                 ValidateParameters();
             }
-            
+
             private void LoadConfigFromConfigLoader()
             {
                 var config = ConfigLoader.Instance?.ConfigData;
                 if (config == null)
                 {
-                    Debug.LogError("[StudentAgoraScript] ConfigLoader instance or configuration data is not available.");
+                    Debug.LogError(
+                        "[StudentAgoraScript] ConfigLoader instance or configuration data is not available."
+                    );
                     return;
                 }
 
                 _token = config.agoraToken;
                 _channelName = config.agoraChannelName;
-                
+
                 Debug.Log("Loaded token and channel from ConfigLoader");
             }
 
@@ -88,28 +122,34 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             private void ValidateParameters()
             {
                 bool hasError = false;
-                
+
                 if (string.IsNullOrEmpty(_appID))
                 {
                     Debug.LogError("AppID is missing or empty. Please set it in the inspector.");
                     hasError = true;
                 }
-                
+
                 if (string.IsNullOrEmpty(_token))
                 {
-                    Debug.LogError("Token is missing or empty. Please check external configuration or inspector.");
+                    Debug.LogError(
+                        "Token is missing or empty. Please check external configuration or inspector."
+                    );
                     hasError = true;
                 }
-                
+
                 if (string.IsNullOrEmpty(_channelName))
                 {
-                    Debug.LogError("Channel name is missing or empty. Please check external configuration or inspector.");
+                    Debug.LogError(
+                        "Channel name is missing or empty. Please check external configuration or inspector."
+                    );
                     hasError = true;
                 }
-                
+
                 if (hasError)
                 {
-                    Debug.LogError("Some Agora configuration parameters are missing. The application may not function correctly.");
+                    Debug.LogError(
+                        "Some Agora configuration parameters are missing. The application may not function correctly."
+                    );
                 }
                 else
                 {
@@ -131,9 +171,9 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 options.publishScreenTrack.SetValue(false);
                 options.enableAudioRecordingOrPlayout.SetValue(true);
                 options.clientRoleType.SetValue(CLIENT_ROLE_TYPE.CLIENT_ROLE_BROADCASTER);
-                RtcEngine.JoinChannel(_token, _channelName, this.Uid1, options);
-                RtcEngine.MuteRemoteAudioStream(Uid2, true);
-                RtcEngine.MuteRemoteVideoStream(Uid2, true);
+                RtcEngine.JoinChannel(_token, _channelName, this.UidStudentWebcam, options);
+                RtcEngine.MuteRemoteAudioStream(UidStudentDesktop, true);
+                RtcEngine.MuteRemoteVideoStream(UidStudentDesktop, true);
             }
 
             private void ScreenShareJoinChannel()
@@ -159,7 +199,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 options.clientRoleType.SetValue(CLIENT_ROLE_TYPE.CLIENT_ROLE_BROADCASTER);
                 ret = RtcEngine.JoinChannelEx(
                     _token,
-                    new RtcConnection(_channelName, this.Uid2),
+                    new RtcConnection(_channelName, this.UidStudentDesktop),
                     options
                 );
                 Debug.Log("JoinChannelEx returns: " + ret);
@@ -167,7 +207,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
 
             private void ScreenShareLeaveChannel()
             {
-                RtcEngine.LeaveChannelEx(new RtcConnection(_channelName, Uid2));
+                RtcEngine.LeaveChannelEx(new RtcConnection(_channelName, UidStudentDesktop));
             }
 
             private void InitEngine()
@@ -229,15 +269,277 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 RtcEngine.StopScreenCapture();
             }
 
+            #region -- Avatar Video Capture
+
+            private void SetupAvatarVideoCapture()
+            {
+                if (avatarCamera == null)
+                {
+                    Debug.LogError("Avatar camera not assigned. Cannot capture avatar video.");
+                    return;
+                }
+
+                if (avatarObject == null)
+                {
+                    Debug.LogError("Avatar object not assigned. Cannot capture avatar video.");
+                    return;
+                }
+
+                // Create render texture if not assigned
+                if (avatarRenderTexture == null)
+                {
+                    avatarRenderTexture = new RenderTexture(
+                        avatarVideoWidth,
+                        avatarVideoHeight,
+                        24
+                    );
+                    avatarRenderTexture.Create();
+                }
+
+                // Assign render texture to camera
+                avatarCamera.targetTexture = avatarRenderTexture;
+
+                // Create texture for reading pixels
+                _avatarTexture2D = new Texture2D(
+                    avatarVideoWidth,
+                    avatarVideoHeight,
+                    TextureFormat.RGBA32,
+                    false
+                );
+
+                // Setup external video source
+                VideoEncoderConfiguration encoderConfig = new VideoEncoderConfiguration();
+                encoderConfig.dimensions = new VideoDimensions(avatarVideoWidth, avatarVideoHeight);
+                encoderConfig.frameRate = (int)FRAME_RATE.FRAME_RATE_FPS_30;
+                encoderConfig.bitrate = 1000;
+                RtcEngine.SetVideoEncoderConfiguration(encoderConfig);
+
+                // Enable custom video source
+                SenderOptions senderOptions = new SenderOptions();
+                RtcEngine.SetExternalVideoSource(
+                    true,
+                    false,
+                    EXTERNAL_VIDEO_SOURCE_TYPE.VIDEO_FRAME,
+                    senderOptions
+                );
+
+                // Hide avatar in main view if requested
+                if (hideAvatarInMainView)
+                {
+                    // Create a new layer for the avatar if it doesn't exist
+                    int avatarLayer = LayerMask.NameToLayer("AvatarOnly");
+                    if (avatarLayer == -1)
+                    {
+                        Debug.LogWarning(
+                            "Layer 'AvatarOnly' not found. Please create this layer in Unity's Layer settings."
+                        );
+                        // Use a default layer that might not be used by main camera
+                        avatarLayer = 8; // Typically "PostProcessing" layer
+                    }
+
+                    // Set avatar camera to only see this layer
+                    avatarCamera.cullingMask = 1 << avatarLayer;
+
+                    // Set the avatar to this layer
+                    SetLayerRecursively(avatarObject, avatarLayer);
+                }
+
+                // Start capturing
+                _isCapturingAvatar = true;
+
+                // Join channel with avatar video
+                AvatarVideoJoinChannel();
+            }
+
+            private void SetLayerRecursively(GameObject obj, int newLayer)
+            {
+                if (obj == null)
+                    return;
+
+                obj.layer = newLayer;
+
+                foreach (Transform child in obj.transform)
+                {
+                    if (child == null)
+                        continue;
+                    SetLayerRecursively(child.gameObject, newLayer);
+                }
+            }
+
+            private void CaptureAvatarFrame()
+            {
+                if (
+                    !_isCapturingAvatar
+                    || avatarCamera == null
+                    || avatarRenderTexture == null
+                    || _avatarTexture2D == null
+                )
+                    return;
+
+                // Make sure we're rendering to the texture
+                avatarCamera.Render();
+
+                // Read pixels from render texture
+                RenderTexture.active = avatarRenderTexture;
+                _avatarTexture2D.ReadPixels(
+                    new Rect(0, 0, avatarVideoWidth, avatarVideoHeight),
+                    0,
+                    0
+                );
+                _avatarTexture2D.Apply();
+                RenderTexture.active = null;
+
+                // Send frame to Agora
+                byte[] bytes = _avatarTexture2D.GetRawTextureData();
+
+                ExternalVideoFrame externalVideoFrame = new ExternalVideoFrame();
+                externalVideoFrame.type = VIDEO_BUFFER_TYPE.VIDEO_BUFFER_RAW_DATA;
+                externalVideoFrame.format = VIDEO_PIXEL_FORMAT.VIDEO_PIXEL_RGBA;
+                externalVideoFrame.buffer = bytes;
+                externalVideoFrame.stride = avatarVideoWidth;
+                externalVideoFrame.height = avatarVideoHeight;
+                externalVideoFrame.cropLeft = 0;
+                externalVideoFrame.cropTop = 0;
+                externalVideoFrame.cropRight = 0;
+                externalVideoFrame.cropBottom = 0;
+                externalVideoFrame.rotation = 0;
+                externalVideoFrame.timestamp = 0;
+
+                // Push the frame to Agora
+                int ret = RtcEngine.PushVideoFrame(externalVideoFrame);
+                if (ret != 0)
+                {
+                    Debug.LogWarning("Failed to push video frame: " + ret);
+                }
+            }
+
+            private void AvatarVideoJoinChannel()
+            {
+                // Configure as broadcaster to send video
+                ChannelMediaOptions option = new ChannelMediaOptions();
+
+                // Use reflection to set properties if the direct assignment doesn't work
+                // This is a workaround for the API version differences
+                try
+                {
+                    var clientRoleTypeProperty = option.GetType().GetProperty("clientRoleType");
+                    if (clientRoleTypeProperty != null)
+                    {
+                        var optionalType = clientRoleTypeProperty.PropertyType;
+                        var optionalConstructor = optionalType.GetConstructor(
+                            new[] { typeof(CLIENT_ROLE_TYPE) }
+                        );
+                        if (optionalConstructor != null)
+                        {
+                            var optionalValue = optionalConstructor.Invoke(
+                                new object[] { CLIENT_ROLE_TYPE.CLIENT_ROLE_BROADCASTER }
+                            );
+                            clientRoleTypeProperty.SetValue(option, optionalValue);
+                        }
+                    }
+
+                    // Set other properties similarly
+                    SetOptionalBoolProperty(option, "publishCameraTrack", false);
+                    SetOptionalBoolProperty(option, "publishCustomVideoTrack", true);
+                    SetOptionalBoolProperty(option, "publishMicrophoneTrack", false);
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError("Error setting channel media options: " + e.Message);
+                }
+
+                // Create connection for avatar stream
+                RtcConnection connection = new RtcConnection();
+                connection.channelId = _channelName;
+                connection.localUid = UidAvatarStream;
+
+                // Join channel with avatar UID
+                var ret = RtcEngine.JoinChannelEx("", connection, option);
+                Debug.Log("Avatar video JoinChannel returns: " + ret);
+            }
+
+            private void SetOptionalBoolProperty(object target, string propertyName, bool value)
+            {
+                var property = target.GetType().GetProperty(propertyName);
+                if (property != null)
+                {
+                    var optionalType = property.PropertyType;
+                    var optionalConstructor = optionalType.GetConstructor(new[] { typeof(bool) });
+                    if (optionalConstructor != null)
+                    {
+                        var optionalValue = optionalConstructor.Invoke(new object[] { value });
+                        property.SetValue(target, optionalValue);
+                    }
+                }
+            }
+
+            private void StopAvatarVideoCapture()
+            {
+                _isCapturingAvatar = false;
+
+                // Create connection for avatar stream to leave
+                RtcConnection connection = new RtcConnection();
+                connection.channelId = _channelName;
+                connection.localUid = UidAvatarStream;
+
+                // Leave channel for avatar video
+                RtcEngine.LeaveChannelEx(connection);
+
+                // Clean up resources
+                if (avatarRenderTexture != null)
+                {
+                    avatarRenderTexture.Release();
+                    Destroy(avatarRenderTexture);
+                    avatarRenderTexture = null;
+                }
+
+                if (_avatarTexture2D != null)
+                {
+                    Destroy(_avatarTexture2D);
+                    _avatarTexture2D = null;
+                }
+
+                if (avatarCamera != null)
+                {
+                    avatarCamera.targetTexture = null;
+                }
+
+                // Disable external video source
+                SenderOptions senderOptions = new SenderOptions();
+                RtcEngine.SetExternalVideoSource(
+                    false,
+                    false,
+                    EXTERNAL_VIDEO_SOURCE_TYPE.VIDEO_FRAME,
+                    senderOptions
+                );
+            }
+
+            #endregion
+
+            // Update is called once per frame
+            void Update()
+            {
+                if (_isCapturingAvatar)
+                {
+                    CaptureAvatarFrame();
+                }
+            }
+
             private void OnDestroy()
             {
-                Debug.Log("OnDestroy");
                 if (RtcEngine == null)
                     return;
+
+                if (_isCapturingAvatar)
+                {
+                    StopAvatarVideoCapture();
+                }
+
                 OnStopShareScreen();
                 RtcEngine.InitEventHandler(null);
                 RtcEngine.LeaveChannel();
                 RtcEngine.Dispose();
+                RtcEngine = null;
             }
 
             internal string GetChannelName()
@@ -399,11 +701,11 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                         elapsed
                     )
                 );
-                if (connection.localUid == _desktopScreenShare.Uid1)
+                if (connection.localUid == _desktopScreenShare.UidStudentWebcam)
                 {
                     StudentAgoraScript.MakeVideoView(0);
                 }
-                else if (connection.localUid == _desktopScreenShare.Uid2)
+                else if (connection.localUid == _desktopScreenShare.UidStudentDesktop)
                 {
                     StudentAgoraScript.MakeVideoView(0, "", VIDEO_SOURCE_TYPE.VIDEO_SOURCE_SCREEN);
                 }
@@ -417,7 +719,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             public override void OnLeaveChannel(RtcConnection connection, RtcStats stats)
             {
                 Debug.Log("OnLeaveChannel");
-                if (connection.localUid == _desktopScreenShare.Uid1)
+                if (connection.localUid == _desktopScreenShare.UidStudentWebcam)
                 {
                     StudentAgoraScript.DestroyVideoView("MainCameraView");
                 }
@@ -436,7 +738,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             public override void OnUserJoined(RtcConnection connection, uint uid, int elapsed)
             {
                 Debug.Log(string.Format("OnUserJoined uid: ${0} elapsed: ${1}", uid, elapsed));
-                if (uid != _desktopScreenShare.Uid1 && uid != _desktopScreenShare.Uid2)
+                if (uid != _desktopScreenShare.UidStudentWebcam && uid != _desktopScreenShare.UidStudentDesktop)
                 {
                     StudentAgoraScript.MakeVideoView(
                         uid,
@@ -453,7 +755,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             )
             {
                 Debug.Log(string.Format("OnUserOffLine uid: ${0}, reason: ${1}", uid, (int)reason));
-                if (uid != _desktopScreenShare.Uid1 && uid != _desktopScreenShare.Uid2)
+                if (uid != _desktopScreenShare.UidStudentWebcam && uid != _desktopScreenShare.UidStudentDesktop)
                 {
                     StudentAgoraScript.DestroyVideoView(uid.ToString());
                 }
