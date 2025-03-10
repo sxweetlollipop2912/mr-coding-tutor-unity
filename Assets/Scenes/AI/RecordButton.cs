@@ -14,8 +14,8 @@ public class RecordButton : MonoBehaviour
 
     public RoundedBoxProperties buttonBox;
 
-    public Color32 normalColor = new Color32(0xFF, 0xFF, 0xFF, 0x14);  // White with 8% opacity
-    public Color32 recordingColor = new Color32(0x78, 0xE3, 0x00, 0x5E);  // Green with 75% opacity
+    public Color32 normalColor = new Color32(0xFF, 0xFF, 0xFF, 0x14);
+    public Color32 recordingColor = new Color32(0x78, 0xE3, 0x00, 0x5E);
 
     public string normalText = "Press to Record";
     public string recordingText = "Recording...";

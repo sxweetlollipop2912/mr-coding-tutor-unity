@@ -26,6 +26,9 @@ public class GPTHandler : MonoBehaviour
     [SerializeField]
     private VRAI_TeacherHand teacherHand;
 
+    [SerializeField]
+    private YappingHandler yappingHandler;
+
     private string openaiApiKey;
     private string systemPrompt;
     private string openaiApiUrl;
@@ -57,6 +60,7 @@ public class GPTHandler : MonoBehaviour
             Debug.LogError(
                 "[GPTHandler] ConfigLoader instance or configuration data is not available."
             );
+            yappingHandler?.Stop();
             return;
         }
 
@@ -70,6 +74,7 @@ public class GPTHandler : MonoBehaviour
         if (string.IsNullOrEmpty(systemPrompt))
         {
             Debug.LogError("[GPTHandler] Failed to load system prompt.");
+            yappingHandler?.Stop();
             return;
         }
 
@@ -78,6 +83,7 @@ public class GPTHandler : MonoBehaviour
         if (string.IsNullOrEmpty(responseFormatJson))
         {
             Debug.LogError("[GPTHandler] Failed to load response format JSON.");
+            yappingHandler?.Stop();
             return;
         }
 
@@ -106,6 +112,7 @@ public class GPTHandler : MonoBehaviour
         if (!File.Exists(systemPromptPath))
         {
             Debug.LogError("[GPTHandler] System prompt file not found: " + systemPromptPath);
+            yappingHandler?.Stop();
             return null;
         }
 
@@ -122,6 +129,7 @@ public class GPTHandler : MonoBehaviour
         if (!File.Exists(responseFormatPath))
         {
             Debug.LogError("[GPTHandler] Response format file not found: " + responseFormatPath);
+            yappingHandler?.Stop();
             return null;
         }
 
@@ -136,6 +144,7 @@ public class GPTHandler : MonoBehaviour
         {
             Debug.LogError("[GPTHandler] Empty message");
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Empty message");
+            yappingHandler?.Stop();
             return;
         }
 
@@ -161,6 +170,7 @@ public class GPTHandler : MonoBehaviour
         {
             Debug.LogError("[GPTHandler] Received empty transcription from Whisper.");
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Empty transcription");
+            yappingHandler?.Stop();
         }
     }
 
@@ -191,6 +201,7 @@ public class GPTHandler : MonoBehaviour
         {
             Debug.LogError("API Key or API URL is not set.");
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "API configuration missing");
+            yappingHandler?.Stop();
             yield break;
         }
 
@@ -306,6 +317,7 @@ public class GPTHandler : MonoBehaviour
 
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to get AI response");
             responseText.text = "Error talking to GPT. Please try again.";
+            yappingHandler?.Stop();
         }
     }
 
@@ -375,6 +387,7 @@ public class GPTHandler : MonoBehaviour
                         Debug.LogError(
                             "[GPTHandler] PositionRedDot method not found on teacherHand"
                         );
+                        yappingHandler?.Stop();
                     }
                 }
                 else
@@ -385,6 +398,7 @@ public class GPTHandler : MonoBehaviour
             else
             {
                 Debug.LogError("[GPTHandler] Teacher hand reference is missing!");
+                yappingHandler?.Stop();
             }
 
             return parsedResponse;
@@ -392,6 +406,7 @@ public class GPTHandler : MonoBehaviour
         catch (Exception ex)
         {
             Debug.LogError("[GPTHandler] Failed to parse response: " + ex.Message);
+            yappingHandler?.Stop();
             return null;
         }
     }
