@@ -46,6 +46,7 @@ public class TextToSpeechHandler : MonoBehaviour
         {
             Debug.LogError("[TextToSpeechHandler] No text to speak");
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "No text to speak");
+            yappingHandler?.Stop();
             return;
         }
 
@@ -53,6 +54,7 @@ public class TextToSpeechHandler : MonoBehaviour
         {
             Debug.LogError("[TextToSpeechHandler] TTS not configured");
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "TTS not configured");
+            yappingHandler?.Stop();
             return;
         }
 
@@ -93,7 +95,7 @@ public class TextToSpeechHandler : MonoBehaviour
                 Debug.Log(
                     "[TextToSpeechHandler] Stopping yapping gracefully before playing response"
                 );
-                yield return StartCoroutine(yappingHandler.StopGraceful());
+                yield return StartCoroutine(yappingHandler.StopBlocking());
 
                 // Wait for 1 second to sound natural
                 yield return new WaitForSeconds(1f);
@@ -111,6 +113,7 @@ public class TextToSpeechHandler : MonoBehaviour
             Debug.LogError("[TextToSpeechHandler] TTS Error: " + request.error);
             Debug.LogError("[TextToSpeechHandler] Response: " + request.downloadHandler.text);
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to generate speech");
+            yappingHandler?.Stop();
         }
     }
 
@@ -146,6 +149,7 @@ public class TextToSpeechHandler : MonoBehaviour
             {
                 Debug.LogError("[TextToSpeechHandler] Failed to load audio: " + request.error);
                 progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to play audio");
+                yappingHandler?.Stop();
             }
         }
     }

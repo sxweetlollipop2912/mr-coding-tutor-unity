@@ -48,6 +48,7 @@ public class WhisperHandler : MonoBehaviour
         {
             Debug.LogError("[WhisperHandler] No microphone devices found!");
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "No microphone found");
+            yappingHandler?.Stop();
             return;
         }
 
@@ -129,6 +130,7 @@ public class WhisperHandler : MonoBehaviour
         {
             Debug.LogError("[WhisperHandler] No microphone selected");
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "No microphone selected");
+            yappingHandler?.Stop();
             return;
         }
 
@@ -150,6 +152,7 @@ public class WhisperHandler : MonoBehaviour
                 Debug.LogError("[WhisperHandler] Failed to create AudioClip");
                 progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to start recording");
                 isCurrentlyRecording = false;
+                yappingHandler?.Stop();
                 return;
             }
 
@@ -169,6 +172,7 @@ public class WhisperHandler : MonoBehaviour
             );
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to start recording");
             isCurrentlyRecording = false;
+            yappingHandler?.Stop();
         }
     }
 
@@ -219,6 +223,7 @@ public class WhisperHandler : MonoBehaviour
                 Debug.LogError("[WhisperHandler] AudioClip is null after recording");
                 progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "No audio recorded");
                 isCurrentlyRecording = false;
+                yappingHandler?.Stop();
                 return;
             }
         }
@@ -229,6 +234,7 @@ public class WhisperHandler : MonoBehaviour
             );
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to stop recording");
             isCurrentlyRecording = false;
+            yappingHandler?.Stop();
         }
     }
 
@@ -245,6 +251,7 @@ public class WhisperHandler : MonoBehaviour
         else
         {
             Debug.LogError($"[WhisperHandler] Microphone device '{deviceName}' not found!");
+            yappingHandler?.Stop();
         }
     }
 
@@ -271,6 +278,7 @@ public class WhisperHandler : MonoBehaviour
         if (!File.Exists(outputFilePath))
         {
             Debug.LogError("[WhisperHandler] WAV file not created or path is incorrect!");
+            yappingHandler?.Stop();
             yield break;
         }
 
@@ -309,6 +317,7 @@ public class WhisperHandler : MonoBehaviour
                 Debug.LogError(
                     "[WhisperHandler] Failed to parse transcription from Whisper response."
                 );
+                yappingHandler?.Stop();
             }
         }
         else
@@ -316,6 +325,8 @@ public class WhisperHandler : MonoBehaviour
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to process speech");
             Debug.LogError("[WhisperHandler] Whisper Error: " + request.error);
             Debug.LogError("[WhisperHandler] Response Text: " + request.downloadHandler.text);
+            yappingHandler?.Stop();
+            yield break;
         }
     }
 
@@ -330,6 +341,7 @@ public class WhisperHandler : MonoBehaviour
         catch (Exception e)
         {
             Debug.LogError("Failed to parse Whisper response: " + e.Message);
+            yappingHandler?.Stop();
             return null;
         }
     }

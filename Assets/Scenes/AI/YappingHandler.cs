@@ -15,11 +15,15 @@ public class YappingHandler : MonoBehaviour
     [SerializeField, Tooltip("Duration in seconds to wait before playing the first audio clip")]
     private float initialDelay = 5.0f;
 
+    [SerializeField, Tooltip("Maximum duration in seconds that yapping can continue before auto-stopping")]
+    private float maxYappingDuration = 45.0f;
+
     private string yappingAudioFolderPath;
     private List<string> audioFilePaths = new List<string>();
     private bool isYapping = false;
     private bool shouldStopYapping = false;
     private Coroutine yappingCoroutine;
+    private float yappingStartTime = 0f;
 
     private void Start()
     {
@@ -88,6 +92,16 @@ public class YappingHandler : MonoBehaviour
         }
     }
 
+    private void Update()
+    {
+        // Check if yapping has exceeded the maximum duration
+        if (isYapping && !shouldStopYapping && Time.time - yappingStartTime >= maxYappingDuration)
+        {
+            Debug.LogError($"[YappingHandler] Yapping timeout reached ({maxYappingDuration} seconds). Auto-stopping.");
+            shouldStopYapping = true;
+        }
+    }
+
     public void StartYapping()
     {
         if (isYapping)
@@ -104,10 +118,11 @@ public class YappingHandler : MonoBehaviour
 
         isYapping = true;
         shouldStopYapping = false;
+        yappingStartTime = Time.time; // Record the start time
         yappingCoroutine = StartCoroutine(YappingRoutine());
     }
 
-    public IEnumerator StopGraceful()
+    public IEnumerator StopBlocking()
     {
         Debug.Log("[YappingHandler] Graceful stop requested");
         shouldStopYapping = true;
@@ -122,6 +137,14 @@ public class YappingHandler : MonoBehaviour
         Debug.Log("[YappingHandler] Yapping stopped gracefully");
 
         yield break;
+    }
+
+    public void Stop()
+    {
+        if (isYapping)
+        {
+            shouldStopYapping = true;
+        }
     }
 
     private IEnumerator YappingRoutine()
@@ -157,6 +180,9 @@ public class YappingHandler : MonoBehaviour
                 yield return new WaitForSeconds(delayBetweenAudio);
             }
         }
+
+        isYapping = false;
+        shouldStopYapping = false;
 
         Debug.Log("[YappingHandler] Yapping routine ended");
     }
