@@ -14,6 +14,9 @@ public class TextToSpeechHandler : MonoBehaviour
     [SerializeField]
     private YappingHandler yappingHandler; // Add reference to YappingHandler
 
+    [SerializeField]
+    private AvatarAnimationController avatarAnimator; // Reference to avatar animator
+
     private string ttsServerUrl;
     private string outputFilePath;
 
@@ -126,8 +129,18 @@ public class TextToSpeechHandler : MonoBehaviour
             {
                 AudioClip audioClip = DownloadHandlerAudioClip.GetContent(request);
                 audioSource.clip = audioClip;
+
+                // Stop thinking and start talking animations
+                avatarAnimator?.StartTalking();
+
                 audioSource.Play();
                 progressStatus.UpdateStep(AIProgressStatus.AIStep.Idle); // Clear the status when audio starts playing
+
+                while (audioSource.isPlaying)
+                {
+                    yield return null;
+                }
+                avatarAnimator?.StopTalking();
             }
             else
             {
