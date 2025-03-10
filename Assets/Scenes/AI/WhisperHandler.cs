@@ -143,7 +143,7 @@ public class WhisperHandler : MonoBehaviour
         try
         {
             progressStatus.UpdateLabel($"Listening... ({selectedMicrophoneDevice})");
-            audioClip = Microphone.Start(selectedMicrophoneDevice, false, 15, 16000);
+            audioClip = Microphone.Start(selectedMicrophoneDevice, false, 30, 16000);
 
             if (audioClip == null)
             {
