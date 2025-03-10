@@ -47,7 +47,7 @@ public class WhisperHandler : MonoBehaviour
         if (devices.Length == 0)
         {
             Debug.LogError("[WhisperHandler] No microphone devices found!");
-            progressStatus.UpdateLabel("Error: No microphone found");
+            progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "No microphone found");
             return;
         }
 
@@ -127,8 +127,8 @@ public class WhisperHandler : MonoBehaviour
 
         if (string.IsNullOrEmpty(selectedMicrophoneDevice))
         {
-            Debug.LogError("[WhisperHandler] No microphone selected!");
-            progressStatus.UpdateLabel("Error: No microphone selected");
+            Debug.LogError("[WhisperHandler] No microphone selected");
+            progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "No microphone selected");
             return;
         }
 
@@ -142,13 +142,13 @@ public class WhisperHandler : MonoBehaviour
 
         try
         {
-            progressStatus.UpdateLabel($"Listening... ({selectedMicrophoneDevice})");
+            progressStatus.UpdateStep(AIProgressStatus.AIStep.Listening, selectedMicrophoneDevice);
             audioClip = Microphone.Start(selectedMicrophoneDevice, false, 30, 16000);
 
             if (audioClip == null)
             {
                 Debug.LogError("[WhisperHandler] Failed to create AudioClip");
-                progressStatus.UpdateLabel("Error: Failed to start recording");
+                progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to start recording");
                 isCurrentlyRecording = false;
                 return;
             }
@@ -167,7 +167,7 @@ public class WhisperHandler : MonoBehaviour
             Debug.LogError(
                 $"[WhisperHandler] Error starting recording: {e.Message}\n{e.StackTrace}"
             );
-            progressStatus.UpdateLabel("Error: Failed to start recording");
+            progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to start recording");
             isCurrentlyRecording = false;
         }
     }
@@ -189,7 +189,7 @@ public class WhisperHandler : MonoBehaviour
 
         try
         {
-            progressStatus.UpdateLabel("Processing audio...");
+            progressStatus.UpdateStep(AIProgressStatus.AIStep.ProcessingAudio);
             Microphone.End(selectedMicrophoneDevice);
             isCurrentlyRecording = false;
 
@@ -217,7 +217,9 @@ public class WhisperHandler : MonoBehaviour
             else
             {
                 Debug.LogError("[WhisperHandler] AudioClip is null after recording");
-                progressStatus.UpdateLabel("Error: No audio recorded");
+                progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "No audio recorded");
+                isCurrentlyRecording = false;
+                return;
             }
         }
         catch (System.Exception e)
@@ -225,7 +227,7 @@ public class WhisperHandler : MonoBehaviour
             Debug.LogError(
                 $"[WhisperHandler] Error stopping recording: {e.Message}\n{e.StackTrace}"
             );
-            progressStatus.UpdateLabel("Error: Failed to stop recording");
+            progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to stop recording");
             isCurrentlyRecording = false;
         }
     }
@@ -260,7 +262,7 @@ public class WhisperHandler : MonoBehaviour
 
     private IEnumerator SendAudioToWhisper()
     {
-        progressStatus.UpdateLabel("Converting speech to text...");
+        progressStatus.UpdateStep(AIProgressStatus.AIStep.ConvertingSpeechToText);
         SaveAudioClipToWav(audioClip, outputFilePath);
 
         Debug.Log("[WhisperHandler] WAV file saved at: " + outputFilePath);
@@ -297,13 +299,13 @@ public class WhisperHandler : MonoBehaviour
             if (!string.IsNullOrEmpty(transcription))
             {
                 Debug.Log("[WhisperHandler] Transcription received: " + transcription);
-                progressStatus.UpdateLabel("Sending to AI assistant...");
+                progressStatus.UpdateStep(AIProgressStatus.AIStep.SendingToAI, transcription);
                 string base64Image = desktopDuplication.CaptureScreenToBase64();
                 GPTHandler.SendTextAndImageToGPT(transcription, base64Image);
             }
             else
             {
-                progressStatus.UpdateLabel("Error: Failed to understand speech");
+                progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to understand speech");
                 Debug.LogError(
                     "[WhisperHandler] Failed to parse transcription from Whisper response."
                 );
@@ -311,7 +313,7 @@ public class WhisperHandler : MonoBehaviour
         }
         else
         {
-            progressStatus.UpdateLabel("Error: Failed to process speech");
+            progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to process speech");
             Debug.LogError("[WhisperHandler] Whisper Error: " + request.error);
             Debug.LogError("[WhisperHandler] Response Text: " + request.downloadHandler.text);
         }

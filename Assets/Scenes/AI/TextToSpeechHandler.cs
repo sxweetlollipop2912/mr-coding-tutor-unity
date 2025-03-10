@@ -41,19 +41,19 @@ public class TextToSpeechHandler : MonoBehaviour
     {
         if (string.IsNullOrWhiteSpace(text))
         {
-            Debug.LogError("[TextToSpeechHandler] TTS: No text provided to speak.");
-            progressStatus.UpdateLabel("Error: No text to speak");
+            Debug.LogError("[TextToSpeechHandler] No text to speak");
+            progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "No text to speak");
             return;
         }
 
         if (string.IsNullOrWhiteSpace(ttsServerUrl))
         {
-            Debug.LogError("[TextToSpeechHandler] TTS: Server URL is not set.");
-            progressStatus.UpdateLabel("Error: TTS not configured");
+            Debug.LogError("[TextToSpeechHandler] TTS not configured");
+            progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "TTS not configured");
             return;
         }
 
-        progressStatus.UpdateLabel("Converting text to speech...");
+        progressStatus.UpdateStep(AIProgressStatus.AIStep.ConvertingToSpeech);
         StartCoroutine(SendTextToTTS(text));
     }
 
@@ -77,7 +77,7 @@ public class TextToSpeechHandler : MonoBehaviour
         if (request.result == UnityWebRequest.Result.Success)
         {
             Debug.Log("[TextToSpeechHandler] TTS audio received.");
-            progressStatus.UpdateLabel("Processing audio response...");
+            progressStatus.UpdateStep(AIProgressStatus.AIStep.ProcessingAudioResponse);
 
             // Save audio file to the configured output path
             File.WriteAllBytes(outputFilePath, request.downloadHandler.data);
@@ -100,14 +100,14 @@ public class TextToSpeechHandler : MonoBehaviour
                 Debug.LogWarning("[TextToSpeechHandler] YappingHandler reference is missing");
             }
 
-            progressStatus.UpdateLabel("Playing audio response...");
+            progressStatus.UpdateStep(AIProgressStatus.AIStep.PlayingResponse);
             StartCoroutine(PlayAudio(outputFilePath));
         }
         else
         {
             Debug.LogError("[TextToSpeechHandler] TTS Error: " + request.error);
             Debug.LogError("[TextToSpeechHandler] Response: " + request.downloadHandler.text);
-            progressStatus.UpdateLabel("Error: Failed to generate speech");
+            progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to generate speech");
         }
     }
 
@@ -127,12 +127,12 @@ public class TextToSpeechHandler : MonoBehaviour
                 AudioClip audioClip = DownloadHandlerAudioClip.GetContent(request);
                 audioSource.clip = audioClip;
                 audioSource.Play();
-                progressStatus.UpdateLabel(""); // Clear the status when audio starts playing
+                progressStatus.UpdateStep(AIProgressStatus.AIStep.Idle); // Clear the status when audio starts playing
             }
             else
             {
                 Debug.LogError("[TextToSpeechHandler] Failed to load audio: " + request.error);
-                progressStatus.UpdateLabel("Error: Failed to play audio");
+                progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to play audio");
             }
         }
     }

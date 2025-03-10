@@ -134,12 +134,12 @@ public class GPTHandler : MonoBehaviour
 
         if (string.IsNullOrEmpty(userMessage))
         {
-            responseText.text = "Please enter a message!";
-            progressStatus.UpdateLabel("Error: Empty message");
+            Debug.LogError("[GPTHandler] Empty message");
+            progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Empty message");
             return;
         }
 
-        progressStatus.UpdateLabel("Sending to AI assistant...");
+        progressStatus.UpdateStep(AIProgressStatus.AIStep.SendingToAI);
         AddUserMessageToConversation(userMessage);
         StartCoroutine(SendPostRequest(userMessage, null));
     }
@@ -153,14 +153,14 @@ public class GPTHandler : MonoBehaviour
                 userInputField.text = message;
             }
 
-            progressStatus.UpdateLabel("Processing with AI assistant...");
+            progressStatus.UpdateStep(AIProgressStatus.AIStep.ProcessingWithAI);
             AddUserMessageToConversation(message, base64Image);
             StartCoroutine(SendPostRequest(message, base64Image));
         }
         else
         {
-            progressStatus.UpdateLabel("Error: Empty message");
             Debug.LogError("[GPTHandler] Received empty transcription from Whisper.");
+            progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Empty transcription");
         }
     }
 
@@ -190,7 +190,7 @@ public class GPTHandler : MonoBehaviour
         if (string.IsNullOrEmpty(openaiApiKey) || string.IsNullOrEmpty(openaiApiUrl))
         {
             Debug.LogError("API Key or API URL is not set.");
-            progressStatus.UpdateLabel("Error: API configuration missing");
+            progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "API configuration missing");
             yield break;
         }
 
@@ -281,18 +281,18 @@ public class GPTHandler : MonoBehaviour
         {
             Debug.Log("[GPTHandler] Response received: " + request.downloadHandler.text);
 
-            progressStatus.UpdateLabel("Processing AI response...");
+            progressStatus.UpdateStep(AIProgressStatus.AIStep.ProcessingAIResponse);
             TutorResponseSchema parsedResponse = ParseResponse(request.downloadHandler.text);
 
             if (parsedResponse != null)
             {
                 responseText.text = parsedResponse.text_summary;
-                progressStatus.UpdateLabel("Converting response to speech...");
+                progressStatus.UpdateStep(AIProgressStatus.AIStep.ConvertingToSpeech);
                 textToSpeechHandler.SpeakText(parsedResponse.voice_response);
             }
             else
             {
-                progressStatus.UpdateLabel("Error: Failed to process AI response");
+                progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to process AI response");
                 responseText.text = "Error processing AI response. Please try again.";
             }
         }
@@ -301,7 +301,7 @@ public class GPTHandler : MonoBehaviour
             Debug.LogError("Request error: " + request.error);
             Debug.LogError("Response: " + request.downloadHandler.text);
 
-            progressStatus.UpdateLabel("Error: Failed to get AI response");
+            progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to get AI response");
             responseText.text = "Error talking to GPT. Please try again.";
         }
     }

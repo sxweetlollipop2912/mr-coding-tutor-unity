@@ -1,5 +1,7 @@
 using TMPro;
 using UnityEngine;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 public class AIProgressStatus : MonoBehaviour
 {
@@ -8,6 +10,44 @@ public class AIProgressStatus : MonoBehaviour
 
     [SerializeField]
     private Transform labelObject;
+
+    // Define the steps in the AI processing workflow
+    public enum AIStep
+    {
+        Listening,
+        ProcessingAudio,
+        ConvertingSpeechToText,
+        SendingToAI,
+        ProcessingWithAI,
+        ProcessingAIResponse,
+        ConvertingToSpeech,
+        ProcessingAudioResponse,
+        PlayingResponse,
+        Error,
+        Idle
+    }
+
+    // User-friendly step descriptions
+    private Dictionary<AIStep, string> stepDescriptions = new Dictionary<AIStep, string>
+    {
+        { AIStep.Listening, "Listening to you..." },
+        { AIStep.ProcessingAudio, "Processing your voice..." },
+        { AIStep.ConvertingSpeechToText, "Understanding what you said..." },
+        { AIStep.SendingToAI, "Sending to AI tutor..." },
+        { AIStep.ProcessingWithAI, "AI tutor is thinking..." },
+        { AIStep.ProcessingAIResponse, "Preparing response..." },
+        { AIStep.ConvertingToSpeech, "Creating voice response..." },
+        { AIStep.ProcessingAudioResponse, "Finalizing voice..." },
+        { AIStep.PlayingResponse, "Speaking to you..." },
+        { AIStep.Error, "Error occurred" },
+        { AIStep.Idle, "" }
+    };
+
+    // Total number of steps in the normal workflow (excluding Error and Idle)
+    private const int TotalSteps = 9;
+
+    // Current step
+    private AIStep currentStep = AIStep.Idle;
 
     void Start()
     {
@@ -20,9 +60,35 @@ public class AIProgressStatus : MonoBehaviour
         // No need to check constantly as we'll update visibility when the label changes
     }
 
-    public void UpdateLabel(string status)
+    // Method to update label using AIStep directly
+    public void UpdateStep(AIStep step, string additionalInfo = "")
     {
-        label.text = status;
+        currentStep = step;
+        
+        if (step == AIStep.Error && !string.IsNullOrEmpty(additionalInfo))
+        {
+            // For error messages, show the detailed error
+            label.text = $"Error: {additionalInfo}";
+        }
+        else if (step != AIStep.Idle)
+        {
+            // Format the user-friendly message with step counter
+            int stepNumber = (int)step + 1; // +1 because enum is zero-based
+            string stepDescription = stepDescriptions[step];
+            
+            if (!string.IsNullOrEmpty(additionalInfo))
+            {
+                stepDescription += $" ({additionalInfo})";
+            }
+            
+            label.text = $"{stepDescription} ({stepNumber}/{TotalSteps})";
+        }
+        else
+        {
+            // Idle state - clear the label
+            label.text = "";
+        }
+        
         UpdateLabelVisibility();
     }
 
