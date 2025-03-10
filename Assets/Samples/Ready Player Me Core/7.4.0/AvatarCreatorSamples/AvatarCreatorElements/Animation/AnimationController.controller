@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ebb59b3c3dcb0364a9f801ce6b228ed9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  animationCount: 16
+  animationCount: 17
 --- !u!206 &-6798188921499179039
 BlendTree:
   m_ObjectHideFlags: 1
