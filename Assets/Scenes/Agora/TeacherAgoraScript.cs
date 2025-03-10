@@ -38,6 +38,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             public uint UidWebcam = 321;
             public uint UidScreen = 654;
             public static uint UidStudentScreen = 456;
+            public static uint UidStudentWebcam = 123;
 
             private int _streamId = -1;
             private static GameObject _mainScreen = null;
@@ -66,26 +67,28 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                     // These would need to be set in the inspector
                     Debug.LogWarning("External config disabled. Using values from inspector.");
                 }
-                
+
                 // The appID is now directly set in the inspector
                 Debug.Log("Using AppID set directly in the component");
-                
+
                 // Validate all parameters
                 ValidateParameters();
             }
-            
+
             private void LoadConfigFromConfigLoader()
             {
                 var config = ConfigLoader.Instance?.ConfigData;
                 if (config == null)
                 {
-                    Debug.LogError("[TeacherAgoraScript] ConfigLoader instance or configuration data is not available.");
+                    Debug.LogError(
+                        "[TeacherAgoraScript] ConfigLoader instance or configuration data is not available."
+                    );
                     return;
                 }
 
                 _token = config.agoraToken;
                 _channelName = config.agoraChannelName;
-                
+
                 Debug.Log("Loaded token and channel from ConfigLoader");
             }
 
@@ -95,28 +98,34 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             private void ValidateParameters()
             {
                 bool hasError = false;
-                
+
                 if (string.IsNullOrEmpty(_appID))
                 {
                     Debug.LogError("AppID is missing or empty. Please set it in the inspector.");
                     hasError = true;
                 }
-                
+
                 if (string.IsNullOrEmpty(_token))
                 {
-                    Debug.LogError("Token is missing or empty. Please check external configuration or inspector.");
+                    Debug.LogError(
+                        "Token is missing or empty. Please check external configuration or inspector."
+                    );
                     hasError = true;
                 }
-                
+
                 if (string.IsNullOrEmpty(_channelName))
                 {
-                    Debug.LogError("Channel name is missing or empty. Please check external configuration or inspector.");
+                    Debug.LogError(
+                        "Channel name is missing or empty. Please check external configuration or inspector."
+                    );
                     hasError = true;
                 }
-                
+
                 if (hasError)
                 {
-                    Debug.LogError("Some Agora configuration parameters are missing. The application may not function correctly.");
+                    Debug.LogError(
+                        "Some Agora configuration parameters are missing. The application may not function correctly."
+                    );
                 }
                 else
                 {
@@ -243,13 +252,18 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 // create a GameObject and assign to this new user
                 VideoSurface videoSurface = new VideoSurface();
 
-                if (videoSourceType == VIDEO_SOURCE_TYPE.VIDEO_SOURCE_CAMERA)
+                if (uid == UidStudentWebcam)
                 {
                     videoSurface = MakeImageSurface("MainCameraView");
                 }
-                else if (videoSourceType == VIDEO_SOURCE_TYPE.VIDEO_SOURCE_SCREEN)
+                else if (uid == UidStudentScreen)
                 {
                     videoSurface = MakeImageSurface("ScreenShareView");
+                }
+                else if (uid == 789) // Avatar video stream UID
+                {
+                    videoSurface = MakeImageSurface("AvatarView");
+                    Debug.Log("Creating view for Avatar video stream with UID: " + uid);
                 }
                 else
                 {
@@ -695,6 +709,12 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 Debug.Log(string.Format("OnUserJoined uid: ${0} elapsed: ${1}", uid, elapsed));
                 if (uid != _desktopScreenShare.UidWebcam && uid != _desktopScreenShare.UidScreen)
                 {
+                    // Check if this is the avatar video stream (UID 789)
+                    if (uid == 789)
+                    {
+                        Debug.Log("Avatar video stream joined with UID: " + uid);
+                    }
+
                     TeacherAgoraScript.MakeVideoView(
                         uid,
                         _desktopScreenShare.GetChannelName(),
@@ -712,7 +732,16 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 Debug.Log(string.Format("OnUserOffLine uid: ${0}, reason: ${1}", uid, (int)reason));
                 if (uid != _desktopScreenShare.UidWebcam && uid != _desktopScreenShare.UidScreen)
                 {
-                    TeacherAgoraScript.DestroyVideoView(uid.ToString());
+                    // Check if this is the avatar video stream (UID 789)
+                    if (uid == 789)
+                    {
+                        Debug.Log("Avatar video stream went offline with UID: " + uid);
+                        TeacherAgoraScript.DestroyVideoView("AvatarView");
+                    }
+                    else
+                    {
+                        TeacherAgoraScript.DestroyVideoView(uid.ToString());
+                    }
                 }
             }
         }

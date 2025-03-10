@@ -928,7 +928,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   targetTransform: {fileID: 0}
-  useWorldRotation: 1
 --- !u!1 &719085418
 GameObject:
   m_ObjectHideFlags: 0
