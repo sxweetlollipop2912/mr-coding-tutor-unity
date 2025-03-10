@@ -5,11 +5,8 @@ using UnityEngine;
 public class CopyRotation : MonoBehaviour
 {
     [SerializeField]
+    [Tooltip("The transform whose local rotation will be copied")]
     private Transform targetTransform;
-
-    [Tooltip("If true, will copy the world rotation. If false, will copy the local rotation.")]
-    [SerializeField]
-    private bool useWorldRotation = true;
 
     // Start is called before the first frame update
     void Start() { }
@@ -19,14 +16,7 @@ public class CopyRotation : MonoBehaviour
     {
         if (targetTransform != null)
         {
-            if (useWorldRotation)
-            {
-                transform.rotation = targetTransform.rotation;
-            }
-            else
-            {
-                transform.localRotation = targetTransform.localRotation;
-            }
+            transform.localRotation = targetTransform.localRotation;
         }
     }
 }
