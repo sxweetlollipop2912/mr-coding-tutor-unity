@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using Oculus.Interaction;
 
 public class RecordButton : MonoBehaviour
 {
@@ -11,11 +12,20 @@ public class RecordButton : MonoBehaviour
     [SerializeField]
     private TMP_Text label;
 
+    public RoundedBoxProperties buttonBox;
+
+    public Color32 normalColor = new Color32(0xFF, 0xFF, 0xFF, 0x14);  // White with 8% opacity
+    public Color32 recordingColor = new Color32(0x78, 0xE3, 0x00, 0x5E);  // Green with 75% opacity
+
+    public string normalText = "Press to Record";
+    public string recordingText = "Recording...";
+
     private bool isRecordingToggle = false;
 
     void Start()
     {
-        label.text = "Press to Record";
+        label.text = normalText;
+        buttonBox.Color = normalColor;
     }
 
     public void Toggle()
@@ -24,12 +34,14 @@ public class RecordButton : MonoBehaviour
         if (isRecordingToggle)
         {
             whisperHandler.StartRecording();
-            label.text = "Recording...";
+            label.text = recordingText;
+            buttonBox.Color = recordingColor;
         }
         else
         {
             whisperHandler.StopRecording();
-            label.text = "Press to Record";
+            label.text = normalText;
+            buttonBox.Color = normalColor;
         }
     }
 }
