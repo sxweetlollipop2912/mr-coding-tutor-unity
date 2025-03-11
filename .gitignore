@@ -75,6 +75,7 @@ crashlytics-build.properties
 
 # Configs
 config.json
+config.json*
 
 # --- Python ---
 # Ignore Python virtual environments
