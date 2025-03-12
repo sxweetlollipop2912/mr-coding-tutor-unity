@@ -1,4 +1,5 @@
 using System;
+using Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCall.StudentMrCodingTutorUnity;
 using Agora.Rtc;
 using io.agora.rtc.demo;
 using UnityEngine;
@@ -379,7 +380,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                         // Based on testing, this is the correct orientation
                         rectTransform.localScale = new Vector3(1, 1, 1);
                         rectTransform.localRotation = Quaternion.identity;
-                        Debug.Log("Applied correct orientation to avatar view: Flipped vertically");
+                        Debug.Log("Applied correct orientation to avatar view");
                     }
                     else
                     {
@@ -477,7 +478,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 {
                     videoSurface = MakeImageSurface("ScreenShareView");
                 }
-                else if (uid == 785) // Avatar video stream UID
+                else if (uid == StudentAgoraScript.UidAvatarStream) // Avatar video stream UID
                 {
                     videoSurface = MakeImageSurface("AvatarView");
                     Debug.Log("Creating view for Avatar video stream with UID: " + uid);
@@ -505,19 +506,15 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                         {
                             transform.localScale = new Vector3(1, 1, 1);
                         }
-                        else if (uid == 785) // Avatar video stream needs special handling
+                        else if (uid == StudentAgoraScript.UidAvatarStream) // Avatar video stream needs special handling
                         {
                             // Don't change the scale here as it might override our fix
                             // Just log that we received a texture size modification
                             Debug.Log($"Avatar video texture size modified: {width}x{height}");
 
                             // Ensure our orientation fix is preserved
-                            // We want it flipped vertically but not horizontally
-                            if (transform.localScale.y > 0) // If it's not already flipped vertically
-                            {
-                                transform.localScale = new Vector3(1, -1, 1);
-                                Debug.Log("Re-applied vertical flip to avatar view");
-                            }
+                            transform.localScale = new Vector3(1, 1, 1);
+                            Debug.Log("Applied correct orientation to avatar view");
                         }
                         else
                         {
@@ -899,7 +896,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                             if (uidField != null)
                             {
                                 uid = (uint)uidField.GetValue(surface);
-                                if (uid == 785)
+                                if (uid == StudentAgoraScript.UidAvatarStream)
                                 {
                                     Debug.Log(
                                         $"Found existing avatar video surface on GameObject: {obj.name}"
@@ -910,7 +907,8 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                                     RectTransform rectTransform = obj.GetComponent<RectTransform>();
                                     if (rectTransform != null)
                                     {
-                                        rectTransform.localScale = new Vector3(1, -1, 1);
+                                        rectTransform.localScale = new Vector3(1, 1, 1);
+                                        rectTransform.localRotation = Quaternion.identity;
                                         Debug.Log("Applied orientation to renamed AvatarView");
                                     }
                                     return;
@@ -929,7 +927,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 if (videoSurface != null)
                 {
                     videoSurface.SetForUser(
-                        785,
+                        StudentAgoraScript.UidAvatarStream,
                         _channelName,
                         VIDEO_SOURCE_TYPE.VIDEO_SOURCE_REMOTE
                     );
@@ -940,7 +938,8 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                         videoSurface.gameObject.GetComponent<RectTransform>();
                     if (rectTransform != null)
                     {
-                        rectTransform.localScale = new Vector3(1, -1, 1);
+                        rectTransform.localScale = new Vector3(1, 1, 1);
+                        rectTransform.localRotation = Quaternion.identity;
                         Debug.Log("Created new AvatarView and applied orientation");
                     }
                 }
@@ -1025,8 +1024,8 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 Debug.Log(string.Format("OnUserJoined uid: ${0} elapsed: ${1}", uid, elapsed));
                 if (uid != _desktopScreenShare.UidWebcam && uid != _desktopScreenShare.UidScreen)
                 {
-                    // Check if this is the avatar video stream (UID 785)
-                    if (uid == 785)
+                    // Check if this is the avatar video stream
+                    if (uid == StudentAgoraScript.UidAvatarStream)
                     {
                         Debug.Log("*********************************************************");
                         Debug.Log("***** AVATAR VIDEO STREAM JOINED WITH UID: " + uid + " *****");
@@ -1091,8 +1090,8 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 Debug.Log(string.Format("OnUserOffLine uid: ${0}, reason: ${1}", uid, (int)reason));
                 if (uid != _desktopScreenShare.UidWebcam && uid != _desktopScreenShare.UidScreen)
                 {
-                    // Check if this is the avatar video stream (UID 785)
-                    if (uid == 785)
+                    // Check if this is the avatar video stream
+                    if (uid == StudentAgoraScript.UidAvatarStream)
                     {
                         Debug.Log("Avatar video stream went offline with UID: " + uid);
                         TeacherAgoraScript.DestroyVideoView("AvatarView");
