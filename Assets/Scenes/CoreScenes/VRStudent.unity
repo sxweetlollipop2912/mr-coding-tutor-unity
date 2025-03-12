@@ -6642,9 +6642,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1bf4ff6de4560d44d9b3b0697e00c1b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  AudioClip: {fileID: 8300000, guid: 49fedbd34240f46d7a772f62a5f0335d, type: 3}
-  AudioSource: {fileID: 253349124}
-  AudioProvider: 1
 --- !u!4 &1029660733 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1682971599488559293, guid: 3cb94ff40f012bb4ab10324a45fe5080, type: 3}
@@ -11611,8 +11608,10 @@ MonoBehaviour:
   avatarRenderTexture: {fileID: 0}
   avatarVideoWidth: 640
   avatarVideoHeight: 480
-  hideAvatarInMainView: 1
   UidAvatarStream: 789
+  saveAvatarFramesToDisk: 1
+  saveFrameInterval: 5
+  saveFramesDirectory: AvatarFrames
   UidStudentWebcam: 123
   UidStudentDesktop: 456
 --- !u!223 &1142612797 stripped

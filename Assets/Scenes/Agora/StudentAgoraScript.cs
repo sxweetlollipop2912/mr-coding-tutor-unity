@@ -54,6 +54,173 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             public uint UidAvatarStream = 789; // Unique ID for avatar video stream
             private int _customVideoTrackId = -1;
 
+            // Debug settings for avatar camera
+            [Header("_____________Avatar Debug Configuration_____________")]
+            [SerializeField]
+            private bool saveAvatarFramesToDisk = false;
+
+            [SerializeField]
+            private float saveFrameInterval = 5.0f;
+            private float _lastFrameSaveTime = 0f;
+
+            [SerializeField]
+            private string saveFramesDirectory = "AvatarFrames";
+
+            // Method that can be called from the Inspector for immediate testing
+            [ContextMenu("Save Avatar Frame Now")]
+            public void SaveAvatarFrameNow()
+            {
+                if (_isCapturingAvatar)
+                {
+                    SaveAvatarFrameToDisk();
+                    Debug.Log("Manually saved avatar frame");
+                }
+                else
+                {
+                    Debug.LogWarning("Cannot save avatar frame - avatar capture is not active");
+                }
+            }
+
+            // Method to show the save directory in the console
+            [ContextMenu("Show Avatar Frames Directory")]
+            public void ShowAvatarFramesDirectory()
+            {
+                string directoryPath = System.IO.Path.Combine(
+                    Application.persistentDataPath,
+                    saveFramesDirectory
+                );
+                Debug.Log("Avatar frames are saved to: " + directoryPath);
+            }
+
+            // Method to open the directory in file explorer
+            [ContextMenu("Open Avatar Frames Directory")]
+            public void OpenAvatarFramesDirectory()
+            {
+                string directoryPath = System.IO.Path.Combine(
+                    Application.persistentDataPath,
+                    saveFramesDirectory
+                );
+
+                // Create the directory if it doesn't exist
+                if (!System.IO.Directory.Exists(directoryPath))
+                {
+                    System.IO.Directory.CreateDirectory(directoryPath);
+                }
+
+                // Open the directory
+#if UNITY_EDITOR
+                UnityEditor.EditorUtility.RevealInFinder(directoryPath);
+#elif UNITY_STANDALONE_OSX
+                System.Diagnostics.Process.Start("open", directoryPath);
+#elif UNITY_STANDALONE_WIN
+                System.Diagnostics.Process.Start("explorer.exe", directoryPath);
+#elif UNITY_STANDALONE_LINUX
+                System.Diagnostics.Process.Start("xdg-open", directoryPath);
+#else
+                Debug.Log("Cannot open directory on this platform. Path: " + directoryPath);
+#endif
+            }
+
+            // Method to display debug information about the avatar camera
+            [ContextMenu("Debug Avatar Camera Info")]
+            public void DebugAvatarCameraInfo()
+            {
+                if (avatarCamera == null)
+                {
+                    Debug.LogError("Avatar camera is not assigned!");
+                    return;
+                }
+
+                Debug.Log("=== AVATAR CAMERA DEBUG INFO ===");
+                Debug.Log($"Camera Name: {avatarCamera.name}");
+                Debug.Log($"Camera Enabled: {avatarCamera.enabled}");
+                Debug.Log($"Camera Position: {avatarCamera.transform.position}");
+                Debug.Log($"Camera Rotation: {avatarCamera.transform.rotation.eulerAngles}");
+                Debug.Log($"Camera Field of View: {avatarCamera.fieldOfView}");
+                Debug.Log($"Camera Clear Flags: {avatarCamera.clearFlags}");
+                Debug.Log($"Camera Culling Mask: {avatarCamera.cullingMask}");
+                Debug.Log($"Camera Depth: {avatarCamera.depth}");
+                Debug.Log(
+                    $"Camera Target Texture: {(avatarCamera.targetTexture != null ? avatarCamera.targetTexture.name : "None")}"
+                );
+                Debug.Log(
+                    $"Camera Target Texture Size: {(avatarCamera.targetTexture != null ? avatarCamera.targetTexture.width + "x" + avatarCamera.targetTexture.height : "N/A")}"
+                );
+                Debug.Log($"Is Capturing Avatar: {_isCapturingAvatar}");
+                Debug.Log($"Custom Video Track ID: {_customVideoTrackId}");
+                Debug.Log("================================");
+
+                // Check if the avatar object is visible to the camera
+                if (avatarObject != null)
+                {
+                    Debug.Log($"Avatar Object: {avatarObject.name}");
+                    Debug.Log($"Avatar Object Active: {avatarObject.activeSelf}");
+                    Debug.Log($"Avatar Object Position: {avatarObject.transform.position}");
+
+                    // Check if avatar is in camera's view
+                    Vector3 viewportPoint = avatarCamera.WorldToViewportPoint(
+                        avatarObject.transform.position
+                    );
+                    bool isVisible =
+                        viewportPoint.z > 0
+                        && viewportPoint.x > 0
+                        && viewportPoint.x < 1
+                        && viewportPoint.y > 0
+                        && viewportPoint.y < 1;
+                    Debug.Log(
+                        $"Avatar in Camera View: {isVisible} (Viewport Point: {viewportPoint})"
+                    );
+                }
+                else
+                {
+                    Debug.LogWarning("Avatar object is not assigned!");
+                }
+            }
+
+            // Method to debug Agora connection status for avatar stream
+            [ContextMenu("Debug Agora Avatar Stream")]
+            public void DebugAgoraAvatarStream()
+            {
+                Debug.Log("=== AGORA AVATAR STREAM DEBUG INFO ===");
+                Debug.Log($"Custom Video Track ID: {_customVideoTrackId}");
+                Debug.Log($"Avatar UID: {UidAvatarStream}");
+                Debug.Log($"Is Capturing Avatar: {_isCapturingAvatar}");
+                Debug.Log($"Channel Name: {_channelName}");
+
+                // Try to get connection state
+                try
+                {
+                    RtcConnection connection = new RtcConnection();
+                    connection.channelId = _channelName;
+                    connection.localUid = UidAvatarStream;
+
+                    CONNECTION_STATE_TYPE state = RtcEngine.GetConnectionStateEx(connection);
+                    Debug.Log($"Connection State: {state}");
+
+                    if (state != CONNECTION_STATE_TYPE.CONNECTION_STATE_CONNECTED)
+                    {
+                        Debug.LogWarning("Avatar stream is not connected! Current state: " + state);
+                    }
+                    else
+                    {
+                        Debug.Log("Avatar stream is connected.");
+
+                        // Force an update of the channel with current track ID
+                        UpdateAvatarChannelWithTrackId();
+
+                        // Force a new frame push
+                        bool pushResult = CaptureAndPushFrame();
+                        Debug.Log($"Manual frame push result: {pushResult}");
+                    }
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError($"Error getting connection state: {e.Message}");
+                }
+
+                Debug.Log("=====================================");
+            }
+
             internal IRtcEngineEx RtcEngine = null;
 
             public uint UidStudentWebcam = 123;
@@ -430,76 +597,74 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 externalVideoFrame.rotation = 0;
                 externalVideoFrame.timestamp = System.DateTime.Now.Ticks / 10000; // Use current time in milliseconds
 
-                // Push the frame to Agora
-                // First, check if we need to create a custom video track
-                if (_customVideoTrackId < 0)
+                // Check if custom track ID is valid
+                if (_customVideoTrackId <= 0)
                 {
-                    VideoEncoderConfiguration config = new VideoEncoderConfiguration();
-                    config.dimensions = new VideoDimensions(avatarVideoWidth, avatarVideoHeight);
-                    config.frameRate = (int)FRAME_RATE.FRAME_RATE_FPS_30;
-                    config.bitrate = 1000;
-
-                    // Create a custom video track
+                    Debug.LogWarning("Invalid custom track ID, creating a new one");
                     _customVideoTrackId = (int)RtcEngine.CreateCustomVideoTrack();
-                    Debug.Log("Created custom video track ID: " + _customVideoTrackId);
+                    Debug.Log("Created new custom video track ID: " + _customVideoTrackId);
+
+                    // Re-configure the channel with the new track ID
+                    UpdateAvatarChannelWithTrackId();
                 }
 
-                // Push the frame to the custom video track
-                int ret = RtcEngine.PushVideoFrame(externalVideoFrame);
-                if (ret != 0)
+                // Try pushing the frame with the custom track ID
+                int ret = -1;
+                try
                 {
-                    Debug.LogWarning("Failed to push video frame: " + ret);
+                    // Push the frame with specified track ID
+                    ret = RtcEngine.PushVideoFrame(externalVideoFrame, (uint)_customVideoTrackId);
+                    if (ret != 0)
+                    {
+                        Debug.LogError(
+                            $"Failed to push video frame with track ID {_customVideoTrackId}, error: {ret}"
+                        );
+                        return false;
+                    }
+                    else
+                    {
+                        // Log success occasionally (not every frame to avoid spam)
+                        if (Time.frameCount % 300 == 0) // Log every ~5 seconds at 60fps
+                        {
+                            Debug.Log(
+                                $"Successfully pushed video frame with track ID {_customVideoTrackId}"
+                            );
+                        }
+                    }
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError($"Exception pushing video frame: {e.Message}");
                     return false;
                 }
 
                 return true;
             }
 
-            private void CaptureAvatarFrame()
+            // Helper method to update the channel with the current track ID
+            private void UpdateAvatarChannelWithTrackId()
             {
-                CaptureAndPushFrame();
-            }
-
-            private void AvatarVideoJoinChannel()
-            {
-                Debug.Log("Joining channel for avatar video with UID: " + UidAvatarStream);
-
-                // Configure as broadcaster to send video
-                ChannelMediaOptions option = new ChannelMediaOptions();
-
-                // Use reflection to set properties if the direct assignment doesn't work
-                // This is a workaround for the API version differences
                 try
                 {
-                    var clientRoleTypeProperty = option.GetType().GetProperty("clientRoleType");
-                    if (clientRoleTypeProperty != null)
-                    {
-                        var optionalType = clientRoleTypeProperty.PropertyType;
-                        var optionalConstructor = optionalType.GetConstructor(
-                            new[] { typeof(CLIENT_ROLE_TYPE) }
-                        );
-                        if (optionalConstructor != null)
-                        {
-                            var optionalValue = optionalConstructor.Invoke(
-                                new object[] { CLIENT_ROLE_TYPE.CLIENT_ROLE_BROADCASTER }
-                            );
-                            clientRoleTypeProperty.SetValue(option, optionalValue);
-                            Debug.Log("Set clientRoleType to BROADCASTER");
-                        }
-                    }
+                    Debug.Log($"Updating avatar channel with track ID: {_customVideoTrackId}");
 
-                    // Set other properties similarly
-                    SetOptionalBoolProperty(option, "publishCameraTrack", false);
+                    // Create connection for avatar stream
+                    RtcConnection connection = new RtcConnection();
+                    connection.channelId = _channelName;
+                    connection.localUid = UidAvatarStream;
+
+                    // Configure channel options
+                    ChannelMediaOptions option = new ChannelMediaOptions();
+
+                    // Set essential properties
                     SetOptionalBoolProperty(option, "publishCustomVideoTrack", true);
-                    SetOptionalBoolProperty(option, "publishMicrophoneTrack", false);
-                    SetOptionalBoolProperty(option, "autoSubscribeVideo", false);
-                    SetOptionalBoolProperty(option, "autoSubscribeAudio", false);
+                    SetOptionalBoolProperty(option, "publishCameraTrack", false);
 
-                    // Set the custom video track ID to publish
+                    // Set the custom video track ID
                     var customVideoTrackIdProperty = option
                         .GetType()
                         .GetProperty("customVideoTrackId");
-                    if (customVideoTrackIdProperty != null && _customVideoTrackId > 0)
+                    if (customVideoTrackIdProperty != null)
                     {
                         var optionalType = customVideoTrackIdProperty.PropertyType;
                         var optionalConstructor = optionalType.GetConstructor(
@@ -511,15 +676,112 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                                 new object[] { _customVideoTrackId }
                             );
                             customVideoTrackIdProperty.SetValue(option, optionalValue);
-                            Debug.Log("Set customVideoTrackId to: " + _customVideoTrackId);
+                            Debug.Log(
+                                $"Set customVideoTrackId in options to: {_customVideoTrackId}"
+                            );
                         }
                     }
 
-                    Debug.Log("Set channel media options");
+                    // Update channel options
+                    int result = RtcEngine.UpdateChannelMediaOptionsEx(option, connection);
+                    Debug.Log($"UpdateChannelMediaOptionsEx result: {result}");
                 }
                 catch (System.Exception e)
                 {
-                    Debug.LogError("Error setting channel media options: " + e.Message);
+                    Debug.LogError($"Error updating avatar channel: {e.Message}");
+                }
+            }
+
+            private void CaptureAvatarFrame()
+            {
+                CaptureAndPushFrame();
+            }
+
+            private void AvatarVideoJoinChannel()
+            {
+                Debug.Log("Joining channel for avatar video with UID: " + UidAvatarStream);
+
+                // Make sure we have a valid custom track ID
+                if (_customVideoTrackId <= 0)
+                {
+                    _customVideoTrackId = (int)RtcEngine.CreateCustomVideoTrack();
+                    Debug.Log(
+                        "Created new custom video track ID before joining channel: "
+                            + _customVideoTrackId
+                    );
+                }
+
+                // Configure as broadcaster to send video
+                ChannelMediaOptions option = new ChannelMediaOptions();
+
+                // Set essential properties directly if possible
+                try
+                {
+                    option.publishCameraTrack.SetValue(false);
+                    option.publishCustomVideoTrack.SetValue(true);
+                    option.publishMicrophoneTrack.SetValue(false);
+                    option.autoSubscribeVideo.SetValue(false);
+                    option.autoSubscribeAudio.SetValue(false);
+                    option.clientRoleType.SetValue(CLIENT_ROLE_TYPE.CLIENT_ROLE_BROADCASTER);
+                    option.customVideoTrackId.SetValue((uint)_customVideoTrackId);
+                    Debug.Log("Set channel media options directly");
+                }
+                catch (System.Exception)
+                {
+                    // Fallback to reflection if direct setting fails (for compatibility)
+                    Debug.Log("Direct setting failed, using reflection as fallback");
+                    try
+                    {
+                        var clientRoleTypeProperty = option.GetType().GetProperty("clientRoleType");
+                        if (clientRoleTypeProperty != null)
+                        {
+                            var optionalType = clientRoleTypeProperty.PropertyType;
+                            var optionalConstructor = optionalType.GetConstructor(
+                                new[] { typeof(CLIENT_ROLE_TYPE) }
+                            );
+                            if (optionalConstructor != null)
+                            {
+                                var optionalValue = optionalConstructor.Invoke(
+                                    new object[] { CLIENT_ROLE_TYPE.CLIENT_ROLE_BROADCASTER }
+                                );
+                                clientRoleTypeProperty.SetValue(option, optionalValue);
+                                Debug.Log("Set clientRoleType to BROADCASTER");
+                            }
+                        }
+
+                        // Set other properties similarly
+                        SetOptionalBoolProperty(option, "publishCameraTrack", false);
+                        SetOptionalBoolProperty(option, "publishCustomVideoTrack", true);
+                        SetOptionalBoolProperty(option, "publishMicrophoneTrack", false);
+                        SetOptionalBoolProperty(option, "autoSubscribeVideo", false);
+                        SetOptionalBoolProperty(option, "autoSubscribeAudio", false);
+
+                        // Set the custom video track ID to publish
+                        var customVideoTrackIdProperty = option
+                            .GetType()
+                            .GetProperty("customVideoTrackId");
+                        if (customVideoTrackIdProperty != null && _customVideoTrackId > 0)
+                        {
+                            var optionalType = customVideoTrackIdProperty.PropertyType;
+                            var optionalConstructor = optionalType.GetConstructor(
+                                new[] { typeof(int) }
+                            );
+                            if (optionalConstructor != null)
+                            {
+                                var optionalValue = optionalConstructor.Invoke(
+                                    new object[] { _customVideoTrackId }
+                                );
+                                customVideoTrackIdProperty.SetValue(option, optionalValue);
+                                Debug.Log("Set customVideoTrackId to: " + _customVideoTrackId);
+                            }
+                        }
+
+                        Debug.Log("Set channel media options via reflection");
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogError("Error setting channel media options: " + e.Message);
+                    }
                 }
 
                 // Create connection for avatar stream
@@ -540,6 +802,9 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                     Debug.Log(
                         "Successfully joined channel for avatar video with UID: " + UidAvatarStream
                     );
+
+                    // Push a test frame to make sure video is flowing
+                    CaptureAndPushFrame();
                 }
             }
 
@@ -607,7 +872,69 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 if (_isCapturingAvatar)
                 {
                     CaptureAvatarFrame();
+
+                    // Save frames to disk if enabled
+                    if (
+                        saveAvatarFramesToDisk
+                        && Time.time - _lastFrameSaveTime >= saveFrameInterval
+                    )
+                    {
+                        SaveAvatarFrameToDisk();
+                        _lastFrameSaveTime = Time.time;
+                    }
                 }
+            }
+
+            private void SaveAvatarFrameToDisk()
+            {
+                if (!_isCapturingAvatar || avatarCamera == null || avatarRenderTexture == null)
+                    return;
+
+                // Create directory if it doesn't exist
+                string directoryPath = System.IO.Path.Combine(
+                    Application.persistentDataPath,
+                    saveFramesDirectory
+                );
+                if (!System.IO.Directory.Exists(directoryPath))
+                {
+                    System.IO.Directory.CreateDirectory(directoryPath);
+                    Debug.Log("Created directory for avatar frames: " + directoryPath);
+                }
+
+                // Create a temporary texture to read the pixels
+                Texture2D tempTexture = new Texture2D(
+                    avatarVideoWidth,
+                    avatarVideoHeight,
+                    TextureFormat.RGBA32,
+                    false
+                );
+
+                // Render the camera to ensure we have the latest frame
+                avatarCamera.Render();
+
+                // Read pixels from render texture
+                RenderTexture.active = avatarRenderTexture;
+                tempTexture.ReadPixels(new Rect(0, 0, avatarVideoWidth, avatarVideoHeight), 0, 0);
+                tempTexture.Apply();
+                RenderTexture.active = null;
+
+                // Convert to PNG
+                byte[] bytes = tempTexture.EncodeToPNG();
+
+                // Create a unique filename with timestamp
+                string timestamp = System.DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                string filePath = System.IO.Path.Combine(
+                    directoryPath,
+                    "AvatarFrame_" + timestamp + ".png"
+                );
+
+                // Save the file
+                System.IO.File.WriteAllBytes(filePath, bytes);
+
+                // Clean up
+                Destroy(tempTexture);
+
+                Debug.Log("Saved avatar frame to: " + filePath);
             }
 
             private void OnDestroy()

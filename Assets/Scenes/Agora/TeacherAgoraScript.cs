@@ -230,6 +230,50 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 RtcEngine.Dispose();
             }
 
+            // Method to refresh the avatar view manually if needed
+            [ContextMenu("Refresh Avatar View")]
+            public void RefreshAvatarView()
+            {
+                Debug.Log("Manually refreshing avatar view...");
+
+                // Destroy existing view if it exists
+                var existingView = GameObject.Find("AvatarView");
+                if (existingView != null)
+                {
+                    Debug.Log("Found existing avatar view, destroying it");
+                    Destroy(existingView);
+                }
+
+                // Create a new view
+                Debug.Log("Creating new avatar view");
+                VideoSurface videoSurface = MakeImageSurface("AvatarView");
+                if (videoSurface != null)
+                {
+                    // Configure for avatar UID
+                    videoSurface.SetForUser(
+                        789,
+                        _channelName,
+                        VIDEO_SOURCE_TYPE.VIDEO_SOURCE_REMOTE
+                    );
+                    videoSurface.SetEnable(true);
+
+                    // Set proper orientation
+                    RectTransform rectTransform =
+                        videoSurface.gameObject.GetComponent<RectTransform>();
+                    if (rectTransform != null)
+                    {
+                        rectTransform.localScale = new Vector3(1, -1, 1);
+                        rectTransform.localRotation = Quaternion.identity;
+                    }
+
+                    Debug.Log("Avatar view refreshed successfully");
+                }
+                else
+                {
+                    Debug.LogError("Failed to create new avatar view");
+                }
+            }
+
             internal string GetChannelName()
             {
                 return _channelName;
@@ -264,6 +308,20 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 {
                     videoSurface = MakeImageSurface("AvatarView");
                     Debug.Log("Creating view for Avatar video stream with UID: " + uid);
+
+                    // Set initial orientation for avatar view
+                    if (videoSurface != null && videoSurface.gameObject != null)
+                    {
+                        RectTransform rectTransform =
+                            videoSurface.gameObject.GetComponent<RectTransform>();
+                        if (rectTransform != null)
+                        {
+                            // Initial orientation fix
+                            rectTransform.localScale = new Vector3(1, -1, 1);
+                            rectTransform.localRotation = Quaternion.identity;
+                            Debug.Log("Applied initial transformation for avatar video view");
+                        }
+                    }
                 }
                 else
                 {
@@ -286,6 +344,14 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                         else if (videoSourceType == VIDEO_SOURCE_TYPE.VIDEO_SOURCE_SCREEN)
                         {
                             transform.localScale = new Vector3(1, 1, 1);
+                        }
+                        else if (uid == 789) // Avatar video stream needs special handling
+                        {
+                            // Fix for upside-down avatar video - flip vertically
+                            transform.localScale = new Vector3(1, -1, 1);
+                            // Set the rotation to correct the orientation
+                            transform.localRotation = Quaternion.Euler(0, 0, 0);
+                            Debug.Log("Applied special transformation for avatar video");
                         }
                         else
                         {
@@ -352,7 +418,17 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 go.AddComponent<RawImage>();
 
                 // Set up transform properties
-                go.transform.Rotate(0f, 0.0f, 180.0f);
+                if (goName == "AvatarView")
+                {
+                    // Special handling for avatar view
+                    go.transform.Rotate(0f, 0.0f, 0.0f); // No rotation needed for the avatar
+                    Debug.Log("Created AvatarView with special transformation settings");
+                }
+                else
+                {
+                    // Default rotation for other views
+                    go.transform.Rotate(0f, 0.0f, 180.0f);
+                }
                 go.transform.localPosition = Vector3.zero;
                 go.transform.localScale = new Vector3(3f, 4f, 1f);
 
@@ -712,14 +788,24 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                     // Check if this is the avatar video stream (UID 789)
                     if (uid == 789)
                     {
-                        Debug.Log("Avatar video stream joined with UID: " + uid);
+                        Debug.Log("*********************************************************");
+                        Debug.Log("***** AVATAR VIDEO STREAM JOINED WITH UID: " + uid + " *****");
+                        Debug.Log("*********************************************************");
+                        // Make sure we create a dedicated view for it
+                        TeacherAgoraScript.MakeVideoView(
+                            uid,
+                            _desktopScreenShare.GetChannelName(),
+                            VIDEO_SOURCE_TYPE.VIDEO_SOURCE_REMOTE
+                        );
                     }
-
-                    TeacherAgoraScript.MakeVideoView(
-                        uid,
-                        _desktopScreenShare.GetChannelName(),
-                        VIDEO_SOURCE_TYPE.VIDEO_SOURCE_REMOTE
-                    );
+                    else
+                    {
+                        TeacherAgoraScript.MakeVideoView(
+                            uid,
+                            _desktopScreenShare.GetChannelName(),
+                            VIDEO_SOURCE_TYPE.VIDEO_SOURCE_REMOTE
+                        );
+                    }
                 }
             }
 
