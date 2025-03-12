@@ -937,21 +937,62 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 Debug.Log("Saved avatar frame to: " + filePath);
             }
 
+            private void OnApplicationQuit()
+            {
+                Debug.Log("Application quitting - cleaning up Agora resources");
+                CleanupAgora();
+            }
+
+            private void OnDisable()
+            {
+                Debug.Log("Student script disabled - cleaning up Agora resources");
+                CleanupAgora();
+            }
+
             private void OnDestroy()
+            {
+                Debug.Log("OnDestroy");
+                CleanupAgora();
+            }
+
+            private void CleanupAgora()
             {
                 if (RtcEngine == null)
                     return;
 
-                if (_isCapturingAvatar)
-                {
-                    StopAvatarVideoCapture();
-                }
+                Debug.Log("Cleaning up Agora resources");
 
-                OnStopShareScreen();
-                RtcEngine.InitEventHandler(null);
-                RtcEngine.LeaveChannel();
-                RtcEngine.Dispose();
-                RtcEngine = null;
+                try
+                {
+                    if (_isCapturingAvatar)
+                    {
+                        StopAvatarVideoCapture();
+                    }
+
+                    // Leave all channels
+                    OnStopShareScreen();
+                    RtcEngine.InitEventHandler(null);
+                    RtcEngine.LeaveChannel();
+
+                    // Leave desktop screen share channel if needed
+                    RtcEngine.LeaveChannelEx(new RtcConnection(_channelName, UidStudentDesktop));
+
+                    // Leave avatar video channel if needed
+                    RtcConnection avatarConnection = new RtcConnection();
+                    avatarConnection.channelId = _channelName;
+                    avatarConnection.localUid = UidAvatarStream;
+                    RtcEngine.LeaveChannelEx(avatarConnection);
+
+                    // Dispose engine
+                    RtcEngine.Dispose();
+                    RtcEngine = null;
+
+                    Debug.Log("Agora resources cleaned up successfully");
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError("Error cleaning up Agora resources: " + e.Message);
+                }
             }
 
             internal string GetChannelName()
@@ -1170,10 +1211,14 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             )
             {
                 Debug.Log(string.Format("OnUserOffLine uid: ${0}, reason: ${1}", uid, (int)reason));
-                if (
-                    uid != _desktopScreenShare.UidStudentWebcam
-                    && uid != _desktopScreenShare.UidStudentDesktop
-                )
+
+                // Handle various user types going offline
+                if (uid == StudentAgoraScript.UidTeacherWebcam)
+                {
+                    Debug.Log("Teacher webcam went offline, removing view");
+                    StudentAgoraScript.DestroyVideoView("TeacherCameraView");
+                }
+                else
                 {
                     StudentAgoraScript.DestroyVideoView(uid.ToString());
                 }

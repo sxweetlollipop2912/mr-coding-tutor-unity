@@ -45,6 +45,9 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             private static GameObject _studentScreen = null;
             private bool _isStreamingMouse = false;
 
+            // Current orientation index for cycling
+            private int _currentOrientationIndex = 0;
+
             // Use this for initialization
             private void Start()
             {
@@ -274,6 +277,176 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 }
             }
 
+            // Method to fix the avatar view orientation
+            [ContextMenu("Fix Avatar Orientation")]
+            public void FixAvatarOrientation()
+            {
+                Debug.Log("Attempting to fix avatar orientation...");
+
+                // Find the avatar view
+                var avatarView = GameObject.Find("AvatarView");
+                if (avatarView != null)
+                {
+                    // Get the RectTransform component
+                    RectTransform rectTransform = avatarView.GetComponent<RectTransform>();
+                    if (rectTransform != null)
+                    {
+                        // Cycle to the next orientation
+                        _currentOrientationIndex = (_currentOrientationIndex + 1) % 8;
+
+                        switch (_currentOrientationIndex)
+                        {
+                            case 0: // Normal
+                                rectTransform.localScale = new Vector3(1, 1, 1);
+                                rectTransform.localRotation = Quaternion.identity;
+                                Debug.Log("Avatar Orientation 1/8: Normal");
+                                break;
+                            case 1: // Flipped horizontally
+                                rectTransform.localScale = new Vector3(-1, 1, 1);
+                                rectTransform.localRotation = Quaternion.identity;
+                                Debug.Log("Avatar Orientation 2/8: Flipped horizontally");
+                                break;
+                            case 2: // Flipped vertically
+                                rectTransform.localScale = new Vector3(1, -1, 1);
+                                rectTransform.localRotation = Quaternion.identity;
+                                Debug.Log("Avatar Orientation 3/8: Flipped vertically");
+                                break;
+                            case 3: // Flipped both
+                                rectTransform.localScale = new Vector3(-1, -1, 1);
+                                rectTransform.localRotation = Quaternion.identity;
+                                Debug.Log(
+                                    "Avatar Orientation 4/8: Flipped both horizontally and vertically"
+                                );
+                                break;
+                            case 4: // Rotated 90 degrees
+                                rectTransform.localScale = new Vector3(1, 1, 1);
+                                rectTransform.localRotation = Quaternion.Euler(0, 0, 90);
+                                Debug.Log("Avatar Orientation 5/8: Rotated 90 degrees");
+                                break;
+                            case 5: // Rotated 180 degrees
+                                rectTransform.localScale = new Vector3(1, 1, 1);
+                                rectTransform.localRotation = Quaternion.Euler(0, 0, 180);
+                                Debug.Log("Avatar Orientation 6/8: Rotated 180 degrees");
+                                break;
+                            case 6: // Rotated 270 degrees
+                                rectTransform.localScale = new Vector3(1, 1, 1);
+                                rectTransform.localRotation = Quaternion.Euler(0, 0, 270);
+                                Debug.Log("Avatar Orientation 7/8: Rotated 270 degrees");
+                                break;
+                            case 7: // Rotated 180 degrees and flipped
+                                rectTransform.localScale = new Vector3(-1, -1, 1);
+                                rectTransform.localRotation = Quaternion.Euler(0, 0, 180);
+                                Debug.Log(
+                                    "Avatar Orientation 8/8: Rotated 180 degrees and flipped"
+                                );
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogError("Avatar view doesn't have a RectTransform component");
+                    }
+                }
+                else
+                {
+                    Debug.LogError("Avatar view not found in the scene");
+                }
+            }
+
+            // Method to cycle through different orientations
+            [ContextMenu("Cycle Avatar Orientation")]
+            public void CycleAvatarOrientation()
+            {
+                // Just call the fix method which now cycles through orientations
+                FixAvatarOrientation();
+            }
+
+            // Method to apply the correct orientation for the avatar view
+            // This is called automatically when the avatar stream joins
+            public void ApplyAvatarCorrectOrientation()
+            {
+                Debug.Log("Automatically applying correct orientation for avatar view");
+
+                // Find the avatar view
+                var avatarView = GameObject.Find("AvatarView");
+                if (avatarView != null)
+                {
+                    // Get the RectTransform component
+                    RectTransform rectTransform = avatarView.GetComponent<RectTransform>();
+                    if (rectTransform != null)
+                    {
+                        // Apply the orientation that works best
+                        // Based on testing, this is the correct orientation
+                        rectTransform.localScale = new Vector3(1, -1, 1);
+                        rectTransform.localRotation = Quaternion.identity;
+                        Debug.Log("Applied correct orientation to avatar view: Flipped vertically");
+                    }
+                    else
+                    {
+                        Debug.LogError("Avatar view doesn't have a RectTransform component");
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning("Avatar view not found yet, will try again in 0.5 seconds");
+                    // Try again after a short delay
+                    Invoke("ApplyAvatarCorrectOrientation", 0.5f);
+                }
+            }
+
+            // Method to debug the current orientation of the avatar view
+            [ContextMenu("Debug Avatar View")]
+            public void DebugAvatarView()
+            {
+                Debug.Log("Debugging avatar view...");
+
+                // Find the avatar view
+                var avatarView = GameObject.Find("AvatarView");
+                if (avatarView != null)
+                {
+                    // Get the RectTransform component
+                    RectTransform rectTransform = avatarView.GetComponent<RectTransform>();
+                    if (rectTransform != null)
+                    {
+                        Debug.Log($"Avatar view found with name: {avatarView.name}");
+                        Debug.Log($"Current scale: {rectTransform.localScale}");
+                        Debug.Log($"Current rotation: {rectTransform.localRotation.eulerAngles}");
+                        Debug.Log($"Current size: {rectTransform.sizeDelta}");
+                        Debug.Log($"Current position: {rectTransform.localPosition}");
+
+                        // Get the RawImage component
+                        RawImage rawImage = avatarView.GetComponent<RawImage>();
+                        if (rawImage != null)
+                        {
+                            Debug.Log(
+                                $"RawImage texture: {(rawImage.texture != null ? "Present" : "None")}"
+                            );
+                            if (rawImage.texture != null)
+                            {
+                                Debug.Log(
+                                    $"Texture size: {rawImage.texture.width}x{rawImage.texture.height}"
+                                );
+                            }
+                        }
+
+                        // Get the VideoSurface component
+                        VideoSurface videoSurface = avatarView.GetComponent<VideoSurface>();
+                        if (videoSurface != null)
+                        {
+                            Debug.Log($"VideoSurface enabled: {videoSurface.enabled}");
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogError("Avatar view doesn't have a RectTransform component");
+                    }
+                }
+                else
+                {
+                    Debug.LogError("Avatar view not found in the scene");
+                }
+            }
+
             internal string GetChannelName()
             {
                 return _channelName;
@@ -308,20 +481,6 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 {
                     videoSurface = MakeImageSurface("AvatarView");
                     Debug.Log("Creating view for Avatar video stream with UID: " + uid);
-
-                    // Set initial orientation for avatar view
-                    if (videoSurface != null && videoSurface.gameObject != null)
-                    {
-                        RectTransform rectTransform =
-                            videoSurface.gameObject.GetComponent<RectTransform>();
-                        if (rectTransform != null)
-                        {
-                            // Initial orientation fix
-                            rectTransform.localScale = new Vector3(1, -1, 1);
-                            rectTransform.localRotation = Quaternion.identity;
-                            Debug.Log("Applied initial transformation for avatar video view");
-                        }
-                    }
                 }
                 else
                 {
@@ -329,6 +488,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 }
                 if (ReferenceEquals(videoSurface, null))
                     return;
+
                 // configure videoSurface
                 videoSurface.SetForUser(uid, channelId, videoSourceType);
                 videoSurface.SetEnable(true);
@@ -347,11 +507,17 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                         }
                         else if (uid == 789) // Avatar video stream needs special handling
                         {
-                            // Fix for upside-down avatar video - flip vertically
-                            transform.localScale = new Vector3(1, -1, 1);
-                            // Set the rotation to correct the orientation
-                            transform.localRotation = Quaternion.Euler(0, 0, 0);
-                            Debug.Log("Applied special transformation for avatar video");
+                            // Don't change the scale here as it might override our fix
+                            // Just log that we received a texture size modification
+                            Debug.Log($"Avatar video texture size modified: {width}x{height}");
+
+                            // Ensure our orientation fix is preserved
+                            // We want it flipped vertically but not horizontally
+                            if (transform.localScale.y > 0) // If it's not already flipped vertically
+                            {
+                                transform.localScale = new Vector3(1, -1, 1);
+                                Debug.Log("Re-applied vertical flip to avatar view");
+                            }
                         }
                         else
                         {
@@ -420,15 +586,16 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 // Set up transform properties
                 if (goName == "AvatarView")
                 {
-                    // Special handling for avatar view
-                    go.transform.Rotate(0f, 0.0f, 0.0f); // No rotation needed for the avatar
-                    Debug.Log("Created AvatarView with special transformation settings");
+                    // Special handling for avatar view - no rotation needed
+                    go.transform.Rotate(0f, 0.0f, 0.0f);
+                    Debug.Log("Created AvatarView with correct orientation");
                 }
                 else
                 {
                     // Default rotation for other views
                     go.transform.Rotate(0f, 0.0f, 180.0f);
                 }
+
                 go.transform.localPosition = Vector3.zero;
                 go.transform.localScale = new Vector3(3f, 4f, 1f);
 
@@ -797,6 +964,9 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                             _desktopScreenShare.GetChannelName(),
                             VIDEO_SOURCE_TYPE.VIDEO_SOURCE_REMOTE
                         );
+
+                        // Apply the correct orientation after a short delay to ensure the view is created
+                        _desktopScreenShare.Invoke("ApplyAvatarCorrectOrientation", 1.0f);
                     }
                     else
                     {
