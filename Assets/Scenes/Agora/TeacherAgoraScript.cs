@@ -377,7 +377,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                     {
                         // Apply the orientation that works best
                         // Based on testing, this is the correct orientation
-                        rectTransform.localScale = new Vector3(1, -1, 1);
+                        rectTransform.localScale = new Vector3(1, 1, 1);
                         rectTransform.localRotation = Quaternion.identity;
                         Debug.Log("Applied correct orientation to avatar view: Flipped vertically");
                     }
@@ -477,7 +477,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 {
                     videoSurface = MakeImageSurface("ScreenShareView");
                 }
-                else if (uid == 789) // Avatar video stream UID
+                else if (uid == 785) // Avatar video stream UID
                 {
                     videoSurface = MakeImageSurface("AvatarView");
                     Debug.Log("Creating view for Avatar video stream with UID: " + uid);
@@ -505,7 +505,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                         {
                             transform.localScale = new Vector3(1, 1, 1);
                         }
-                        else if (uid == 789) // Avatar video stream needs special handling
+                        else if (uid == 785) // Avatar video stream needs special handling
                         {
                             // Don't change the scale here as it might override our fix
                             // Just log that we received a texture size modification
@@ -872,6 +872,79 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                     Convert.ToUInt32(byteArray.Length)
                 );
             }
+
+            // Method to recreate the avatar view if it can't be found
+            private void RecreateAvatarView()
+            {
+                Debug.Log("Attempting to recreate AvatarView...");
+
+                // First check if there's an existing view with a different name
+                GameObject[] allObjects = FindObjectsOfType<GameObject>();
+                foreach (GameObject obj in allObjects)
+                {
+                    VideoSurface surface = obj.GetComponent<VideoSurface>();
+                    if (surface != null)
+                    {
+                        uint uid = 0;
+                        try
+                        {
+                            // Try to get the UID from the VideoSurface
+                            System.Reflection.FieldInfo uidField = surface
+                                .GetType()
+                                .GetField(
+                                    "mUid",
+                                    System.Reflection.BindingFlags.NonPublic
+                                        | System.Reflection.BindingFlags.Instance
+                                );
+                            if (uidField != null)
+                            {
+                                uid = (uint)uidField.GetValue(surface);
+                                if (uid == 785)
+                                {
+                                    Debug.Log(
+                                        $"Found existing avatar video surface on GameObject: {obj.name}"
+                                    );
+                                    obj.name = "AvatarView"; // Rename it
+
+                                    // Apply orientation
+                                    RectTransform rectTransform = obj.GetComponent<RectTransform>();
+                                    if (rectTransform != null)
+                                    {
+                                        rectTransform.localScale = new Vector3(1, -1, 1);
+                                        Debug.Log("Applied orientation to renamed AvatarView");
+                                    }
+                                    return;
+                                }
+                            }
+                        }
+                        catch (System.Exception e)
+                        {
+                            Debug.LogError($"Error checking VideoSurface: {e.Message}");
+                        }
+                    }
+                }
+
+                // If we couldn't find an existing view, create a new one
+                VideoSurface videoSurface = MakeImageSurface("AvatarView");
+                if (videoSurface != null)
+                {
+                    videoSurface.SetForUser(
+                        785,
+                        _channelName,
+                        VIDEO_SOURCE_TYPE.VIDEO_SOURCE_REMOTE
+                    );
+                    videoSurface.SetEnable(true);
+
+                    // Apply orientation
+                    RectTransform rectTransform =
+                        videoSurface.gameObject.GetComponent<RectTransform>();
+                    if (rectTransform != null)
+                    {
+                        rectTransform.localScale = new Vector3(1, -1, 1);
+                        Debug.Log("Created new AvatarView and applied orientation");
+                    }
+                }
+            }
         }
 
             #endregion
@@ -952,21 +1025,51 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 Debug.Log(string.Format("OnUserJoined uid: ${0} elapsed: ${1}", uid, elapsed));
                 if (uid != _desktopScreenShare.UidWebcam && uid != _desktopScreenShare.UidScreen)
                 {
-                    // Check if this is the avatar video stream (UID 789)
-                    if (uid == 789)
+                    // Check if this is the avatar video stream (UID 785)
+                    if (uid == 785)
                     {
                         Debug.Log("*********************************************************");
                         Debug.Log("***** AVATAR VIDEO STREAM JOINED WITH UID: " + uid + " *****");
                         Debug.Log("*********************************************************");
-                        // Make sure we create a dedicated view for it
-                        TeacherAgoraScript.MakeVideoView(
-                            uid,
-                            _desktopScreenShare.GetChannelName(),
-                            VIDEO_SOURCE_TYPE.VIDEO_SOURCE_REMOTE
-                        );
 
-                        // Apply the correct orientation after a short delay to ensure the view is created
-                        _desktopScreenShare.Invoke("ApplyAvatarCorrectOrientation", 1.0f);
+                        // First check if the view already exists
+                        var existingView = GameObject.Find("AvatarView");
+                        if (existingView != null)
+                        {
+                            Debug.Log("AvatarView already exists, will update it");
+
+                            // Update the existing view
+                            VideoSurface existingSurface =
+                                existingView.GetComponent<VideoSurface>();
+                            if (existingSurface != null)
+                            {
+                                existingSurface.SetForUser(
+                                    uid,
+                                    _desktopScreenShare.GetChannelName(),
+                                    VIDEO_SOURCE_TYPE.VIDEO_SOURCE_REMOTE
+                                );
+                                existingSurface.SetEnable(true);
+                                Debug.Log("Updated existing AvatarView");
+                            }
+
+                            // Apply orientation immediately
+                            _desktopScreenShare.ApplyAvatarCorrectOrientation();
+                        }
+                        else
+                        {
+                            // Make sure we create a dedicated view for it
+                            Debug.Log("Creating new AvatarView");
+
+                            // Create a dedicated view for the avatar stream
+                            TeacherAgoraScript.MakeVideoView(
+                                uid,
+                                _desktopScreenShare.GetChannelName(),
+                                VIDEO_SOURCE_TYPE.VIDEO_SOURCE_REMOTE
+                            );
+
+                            // Apply the correct orientation after a short delay to ensure the view is created
+                            _desktopScreenShare.Invoke("ApplyAvatarCorrectOrientation", 1.0f);
+                        }
                     }
                     else
                     {
@@ -988,8 +1091,8 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 Debug.Log(string.Format("OnUserOffLine uid: ${0}, reason: ${1}", uid, (int)reason));
                 if (uid != _desktopScreenShare.UidWebcam && uid != _desktopScreenShare.UidScreen)
                 {
-                    // Check if this is the avatar video stream (UID 789)
-                    if (uid == 789)
+                    // Check if this is the avatar video stream (UID 785)
+                    if (uid == 785)
                     {
                         Debug.Log("Avatar video stream went offline with UID: " + uid);
                         TeacherAgoraScript.DestroyVideoView("AvatarView");

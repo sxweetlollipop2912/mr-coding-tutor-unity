@@ -51,7 +51,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
 
             private Texture2D _avatarTexture2D;
             private bool _isCapturingAvatar = false;
-            public uint UidAvatarStream = 789; // Unique ID for avatar video stream
+            public uint UidAvatarStream = 785; // Unique ID for avatar video stream
             private int _customVideoTrackId = -1;
 
             // Debug settings for avatar camera
