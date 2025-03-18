@@ -17,6 +17,10 @@ public class TextToSpeechHandler : MonoBehaviour
 
     [SerializeField]
     private AvatarAnimationController avatarAnimator; // Reference to avatar animator
+    private string voiceName = "en-US-ChristopherNeural"; // Default voice
+
+    [SerializeField]
+    private string voiceRate = "+25%"; // Default rate
 
     private string ttsServerUrl;
     private string outputFilePath;
@@ -44,6 +48,24 @@ public class TextToSpeechHandler : MonoBehaviour
         outputFilePath = Path.Combine(Application.streamingAssetsPath, config.ttsOutputFilename);
     }
 
+    public void SetVoice(string voice)
+    {
+        if (!string.IsNullOrEmpty(voice))
+        {
+            voiceName = voice;
+            Debug.Log($"[TextToSpeechHandler] Voice set to: {voiceName}");
+        }
+    }
+
+    public void SetRate(string rate)
+    {
+        if (!string.IsNullOrEmpty(rate))
+        {
+            voiceRate = rate;
+            Debug.Log($"[TextToSpeechHandler] Rate set to: {voiceRate}");
+        }
+    }
+
     public void SpeakText(string text)
     {
         if (string.IsNullOrWhiteSpace(text))
@@ -68,8 +90,13 @@ public class TextToSpeechHandler : MonoBehaviour
 
     private IEnumerator SendTextToTTSDirect(string text)
     {
-        // Create JSON payload using a class and JsonUtility
-        TTSRequest ttsRequest = new TTSRequest { text = text };
+        // Create JSON payload with voice and rate parameters
+        TTSRequest ttsRequest = new TTSRequest
+        {
+            text = text,
+            voice = voiceName,
+            rate = voiceRate,
+        };
         string jsonPayload = JsonUtility.ToJson(ttsRequest);
 
         Debug.Log("[TextToSpeechHandler] Sending JSON payload to TTS server: " + jsonPayload);
@@ -81,11 +108,15 @@ public class TextToSpeechHandler : MonoBehaviour
         request.downloadHandler = new DownloadHandlerBuffer();
         request.SetRequestHeader("Content-Type", "application/json");
 
+        // Measure time for performance tracking
+        float startTime = Time.realtimeSinceStartup;
+
         yield return request.SendWebRequest();
 
         if (request.result == UnityWebRequest.Result.Success)
         {
-            Debug.Log("[TextToSpeechHandler] TTS audio received.");
+            float ttsRequestTime = Time.realtimeSinceStartup - startTime;
+            Debug.Log($"[TextToSpeechHandler] TTS audio received in {ttsRequestTime:F2} seconds.");
             progressStatus.UpdateStep(AIProgressStatus.AIStep.ProcessingAudioResponse);
 
             // Stop the yapping gracefully before playing the response
@@ -96,8 +127,8 @@ public class TextToSpeechHandler : MonoBehaviour
                 );
                 yield return StartCoroutine(yappingHandler.StopBlocking());
 
-                // Wait for 1 second to sound natural
-                yield return new WaitForSeconds(1f);
+                // Wait for 0.5 second instead of 1 second for faster response
+                yield return new WaitForSeconds(0.5f);
             }
             else
             {
@@ -120,11 +151,10 @@ public class TextToSpeechHandler : MonoBehaviour
 
     private IEnumerator ProcessAudioDirectly(byte[] audioData)
     {
-        // Skip the data URI approach which causes "URI string too long" errors with larger audio files
-        // Instead, always use the temporary file approach which is more reliable
+        // Use a unique filename for each audio to avoid caching issues
         string tempFilePath = Path.Combine(
             Application.temporaryCachePath,
-            "temp_tts_" + DateTime.Now.Ticks + ".wav"
+            "temp_tts_" + DateTime.Now.Ticks + ".mp3"
         );
 
         // Write audio data to temporary file
@@ -139,12 +169,16 @@ public class TextToSpeechHandler : MonoBehaviour
             yield break;
         }
 
-        // Load audio from temporary file
+        // Load audio from temporary file - note use of AudioType.MPEG instead of WAV
         UnityWebRequest request = UnityWebRequestMultimedia.GetAudioClip(
             "file://" + tempFilePath,
-            AudioType.WAV
+            AudioType.MPEG
         );
+
+        float startLoadTime = Time.realtimeSinceStartup;
         yield return request.SendWebRequest();
+        float loadTime = Time.realtimeSinceStartup - startLoadTime;
+        Debug.Log($"[TextToSpeechHandler] Audio loaded in {loadTime:F2} seconds");
 
         // Delete temporary file as soon as we've loaded it
         try
@@ -165,6 +199,13 @@ public class TextToSpeechHandler : MonoBehaviour
             try
             {
                 AudioClip audioClip = DownloadHandlerAudioClip.GetContent(request);
+
+                // Log audio clip details for debugging performance
+                Debug.Log(
+                    $"[TextToSpeechHandler] Audio length: {audioClip.length:F2} seconds, "
+                        + $"channels: {audioClip.channels}, frequency: {audioClip.frequency}Hz"
+                );
+
                 audioSource.clip = audioClip;
 
                 // Stop thinking and start talking animations
@@ -173,6 +214,11 @@ public class TextToSpeechHandler : MonoBehaviour
                 audioSource.Play();
 
                 // Store reference for potential cleanup
+                if (currentAudioClip != null)
+                {
+                    Destroy(currentAudioClip);
+                }
+
                 currentAudioClip = audioClip;
 
                 progressStatus.UpdateStep(AIProgressStatus.AIStep.Idle); // Clear the status when audio starts playing
@@ -213,5 +259,7 @@ public class TextToSpeechHandler : MonoBehaviour
     private class TTSRequest
     {
         public string text;
+        public string voice;
+        public string rate;
     }
 }

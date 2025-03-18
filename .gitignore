@@ -91,3 +91,8 @@ Assets/temp_audio.wav
 
 .DS_Store
 
+# Python server files to ignore
+python_servers/*.log
+python_servers/server_pids.txt
+python_servers/temp_tts_*.mp3
+python_servers/__pycache__/
