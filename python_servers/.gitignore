@@ -1,0 +1,23 @@
+# Python bytecode cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+ai-server-env/
+venv/
+env/
+ENV/
+
+# Log files
+*.log
+
+# Temporary files
+temp_tts_*.mp3
+server_pids.txt
+*.wav
+*.mp3
+
+# OS specific files
+.DS_Store
+Thumbs.db

@@ -30,6 +30,12 @@ public class GPTHandler : MonoBehaviour
     [SerializeField]
     private bool useStreamingResponse = true; // Option to toggle streaming mode
 
+    [SerializeField]
+    private bool optimizeTTSResponses = true; // Whether to optimize TTS responses for speed
+
+    [SerializeField]
+    private int maxTTSCharacters = 500; // Maximum characters for TTS responses if optimization is enabled
+
     private string openaiApiKey;
     private string systemPrompt;
     private string openaiApiUrl;
@@ -310,8 +316,7 @@ public class GPTHandler : MonoBehaviour
             if (parsedResponse != null)
             {
                 responseText.text = parsedResponse.text_summary;
-                progressStatus.UpdateStep(AIProgressStatus.AIStep.ConvertingToSpeech);
-                textToSpeechHandler.SpeakText(parsedResponse.voice_response);
+                SendToTTS(parsedResponse);
             }
             else
             {
@@ -485,8 +490,7 @@ public class GPTHandler : MonoBehaviour
             if (finalResponse != null)
             {
                 responseText.text = finalResponse.text_summary;
-                progressStatus.UpdateStep(AIProgressStatus.AIStep.ConvertingToSpeech);
-                textToSpeechHandler.SpeakText(finalResponse.voice_response);
+                SendToTTS(finalResponse);
             }
             else
             {
@@ -847,5 +851,48 @@ public class GPTHandler : MonoBehaviour
     {
         public string type;
         public string description;
+    }
+
+    private void SendToTTS(TutorResponseSchema parsedResponse)
+    {
+        if (parsedResponse == null || textToSpeechHandler == null)
+            return;
+
+        string speechText = parsedResponse.voice_response;
+
+        // If optimization is enabled, trim the text to improve TTS speed
+        if (optimizeTTSResponses && !string.IsNullOrEmpty(speechText))
+        {
+            if (speechText.Length > maxTTSCharacters)
+            {
+                // Find the last sentence break within the limit
+                int lastBreak = FindLastSentenceBreak(speechText, maxTTSCharacters);
+                if (lastBreak > 0)
+                {
+                    string originalLength = speechText.Length.ToString();
+                    speechText = speechText.Substring(0, lastBreak + 1); // Keep the period/question mark
+                    Debug.Log(
+                        $"[GPTHandler] Trimmed TTS text from {originalLength} to {speechText.Length} characters"
+                    );
+                }
+            }
+        }
+
+        progressStatus.UpdateStep(AIProgressStatus.AIStep.ConvertingToSpeech);
+        textToSpeechHandler.SpeakText(speechText);
+    }
+
+    private int FindLastSentenceBreak(string text, int maxLength)
+    {
+        // Get the portion of text within our limit
+        string portion = text.Length <= maxLength ? text : text.Substring(0, maxLength);
+
+        // Find the last sentence break (period, question mark, exclamation point)
+        int lastPeriod = portion.LastIndexOf('.');
+        int lastQuestion = portion.LastIndexOf('?');
+        int lastExclamation = portion.LastIndexOf('!');
+
+        // Find the max of these positions
+        return Math.Max(Math.Max(lastPeriod, lastQuestion), lastExclamation);
     }
 }
