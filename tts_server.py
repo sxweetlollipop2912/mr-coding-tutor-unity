@@ -3,10 +3,8 @@ from TTS.api import TTS
 import io
 import threading
 import torch
-from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)
 
 # Enable multi-threading for the server
 app.config["THREADED"] = True
