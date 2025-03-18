@@ -367,6 +367,11 @@ public class GPTHandler : MonoBehaviour
         {
             text_summary = "Processing...",
             voice_response = "",
+            pointed_at = new PointedAtProperty
+            {
+                part = "",
+                coordinates = new Coordinates { x = 0, y = 0 },
+            },
         };
 
         // Process incoming chunks
@@ -432,6 +437,38 @@ public class GPTHandler : MonoBehaviour
                 // Extract and parse the complete JSON
                 string extractedJson = ExtractCompletedJson(completeResponse);
                 finalResponse = JsonConvert.DeserializeObject<TutorResponseSchema>(extractedJson);
+
+                // Log the parsed response details
+                if (finalResponse != null)
+                {
+                    Debug.Log(
+                        "[GPTHandler] Parsed voice response: " + finalResponse.voice_response
+                    );
+                    Debug.Log("[GPTHandler] Parsed text summary: " + finalResponse.text_summary);
+
+                    if (finalResponse.pointed_at != null)
+                    {
+                        Debug.Log(
+                            "[GPTHandler] Parsed pointed at - part: "
+                                + finalResponse.pointed_at.part
+                        );
+                        Debug.Log(
+                            "[GPTHandler] Parsed pointed at - coordinates: "
+                                + finalResponse.pointed_at.coordinates.x
+                                + ", "
+                                + finalResponse.pointed_at.coordinates.y
+                        );
+
+                        // Position the teacher hand based on coordinates
+                        PositionTeacherHand(finalResponse);
+                    }
+                    else
+                    {
+                        Debug.LogWarning(
+                            "[GPTHandler] Parsed response is missing pointed_at property"
+                        );
+                    }
+                }
             }
             catch (System.Exception e)
             {
@@ -468,6 +505,67 @@ public class GPTHandler : MonoBehaviour
         }
 
         request.Dispose();
+    }
+
+    // Helper method to position the teacher hand (extracted from ParseResponse)
+    private void PositionTeacherHand(TutorResponseSchema parsedResponse)
+    {
+        if (
+            teacherHand != null
+            && parsedResponse.pointed_at != null
+            && parsedResponse.pointed_at.coordinates != null
+        )
+        {
+            // Check if we have valid coordinates (not 0,0 which is often the default)
+            if (
+                parsedResponse.pointed_at.coordinates.x != 0
+                || parsedResponse.pointed_at.coordinates.y != 0
+            )
+            {
+                Debug.Log(
+                    "[GPTHandler] Positioning red dot at: "
+                        + parsedResponse.pointed_at.coordinates.x
+                        + ", "
+                        + parsedResponse.pointed_at.coordinates.y
+                );
+
+                // Call the PositionRedDot method with the normalized coordinates
+                Vector2 normalizedCoordinate = new Vector2(
+                    parsedResponse.pointed_at.coordinates.x,
+                    parsedResponse.pointed_at.coordinates.y
+                );
+
+                // Use reflection to call the method to ensure it exists
+                var positionMethod = teacherHand
+                    .GetType()
+                    .GetMethod(
+                        "PositionRedDot",
+                        System.Reflection.BindingFlags.Instance
+                            | System.Reflection.BindingFlags.Public
+                            | System.Reflection.BindingFlags.NonPublic
+                    );
+
+                if (positionMethod != null)
+                {
+                    positionMethod.Invoke(teacherHand, new object[] { normalizedCoordinate });
+                    Debug.Log("[GPTHandler] Successfully positioned red dot");
+                }
+                else
+                {
+                    Debug.LogError("[GPTHandler] PositionRedDot method not found on teacherHand");
+                }
+            }
+            else
+            {
+                Debug.Log("[GPTHandler] Skipping red dot positioning - coordinates are (0,0)");
+            }
+        }
+        else
+        {
+            Debug.LogError(
+                "[GPTHandler] Teacher hand reference is missing or response lacks coordinates!"
+            );
+        }
     }
 
     private void processStreamingChunk(string chunk, StringBuilder contentBuilder)
@@ -640,59 +738,8 @@ public class GPTHandler : MonoBehaviour
                     + parsedResponse.pointed_at.coordinates.y
             );
 
-            // Position the red dot based on the coordinates from the response
-            if (teacherHand != null)
-            {
-                // Check if we have valid coordinates (not 0,0 which is often the default)
-                if (
-                    parsedResponse.pointed_at.coordinates.x != 0
-                    || parsedResponse.pointed_at.coordinates.y != 0
-                )
-                {
-                    Debug.Log(
-                        "[GPTHandler] Positioning red dot at: "
-                            + parsedResponse.pointed_at.coordinates.x
-                            + ", "
-                            + parsedResponse.pointed_at.coordinates.y
-                    );
-
-                    // Call the PositionRedDot method with the normalized coordinates
-                    Vector2 normalizedCoordinate = new Vector2(
-                        parsedResponse.pointed_at.coordinates.x,
-                        parsedResponse.pointed_at.coordinates.y
-                    );
-
-                    // Use reflection to call the method to ensure it exists
-                    var positionMethod = teacherHand
-                        .GetType()
-                        .GetMethod(
-                            "PositionRedDot",
-                            System.Reflection.BindingFlags.Instance
-                                | System.Reflection.BindingFlags.Public
-                                | System.Reflection.BindingFlags.NonPublic
-                        );
-
-                    if (positionMethod != null)
-                    {
-                        positionMethod.Invoke(teacherHand, new object[] { normalizedCoordinate });
-                        Debug.Log("[GPTHandler] Successfully positioned red dot");
-                    }
-                    else
-                    {
-                        Debug.LogError(
-                            "[GPTHandler] PositionRedDot method not found on teacherHand"
-                        );
-                    }
-                }
-                else
-                {
-                    Debug.Log("[GPTHandler] Skipping red dot positioning - coordinates are (0,0)");
-                }
-            }
-            else
-            {
-                Debug.LogError("[GPTHandler] Teacher hand reference is missing!");
-            }
+            // Position the teacher hand using the shared method
+            PositionTeacherHand(parsedResponse);
 
             return parsedResponse;
         }
