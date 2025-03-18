@@ -37,7 +37,7 @@ public class GPTHandler : MonoBehaviour
 
     // Constants for GPT parameters
     private const float TEMPERATURE = 1f;
-    private const int MAX_COMPLETION_TOKENS = 1024;
+    private const int MAX_COMPLETION_TOKENS = 512;
     private const float TOP_P = 1f;
     private const float FREQUENCY_PENALTY = 0f;
     private const float PRESENCE_PENALTY = 0f;
