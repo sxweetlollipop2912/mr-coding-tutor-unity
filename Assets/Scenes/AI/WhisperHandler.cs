@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -27,6 +29,10 @@ public class WhisperHandler : MonoBehaviour
 
     [SerializeField]
     private YappingHandler yappingHandler; // Add reference to YappingHandler
+
+    // For parallel processing
+    private string capturedBase64Image;
+    private bool isImageCaptured = false;
 
     private void Start()
     {
@@ -148,7 +154,10 @@ public class WhisperHandler : MonoBehaviour
             if (audioClip == null)
             {
                 Debug.LogError("[WhisperHandler] Failed to create AudioClip");
-                progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to start recording");
+                progressStatus.UpdateStep(
+                    AIProgressStatus.AIStep.Error,
+                    "Failed to start recording"
+                );
                 isCurrentlyRecording = false;
                 return;
             }
@@ -212,7 +221,9 @@ public class WhisperHandler : MonoBehaviour
                     Debug.LogWarning("[WhisperHandler] YappingHandler reference is missing");
                 }
 
-                StartCoroutine(SendAudioToWhisper());
+                // Start capturing image in parallel with audio processing
+                StartCoroutine(CaptureScreenInParallel());
+                StartCoroutine(SendAudioToWhisperDirect());
             }
             else
             {
@@ -260,31 +271,37 @@ public class WhisperHandler : MonoBehaviour
         return Microphone.devices;
     }
 
-    private IEnumerator SendAudioToWhisper()
+    private IEnumerator CaptureScreenInParallel()
+    {
+        // Capture screen while audio is being processed
+        if (desktopDuplication != null)
+        {
+            capturedBase64Image = desktopDuplication.CaptureScreenToBase64();
+            isImageCaptured = true;
+            Debug.Log("[WhisperHandler] Screen captured in parallel");
+        }
+        else
+        {
+            Debug.LogError("[WhisperHandler] DesktopDuplication reference is missing");
+            isImageCaptured = false;
+        }
+        yield return null;
+    }
+
+    private IEnumerator SendAudioToWhisperDirect()
     {
         progressStatus.UpdateStep(AIProgressStatus.AIStep.ConvertingSpeechToText);
-        SaveAudioClipToWav(audioClip, outputFilePath);
 
-        Debug.Log("[WhisperHandler] WAV file saved at: " + outputFilePath);
+        // Convert AudioClip directly to WAV format in memory
+        byte[] audioData = ConvertAudioClipToWav(audioClip);
+        Debug.Log($"[WhisperHandler] Audio data size: {audioData.Length} bytes");
 
-        // Check if the file exists before sending
-        if (!File.Exists(outputFilePath))
-        {
-            Debug.LogError("[WhisperHandler] WAV file not created or path is incorrect!");
-            yield break;
-        }
-
-        // Read the audio file as bytes
-        byte[] audioData = File.ReadAllBytes(outputFilePath);
-        Debug.Log($"[WhisperHandler] Audio file size: {audioData.Length} bytes");
-
-        // Create a form and attach the file
+        // Create UnityWebRequest directly with the audio data
         WWWForm form = new WWWForm();
-        form.AddBinaryData("audio", audioData, Path.GetFileName(outputFilePath), "audio/wav");
+        form.AddBinaryData("audio", audioData, "audio.wav", "audio/wav");
 
-        Debug.Log("[WhisperHandler] Sending file to Whisper server...");
+        Debug.Log("[WhisperHandler] Sending audio data to Whisper server...");
 
-        // Create a UnityWebRequest to send the form
         UnityWebRequest request = UnityWebRequest.Post(whisperServerUrl, form);
 
         // Send the request
@@ -300,12 +317,24 @@ public class WhisperHandler : MonoBehaviour
             {
                 Debug.Log("[WhisperHandler] Transcription received: " + transcription);
                 progressStatus.UpdateStep(AIProgressStatus.AIStep.SendingToAI, transcription);
-                string base64Image = desktopDuplication.CaptureScreenToBase64();
-                GPTHandler.SendTextAndImageToGPT(transcription, base64Image);
+
+                // Wait for the image capture if it's not ready yet
+                if (!isImageCaptured)
+                {
+                    yield return new WaitUntil(() => isImageCaptured);
+                }
+
+                GPTHandler.SendTextAndImageToGPT(transcription, capturedBase64Image);
+
+                // Reset the image captured flag
+                isImageCaptured = false;
             }
             else
             {
-                progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to understand speech");
+                progressStatus.UpdateStep(
+                    AIProgressStatus.AIStep.Error,
+                    "Failed to understand speech"
+                );
                 Debug.LogError(
                     "[WhisperHandler] Failed to parse transcription from Whisper response."
                 );
@@ -340,68 +369,49 @@ public class WhisperHandler : MonoBehaviour
         public string transcription;
     }
 
-    private void SaveAudioClipToWav(AudioClip clip, string filePath)
+    private byte[] ConvertAudioClipToWav(AudioClip clip)
     {
-        // Save the audio clip to a WAV file
-        using (var fileStream = CreateEmptyWav(filePath))
+        // Create a memory stream to hold the WAV data
+        using (MemoryStream stream = new MemoryStream())
         {
-            ConvertAndWriteWav(fileStream, clip);
-            WriteWavHeader(fileStream, clip);
+            // Get the audio data from the clip
+            float[] samples = new float[clip.samples * clip.channels];
+            clip.GetData(samples, 0);
+
+            // Convert to PCM
+            byte[] bytesData = new byte[samples.Length * 2];
+            int offset = 0;
+            foreach (float sample in samples)
+            {
+                short convertedSample = (short)(sample * 32767);
+                bytesData[offset++] = (byte)(convertedSample & 0xFF);
+                bytesData[offset++] = (byte)((convertedSample >> 8) & 0xFF);
+            }
+
+            // Write WAV header
+            int fileSize = bytesData.Length + 36;
+
+            // RIFF header
+            stream.Write(System.Text.Encoding.UTF8.GetBytes("RIFF"), 0, 4);
+            stream.Write(BitConverter.GetBytes(fileSize), 0, 4);
+            stream.Write(System.Text.Encoding.UTF8.GetBytes("WAVE"), 0, 4);
+
+            // fmt chunk
+            stream.Write(System.Text.Encoding.UTF8.GetBytes("fmt "), 0, 4);
+            stream.Write(BitConverter.GetBytes(16), 0, 4);
+            stream.Write(BitConverter.GetBytes((short)1), 0, 2);
+            stream.Write(BitConverter.GetBytes((short)clip.channels), 0, 2);
+            stream.Write(BitConverter.GetBytes(clip.frequency), 0, 4);
+            stream.Write(BitConverter.GetBytes(clip.frequency * clip.channels * 2), 0, 4);
+            stream.Write(BitConverter.GetBytes((short)(clip.channels * 2)), 0, 2);
+            stream.Write(BitConverter.GetBytes((short)16), 0, 2);
+
+            // data chunk
+            stream.Write(System.Text.Encoding.UTF8.GetBytes("data"), 0, 4);
+            stream.Write(BitConverter.GetBytes(bytesData.Length), 0, 4);
+            stream.Write(bytesData, 0, bytesData.Length);
+
+            return stream.ToArray();
         }
-    }
-
-    private FileStream CreateEmptyWav(string filePath)
-    {
-        // Create an empty WAV file with a placeholder header
-        var fileStream = new FileStream(filePath, FileMode.Create);
-        for (int i = 0; i < 44; i++) // 44 bytes for the WAV header
-        {
-            fileStream.WriteByte(0);
-        }
-        return fileStream;
-    }
-
-    private void ConvertAndWriteWav(FileStream fileStream, AudioClip clip)
-    {
-        // Convert the audio data to WAV format
-        float[] samples = new float[clip.samples * clip.channels];
-        clip.GetData(samples, 0);
-
-        byte[] bytesData = new byte[samples.Length * 2];
-        int offset = 0;
-
-        foreach (float sample in samples)
-        {
-            short convertedSample = (short)(sample * 32767); // Scale float to short
-            bytesData[offset++] = (byte)(convertedSample & 0xFF);
-            bytesData[offset++] = (byte)((convertedSample >> 8) & 0xFF);
-        }
-
-        // Write the converted audio data to the file
-        fileStream.Write(bytesData, 0, bytesData.Length);
-    }
-
-    private void WriteWavHeader(FileStream fileStream, AudioClip clip)
-    {
-        // Write the WAV file header
-        fileStream.Seek(0, SeekOrigin.Begin);
-
-        int fileSize = (int)fileStream.Length - 8;
-
-        fileStream.Write(System.Text.Encoding.UTF8.GetBytes("RIFF"), 0, 4); // Chunk ID
-        fileStream.Write(System.BitConverter.GetBytes(fileSize), 0, 4); // Chunk Size
-        fileStream.Write(System.Text.Encoding.UTF8.GetBytes("WAVE"), 0, 4); // Format
-        fileStream.Write(System.Text.Encoding.UTF8.GetBytes("fmt "), 0, 4); // Subchunk1 ID
-        fileStream.Write(System.BitConverter.GetBytes(16), 0, 4); // Subchunk1 Size (PCM)
-        fileStream.Write(System.BitConverter.GetBytes((short)1), 0, 2); // Audio Format (1 for PCM)
-        fileStream.Write(System.BitConverter.GetBytes((short)clip.channels), 0, 2); // Num Channels
-        fileStream.Write(System.BitConverter.GetBytes(clip.frequency), 0, 4); // Sample Rate
-        fileStream.Write(System.BitConverter.GetBytes(clip.frequency * clip.channels * 2), 0, 4); // Byte Rate
-        fileStream.Write(System.BitConverter.GetBytes((short)(clip.channels * 2)), 0, 2); // Block Align
-        fileStream.Write(System.BitConverter.GetBytes((short)16), 0, 2); // Bits Per Sample
-        fileStream.Write(System.Text.Encoding.UTF8.GetBytes("data"), 0, 4); // Subchunk2 ID
-        fileStream.Write(System.BitConverter.GetBytes(fileSize - 36), 0, 4); // Subchunk2 Size
-
-        Debug.Log("[WhisperHandler] WAV header written successfully.");
     }
 }

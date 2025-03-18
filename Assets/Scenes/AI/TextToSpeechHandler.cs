@@ -17,6 +17,9 @@ public class TextToSpeechHandler : MonoBehaviour
     private string ttsServerUrl;
     private string outputFilePath;
 
+    // Audio clip property to store the current response
+    private AudioClip currentAudioClip;
+
     private void Start()
     {
         LoadConfigs();
@@ -54,10 +57,10 @@ public class TextToSpeechHandler : MonoBehaviour
         }
 
         progressStatus.UpdateStep(AIProgressStatus.AIStep.ConvertingToSpeech);
-        StartCoroutine(SendTextToTTS(text));
+        StartCoroutine(SendTextToTTSDirect(text));
     }
 
-    private IEnumerator SendTextToTTS(string text)
+    private IEnumerator SendTextToTTSDirect(string text)
     {
         // Create JSON payload using a class and JsonUtility
         TTSRequest ttsRequest = new TTSRequest { text = text };
@@ -79,11 +82,6 @@ public class TextToSpeechHandler : MonoBehaviour
             Debug.Log("[TextToSpeechHandler] TTS audio received.");
             progressStatus.UpdateStep(AIProgressStatus.AIStep.ProcessingAudioResponse);
 
-            // Save audio file to the configured output path
-            File.WriteAllBytes(outputFilePath, request.downloadHandler.data);
-
-            Debug.Log($"[TextToSpeechHandler] Audio saved at: {outputFilePath}");
-
             // Stop the yapping gracefully before playing the response
             if (yappingHandler != null)
             {
@@ -101,7 +99,9 @@ public class TextToSpeechHandler : MonoBehaviour
             }
 
             progressStatus.UpdateStep(AIProgressStatus.AIStep.PlayingResponse);
-            StartCoroutine(PlayAudio(outputFilePath));
+
+            // Process audio directly from memory
+            yield return StartCoroutine(ProcessAudioDirectly(request.downloadHandler.data));
         }
         else
         {
@@ -111,11 +111,14 @@ public class TextToSpeechHandler : MonoBehaviour
         }
     }
 
-    private IEnumerator PlayAudio(string filePath)
+    private IEnumerator ProcessAudioDirectly(byte[] audioData)
     {
+        // Create a temporary URL to load the audio data
+        string tempAudioUrl = "data:audio/wav;base64," + System.Convert.ToBase64String(audioData);
+
         using (
-            var request = UnityWebRequestMultimedia.GetAudioClip(
-                "file://" + filePath,
+            UnityWebRequest request = UnityWebRequestMultimedia.GetAudioClip(
+                tempAudioUrl,
                 AudioType.WAV
             )
         )
@@ -127,13 +130,67 @@ public class TextToSpeechHandler : MonoBehaviour
                 AudioClip audioClip = DownloadHandlerAudioClip.GetContent(request);
                 audioSource.clip = audioClip;
                 audioSource.Play();
+
+                // Store reference for potential cleanup
+                currentAudioClip = audioClip;
+
                 progressStatus.UpdateStep(AIProgressStatus.AIStep.Idle); // Clear the status when audio starts playing
             }
             else
             {
-                Debug.LogError("[TextToSpeechHandler] Failed to load audio: " + request.error);
-                progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to play audio");
+                // Fallback for direct processing failure
+                Debug.LogError(
+                    "[TextToSpeechHandler] Failed to process audio directly: " + request.error
+                );
+
+                // Try alternative method using temporary file
+                string tempFilePath = Path.Combine(Application.temporaryCachePath, "temp_tts.wav");
+                File.WriteAllBytes(tempFilePath, audioData);
+
+                using (
+                    UnityWebRequest fallbackRequest = UnityWebRequestMultimedia.GetAudioClip(
+                        "file://" + tempFilePath,
+                        AudioType.WAV
+                    )
+                )
+                {
+                    yield return fallbackRequest.SendWebRequest();
+
+                    if (fallbackRequest.result == UnityWebRequest.Result.Success)
+                    {
+                        AudioClip fallbackClip = DownloadHandlerAudioClip.GetContent(
+                            fallbackRequest
+                        );
+                        audioSource.clip = fallbackClip;
+                        audioSource.Play();
+                        currentAudioClip = fallbackClip;
+                        progressStatus.UpdateStep(AIProgressStatus.AIStep.Idle);
+
+                        // Clean up temporary file
+                        File.Delete(tempFilePath);
+                    }
+                    else
+                    {
+                        Debug.LogError(
+                            "[TextToSpeechHandler] Fallback audio loading failed: "
+                                + fallbackRequest.error
+                        );
+                        progressStatus.UpdateStep(
+                            AIProgressStatus.AIStep.Error,
+                            "Failed to play audio"
+                        );
+                    }
+                }
             }
+        }
+    }
+
+    private void OnDestroy()
+    {
+        // Clean up resources
+        if (currentAudioClip != null)
+        {
+            Destroy(currentAudioClip);
         }
     }
 

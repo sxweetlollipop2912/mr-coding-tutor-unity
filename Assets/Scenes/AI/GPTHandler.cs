@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using TMPro;
@@ -26,6 +27,9 @@ public class GPTHandler : MonoBehaviour
     [SerializeField]
     private VRAI_TeacherHand teacherHand;
 
+    [SerializeField]
+    private bool useStreamingResponse = true; // Option to toggle streaming mode
+
     private string openaiApiKey;
     private string systemPrompt;
     private string openaiApiUrl;
@@ -43,6 +47,10 @@ public class GPTHandler : MonoBehaviour
     public bool ConfigsLoaded => configsLoaded;
 
     private string responseFormatJson; // Store the loaded response format as JSON
+
+    // Buffer for storing streaming responses
+    private string currentStreamingResponse = "";
+    private bool isCurrentlyStreaming = false;
 
     private void Start()
     {
@@ -253,6 +261,7 @@ public class GPTHandler : MonoBehaviour
             top_p = TOP_P,
             frequency_penalty = FREQUENCY_PENALTY,
             presence_penalty = PRESENCE_PENALTY,
+            stream = useStreamingResponse, // Add streaming option
         };
 
         string jsonPayload = JsonConvert.SerializeObject(
@@ -268,6 +277,20 @@ public class GPTHandler : MonoBehaviour
             jsonPayload
         );
 
+        // Handle streaming or non-streaming based on the setting
+        if (useStreamingResponse)
+        {
+            yield return StartCoroutine(SendStreamingRequest(jsonPayload));
+        }
+        else
+        {
+            yield return StartCoroutine(SendStandardRequest(jsonPayload));
+        }
+    }
+
+    private IEnumerator SendStandardRequest(string jsonPayload)
+    {
+        // Regular non-streaming request implementation
         UnityWebRequest request = new UnityWebRequest(openaiApiUrl, "POST");
         byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonPayload);
         request.uploadHandler = new UploadHandlerRaw(bodyRaw);
@@ -292,7 +315,10 @@ public class GPTHandler : MonoBehaviour
             }
             else
             {
-                progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to process AI response");
+                progressStatus.UpdateStep(
+                    AIProgressStatus.AIStep.Error,
+                    "Failed to process AI response"
+                );
                 responseText.text = "Error processing AI response. Please try again.";
             }
         }
@@ -303,6 +329,290 @@ public class GPTHandler : MonoBehaviour
 
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to get AI response");
             responseText.text = "Error talking to GPT. Please try again.";
+        }
+    }
+
+    private IEnumerator SendStreamingRequest(string jsonPayload)
+    {
+        // Reset streaming state
+        currentStreamingResponse = "";
+        isCurrentlyStreaming = true;
+
+        // Create buffer for streaming content
+        StringBuilder contentBuilder = new StringBuilder();
+
+        // Configure streaming request
+        UnityWebRequest request = new UnityWebRequest(openaiApiUrl, "POST");
+        byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonPayload);
+        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+
+        // Use custom download handler for streaming
+        StreamingDownloadHandler streamingHandler = new StreamingDownloadHandler();
+        request.downloadHandler = streamingHandler;
+
+        request.SetRequestHeader("Content-Type", "application/json");
+        request.SetRequestHeader("Authorization", $"Bearer {openaiApiKey}");
+
+        // Show streaming status
+        progressStatus.UpdateStep(
+            AIProgressStatus.AIStep.ProcessingWithAI,
+            "Waiting for response..."
+        );
+
+        // Send request but don't yield until completion
+        request.SendWebRequest();
+
+        // Temporary partial response for ongoing processing
+        TutorResponseSchema partialResponse = new TutorResponseSchema
+        {
+            text_summary = "Processing...",
+            voice_response = "",
+        };
+
+        // Process incoming chunks
+        while (!request.isDone)
+        {
+            // Check if new data has arrived
+            if (streamingHandler.HasNewData())
+            {
+                string newData = streamingHandler.GetLatestChunk();
+                processStreamingChunk(newData, contentBuilder);
+
+                // Try to parse the partial response if we have enough data
+                if (contentBuilder.Length > 50)
+                {
+                    try
+                    {
+                        // Attempt to parse current accumulated content
+                        string tempContent = contentBuilder.ToString();
+                        if (
+                            tempContent.Contains("\"text_summary\"")
+                            && tempContent.Contains("\"voice_response\"")
+                        )
+                        {
+                            // Try to clean up and parse JSON
+                            string cleanJson = EnsureValidJson(tempContent);
+                            partialResponse = JsonConvert.DeserializeObject<TutorResponseSchema>(
+                                cleanJson
+                            );
+
+                            // Update UI with partial response
+                            if (
+                                partialResponse != null
+                                && !string.IsNullOrEmpty(partialResponse.text_summary)
+                            )
+                            {
+                                responseText.text = partialResponse.text_summary + "...";
+                            }
+                        }
+                    }
+                    catch (System.Exception e)
+                    {
+                        // Failed to parse partial response, will try again with more data
+                        Debug.Log("[GPTHandler] Still collecting streaming data: " + e.Message);
+                    }
+                }
+            }
+            yield return null;
+        }
+
+        // Request is complete
+        isCurrentlyStreaming = false;
+
+        if (request.result == UnityWebRequest.Result.Success)
+        {
+            Debug.Log("[GPTHandler] Streaming response completed");
+
+            // Process the final complete response
+            string completeResponse = contentBuilder.ToString();
+            TutorResponseSchema finalResponse = null;
+
+            try
+            {
+                // Extract and parse the complete JSON
+                string extractedJson = ExtractCompletedJson(completeResponse);
+                finalResponse = JsonConvert.DeserializeObject<TutorResponseSchema>(extractedJson);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError(
+                    "[GPTHandler] Failed to parse final streaming response: " + e.Message
+                );
+                progressStatus.UpdateStep(
+                    AIProgressStatus.AIStep.Error,
+                    "Failed to parse streaming response"
+                );
+                yield break;
+            }
+
+            if (finalResponse != null)
+            {
+                responseText.text = finalResponse.text_summary;
+                progressStatus.UpdateStep(AIProgressStatus.AIStep.ConvertingToSpeech);
+                textToSpeechHandler.SpeakText(finalResponse.voice_response);
+            }
+            else
+            {
+                progressStatus.UpdateStep(
+                    AIProgressStatus.AIStep.Error,
+                    "Failed to parse streaming response"
+                );
+                responseText.text = "Error processing streaming response.";
+            }
+        }
+        else
+        {
+            Debug.LogError("[GPTHandler] Streaming request error: " + request.error);
+            progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Streaming request failed");
+            responseText.text = "Error with streaming response.";
+        }
+
+        request.Dispose();
+    }
+
+    private void processStreamingChunk(string chunk, StringBuilder contentBuilder)
+    {
+        // Process SSE format chunks from the OpenAI streaming API
+        if (string.IsNullOrEmpty(chunk))
+            return;
+
+        // Split the chunk into lines
+        string[] lines = chunk.Split(new[] { "\n" }, StringSplitOptions.RemoveEmptyEntries);
+
+        foreach (string line in lines)
+        {
+            // Check for data prefix in SSE format
+            if (line.StartsWith("data: "))
+            {
+                string data = line.Substring(6); // Remove "data: " prefix
+
+                // Check for [DONE] marker
+                if (data == "[DONE]")
+                {
+                    Debug.Log("[GPTHandler] Streaming complete marker received");
+                    continue;
+                }
+
+                try
+                {
+                    // Parse the JSON data
+                    JObject jsonData = JObject.Parse(data);
+
+                    // Extract content from the streaming response
+                    if (
+                        jsonData["choices"] != null
+                        && jsonData["choices"][0]["delta"]["content"] != null
+                    )
+                    {
+                        string content = jsonData["choices"][0]["delta"]["content"].ToString();
+                        contentBuilder.Append(content);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogWarning($"[GPTHandler] Error parsing streaming chunk: {e.Message}");
+                }
+            }
+        }
+    }
+
+    private string EnsureValidJson(string partialJson)
+    {
+        // Try to make partial JSON valid for parsing
+        if (string.IsNullOrEmpty(partialJson))
+            return "{}";
+
+        // Make sure we have an opening bracket
+        if (!partialJson.TrimStart().StartsWith("{"))
+            partialJson = "{" + partialJson;
+
+        // Make sure we have a closing bracket
+        if (!partialJson.TrimEnd().EndsWith("}"))
+            partialJson = partialJson + "}";
+
+        return partialJson;
+    }
+
+    private string ExtractCompletedJson(string streamingResponse)
+    {
+        // Find the complete JSON object in the streaming response
+        int startBraceIndex = streamingResponse.IndexOf('{');
+        int endBraceIndex = streamingResponse.LastIndexOf('}');
+
+        if (startBraceIndex >= 0 && endBraceIndex > startBraceIndex)
+        {
+            return streamingResponse.Substring(
+                startBraceIndex,
+                endBraceIndex - startBraceIndex + 1
+            );
+        }
+
+        throw new System.Exception("Could not find complete JSON object in streaming response");
+    }
+
+    // Custom download handler for streaming
+    private class StreamingDownloadHandler : DownloadHandlerScript
+    {
+        private List<byte[]> receivedData = new List<byte[]>();
+        private int processedIndex = 0;
+
+        public StreamingDownloadHandler()
+            : base() { }
+
+        protected override bool ReceiveData(byte[] data, int dataLength)
+        {
+            if (data == null || dataLength == 0)
+                return false;
+
+            byte[] dataCopy = new byte[dataLength];
+            System.Buffer.BlockCopy(data, 0, dataCopy, 0, dataLength);
+            receivedData.Add(dataCopy);
+
+            return true;
+        }
+
+        public bool HasNewData()
+        {
+            return processedIndex < receivedData.Count;
+        }
+
+        public string GetLatestChunk()
+        {
+            if (processedIndex >= receivedData.Count)
+                return "";
+
+            string result = System.Text.Encoding.UTF8.GetString(receivedData[processedIndex]);
+            processedIndex++;
+            return result;
+        }
+
+        protected override byte[] GetData()
+        {
+            // Combine all received data
+            int totalLength = 0;
+            foreach (byte[] chunk in receivedData)
+            {
+                totalLength += chunk.Length;
+            }
+
+            byte[] result = new byte[totalLength];
+            int offset = 0;
+            foreach (byte[] chunk in receivedData)
+            {
+                System.Buffer.BlockCopy(chunk, 0, result, offset, chunk.Length);
+                offset += chunk.Length;
+            }
+
+            return result;
+        }
+
+        protected override string GetText()
+        {
+            byte[] data = GetData();
+            if (data == null || data.Length == 0)
+                return "";
+
+            return System.Text.Encoding.UTF8.GetString(data);
         }
     }
 
@@ -446,6 +756,7 @@ public class GPTHandler : MonoBehaviour
         public float top_p;
         public float frequency_penalty;
         public float presence_penalty;
+        public bool stream; // Add streaming option
     }
 
     [System.Serializable]
