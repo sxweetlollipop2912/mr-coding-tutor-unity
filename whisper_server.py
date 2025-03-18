@@ -4,11 +4,9 @@ import io
 import numpy as np
 import threading
 import torch
-from flask_cors import CORS
 import base64
 
 app = Flask(__name__)
-CORS(app)
 
 # Use the tiny model for speed
 model = whisper.load_model("tiny")
