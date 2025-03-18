@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.IO;
 using UnityEngine;
@@ -113,19 +114,49 @@ public class TextToSpeechHandler : MonoBehaviour
 
     private IEnumerator ProcessAudioDirectly(byte[] audioData)
     {
-        // Create a temporary URL to load the audio data
-        string tempAudioUrl = "data:audio/wav;base64," + System.Convert.ToBase64String(audioData);
+        // Skip the data URI approach which causes "URI string too long" errors with larger audio files
+        // Instead, always use the temporary file approach which is more reliable
+        string tempFilePath = Path.Combine(
+            Application.temporaryCachePath,
+            "temp_tts_" + DateTime.Now.Ticks + ".wav"
+        );
 
-        using (
-            UnityWebRequest request = UnityWebRequestMultimedia.GetAudioClip(
-                tempAudioUrl,
-                AudioType.WAV
-            )
-        )
+        // Write audio data to temporary file
+        try
         {
-            yield return request.SendWebRequest();
+            File.WriteAllBytes(tempFilePath, audioData);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError("[TextToSpeechHandler] Error saving audio to temp file: " + ex.Message);
+            progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Error processing audio");
+            yield break;
+        }
 
-            if (request.result == UnityWebRequest.Result.Success)
+        // Load audio from temporary file
+        UnityWebRequest request = UnityWebRequestMultimedia.GetAudioClip(
+            "file://" + tempFilePath,
+            AudioType.WAV
+        );
+        yield return request.SendWebRequest();
+
+        // Delete temporary file as soon as we've loaded it
+        try
+        {
+            if (File.Exists(tempFilePath))
+            {
+                File.Delete(tempFilePath);
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.LogWarning("[TextToSpeechHandler] Failed to delete temp file: " + ex.Message);
+        }
+
+        // Process the audio clip
+        if (request.result == UnityWebRequest.Result.Success)
+        {
+            try
             {
                 AudioClip audioClip = DownloadHandlerAudioClip.GetContent(request);
                 audioSource.clip = audioClip;
@@ -134,55 +165,22 @@ public class TextToSpeechHandler : MonoBehaviour
                 // Store reference for potential cleanup
                 currentAudioClip = audioClip;
 
-                progressStatus.UpdateStep(AIProgressStatus.AIStep.Idle); // Clear the status when audio starts playing
+                progressStatus.UpdateStep(AIProgressStatus.AIStep.Idle);
             }
-            else
+            catch (Exception ex)
             {
-                // Fallback for direct processing failure
-                Debug.LogError(
-                    "[TextToSpeechHandler] Failed to process audio directly: " + request.error
-                );
-
-                // Try alternative method using temporary file
-                string tempFilePath = Path.Combine(Application.temporaryCachePath, "temp_tts.wav");
-                File.WriteAllBytes(tempFilePath, audioData);
-
-                using (
-                    UnityWebRequest fallbackRequest = UnityWebRequestMultimedia.GetAudioClip(
-                        "file://" + tempFilePath,
-                        AudioType.WAV
-                    )
-                )
-                {
-                    yield return fallbackRequest.SendWebRequest();
-
-                    if (fallbackRequest.result == UnityWebRequest.Result.Success)
-                    {
-                        AudioClip fallbackClip = DownloadHandlerAudioClip.GetContent(
-                            fallbackRequest
-                        );
-                        audioSource.clip = fallbackClip;
-                        audioSource.Play();
-                        currentAudioClip = fallbackClip;
-                        progressStatus.UpdateStep(AIProgressStatus.AIStep.Idle);
-
-                        // Clean up temporary file
-                        File.Delete(tempFilePath);
-                    }
-                    else
-                    {
-                        Debug.LogError(
-                            "[TextToSpeechHandler] Fallback audio loading failed: "
-                                + fallbackRequest.error
-                        );
-                        progressStatus.UpdateStep(
-                            AIProgressStatus.AIStep.Error,
-                            "Failed to play audio"
-                        );
-                    }
-                }
+                Debug.LogError("[TextToSpeechHandler] Error playing audio: " + ex.Message);
+                progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Error playing audio");
             }
         }
+        else
+        {
+            Debug.LogError("[TextToSpeechHandler] Failed to load audio: " + request.error);
+            progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to play audio");
+        }
+
+        // Dispose of the request
+        request.Dispose();
     }
 
     private void OnDestroy()
