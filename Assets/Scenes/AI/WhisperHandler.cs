@@ -148,7 +148,7 @@ public class WhisperHandler : MonoBehaviour
 
         try
         {
-            progressStatus.UpdateStep(AIProgressStatus.AIStep.Listening, selectedMicrophoneDevice);
+            progressStatus.UpdateStep(AIProgressStatus.AIStep.Listening);
             audioClip = Microphone.Start(selectedMicrophoneDevice, false, 30, 16000);
 
             if (audioClip == null)
