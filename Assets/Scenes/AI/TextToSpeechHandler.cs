@@ -166,6 +166,7 @@ public class TextToSpeechHandler : MonoBehaviour
         {
             Debug.LogError("[TextToSpeechHandler] Error saving audio to temp file: " + ex.Message);
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Error processing audio");
+            avatarAnimator?.StopTalking(); // Ensure animation stops on error
             yield break;
         }
 
@@ -196,9 +197,11 @@ public class TextToSpeechHandler : MonoBehaviour
         // Process the audio clip
         if (request.result == UnityWebRequest.Result.Success)
         {
+            AudioClip audioClip = null;
+
             try
             {
-                AudioClip audioClip = DownloadHandlerAudioClip.GetContent(request);
+                audioClip = DownloadHandlerAudioClip.GetContent(request);
 
                 // Log audio clip details for debugging performance
                 Debug.Log(
@@ -222,23 +225,42 @@ public class TextToSpeechHandler : MonoBehaviour
                 currentAudioClip = audioClip;
 
                 progressStatus.UpdateStep(AIProgressStatus.AIStep.Idle); // Clear the status when audio starts playing
-
-                while (audioSource.isPlaying)
-                {
-                    yield return null;
-                }
-                avatarAnimator?.StopTalking();
             }
             catch (Exception ex)
             {
                 Debug.LogError("[TextToSpeechHandler] Error playing audio: " + ex.Message);
                 progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Error playing audio");
+                avatarAnimator?.StopTalking(); // Ensure animation stops on error
+
+                // Clean up if needed
+                if (audioClip != null && audioClip != currentAudioClip)
+                {
+                    Destroy(audioClip);
+                }
+
+                request.Dispose();
+                yield break;
+            }
+
+            // Wait for audio to finish playing in a separate try block
+            try
+            {
+                while (audioSource.isPlaying)
+                {
+                    yield return null;
+                }
+            }
+            finally
+            {
+                // This will always execute, even if the coroutine is interrupted
+                avatarAnimator?.StopTalking();
             }
         }
         else
         {
             Debug.LogError("[TextToSpeechHandler] Failed to load audio: " + request.error);
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to play audio");
+            avatarAnimator?.StopTalking(); // Ensure animation stops on error
         }
 
         // Dispose of the request
