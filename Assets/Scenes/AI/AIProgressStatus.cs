@@ -1,7 +1,7 @@
-using TMPro;
-using UnityEngine;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using TMPro;
+using UnityEngine;
 
 public class AIProgressStatus : MonoBehaviour
 {
@@ -24,7 +24,7 @@ public class AIProgressStatus : MonoBehaviour
         ProcessingAudioResponse,
         PlayingResponse,
         Error,
-        Idle
+        Idle,
     }
 
     // User-friendly step descriptions
@@ -36,11 +36,11 @@ public class AIProgressStatus : MonoBehaviour
         { AIStep.SendingToAI, "Sending to AI tutor..." },
         { AIStep.ProcessingWithAI, "AI tutor is thinking..." },
         { AIStep.ProcessingAIResponse, "Preparing response..." },
-        { AIStep.ConvertingToSpeech, "Creating voice response..." },
-        { AIStep.ProcessingAudioResponse, "Finalizing voice..." },
-        { AIStep.PlayingResponse, "Speaking to you..." },
+        { AIStep.ConvertingToSpeech, "Getting ready to talk..." },
+        { AIStep.ProcessingAudioResponse, "Almost ready to talk..." },
+        { AIStep.PlayingResponse, "" },
         { AIStep.Error, "Error occurred" },
-        { AIStep.Idle, "" }
+        { AIStep.Idle, "" },
     };
 
     // Total number of steps in the normal workflow (excluding Error and Idle)
@@ -61,10 +61,10 @@ public class AIProgressStatus : MonoBehaviour
     }
 
     // Method to update label using AIStep directly
-    public void UpdateStep(AIStep step, string additionalInfo = "")
+    public void UpdateStep(AIStep step, string additionalInfo = null)
     {
         currentStep = step;
-        
+
         if (step == AIStep.Error && !string.IsNullOrEmpty(additionalInfo))
         {
             // For error messages, show the detailed error
@@ -75,12 +75,6 @@ public class AIProgressStatus : MonoBehaviour
             // Format the user-friendly message with step counter
             int stepNumber = (int)step + 1; // +1 because enum is zero-based
             string stepDescription = stepDescriptions[step];
-            
-            if (!string.IsNullOrEmpty(additionalInfo))
-            {
-                stepDescription += $" ({additionalInfo})";
-            }
-            
             label.text = $"{stepDescription} ({stepNumber}/{TotalSteps})";
         }
         else
@@ -88,7 +82,7 @@ public class AIProgressStatus : MonoBehaviour
             // Idle state - clear the label
             label.text = "";
         }
-        
+
         UpdateLabelVisibility();
     }
 

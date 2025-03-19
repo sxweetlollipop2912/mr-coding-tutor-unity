@@ -142,13 +142,16 @@ public class WhisperHandler : MonoBehaviour
 
         try
         {
-            progressStatus.UpdateStep(AIProgressStatus.AIStep.Listening, selectedMicrophoneDevice);
+            progressStatus.UpdateStep(AIProgressStatus.AIStep.Listening);
             audioClip = Microphone.Start(selectedMicrophoneDevice, false, 30, 16000);
 
             if (audioClip == null)
             {
                 Debug.LogError("[WhisperHandler] Failed to create AudioClip");
-                progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to start recording");
+                progressStatus.UpdateStep(
+                    AIProgressStatus.AIStep.Error,
+                    "Failed to start recording"
+                );
                 isCurrentlyRecording = false;
                 return;
             }
@@ -305,7 +308,10 @@ public class WhisperHandler : MonoBehaviour
             }
             else
             {
-                progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to understand speech");
+                progressStatus.UpdateStep(
+                    AIProgressStatus.AIStep.Error,
+                    "Failed to understand speech"
+                );
                 Debug.LogError(
                     "[WhisperHandler] Failed to parse transcription from Whisper response."
                 );

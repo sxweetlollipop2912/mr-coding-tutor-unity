@@ -292,7 +292,10 @@ public class GPTHandler : MonoBehaviour
             }
             else
             {
-                progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to process AI response");
+                progressStatus.UpdateStep(
+                    AIProgressStatus.AIStep.Error,
+                    "Failed to process AI response"
+                );
                 responseText.text = "Error processing AI response. Please try again.";
             }
         }
