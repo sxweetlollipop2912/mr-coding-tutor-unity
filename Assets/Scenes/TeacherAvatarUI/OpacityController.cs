@@ -50,8 +50,6 @@ public class OpacityController : MonoBehaviour
         if (value > maxOpacity)
             value = maxOpacity;
 
-        Debug.Log($"Clamped value: {value}");
-
         Color currentColor = topImage.color;
         currentColor.a = value;
         topImage.color = currentColor;

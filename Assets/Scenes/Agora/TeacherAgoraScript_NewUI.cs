@@ -39,6 +39,9 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             [SerializeField]
             private RawImage StudentDesktopImage;
 
+            [SerializeField]
+            private RectTransform MouseExclusionArea;
+
             [Header("_____________Stream UIDs_____________")]
             [SerializeField]
             private uint UidStudentDesktop;
@@ -286,24 +289,44 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
 
                 if (Input.GetMouseButtonDown(0))
                 {
-                    // Check if the initial press was inside the desktop area
+                    // Check if the initial press was inside the exclusion area first
+                    if (MouseExclusionArea != null)
+                    {
+                        Vector2 screenMousePos = Input.mousePosition;
+                        if (
+                            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                                MouseExclusionArea,
+                                screenMousePos,
+                                null,
+                                out Vector2 localPoint
+                            )
+                        )
+                        {
+                            if (IsInsideCanvas(localPoint, MouseExclusionArea))
+                            {
+                                _shouldStreamMouse = false;
+                                Debug.Log("Mouse press detected in exclusion area - ignoring");
+                                return;
+                            }
+                        }
+                    }
+
+                    // If not in exclusion area, check if inside desktop area
                     RectTransform desktopRect = StudentDesktopImage.rectTransform;
                     if (desktopRect != null)
                     {
-                        // Convert screen position to local position within the RectTransform
                         Vector2 screenMousePos = Input.mousePosition;
                         if (
                             RectTransformUtility.ScreenPointToLocalPointInRectangle(
                                 desktopRect,
                                 screenMousePos,
-                                null, // No camera for UI elements in screen space overlay
+                                null,
                                 out Vector2 localPoint
                             )
                         )
                         {
-                            // Check if the point is inside the rect
                             bool insideDesktop = IsInsideCanvas(localPoint, desktopRect);
-                            _shouldStreamMouse = insideDesktop; // Only start streaming if press is inside
+                            _shouldStreamMouse = insideDesktop;
                             Debug.Log(
                                 $"Mouse press detected - inside desktop: {insideDesktop}, streaming: {_shouldStreamMouse}"
                             );
@@ -346,7 +369,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
 
                                 string mouseData = $"{normalizedX},{normalizedY}";
                                 StreamMessage(mouseData);
-                                _lastMouseMessageTime = Time.time; // Mark send time
+                                _lastMouseMessageTime = Time.time;
                                 return;
                             }
                             else
