@@ -19,7 +19,7 @@ public class TextToSpeechHandler : MonoBehaviour
     private string voiceName = "en-US-ChristopherNeural"; // Default voice
 
     [SerializeField]
-    private string voiceRate = "+25%"; // Default rate
+    private string voiceRate = "+15%"; // Default rate
 
     private string ttsServerUrl;
     private string outputFilePath;
