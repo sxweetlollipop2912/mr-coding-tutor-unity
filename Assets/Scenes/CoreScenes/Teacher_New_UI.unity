@@ -1090,6 +1090,7 @@ MonoBehaviour:
   useExternalConfig: 1
   StudentAvatarImage: {fileID: 1022418956}
   StudentDesktopImage: {fileID: 520550923}
+  MouseExclusionArea: {fileID: 0}
   UidStudentDesktop: 456
   UidStudentAvatar: 785
   UidWebcam: 321
@@ -1321,7 +1322,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: -40, y: -40}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1305517156
 GameObject:
@@ -1468,6 +1469,7 @@ MonoBehaviour:
   useExternalConfig: 1
   StudentAvatarImage: {fileID: 0}
   StudentDesktopImage: {fileID: 0}
+  MouseExclusionArea: {fileID: 0}
   UidStudentDesktop: 654
   UidStudentAvatar: 321
   UidWebcam: 321
