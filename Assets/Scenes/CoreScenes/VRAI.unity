@@ -975,6 +975,10 @@ MonoBehaviour:
   textToSpeechHandler: {fileID: 1158105857}
   progressStatus: {fileID: 1181691752}
   teacherHand: {fileID: 445613006}
+  useStreamingResponse: 1
+  optimizeTTSResponses: 1
+  maxTTSCharacters: 500
+  conversationLogger: {fileID: 863375473}
 --- !u!1001 &335173051
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1098,6 +1102,7 @@ Transform:
   - {fileID: 1674448041}
   - {fileID: 303902811}
   - {fileID: 1161991239}
+  - {fileID: 863375472}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &382828244
@@ -2048,6 +2053,50 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1647340325}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &863375471
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 863375472}
+  - component: {fileID: 863375473}
+  m_Layer: 0
+  m_Name: ConversationLogger
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &863375472
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 863375471}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 382661913}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &863375473
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 863375471}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8294b91a73ab841f1b7bc6e1aeba6a20, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &878906462
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2243,9 +2292,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1bf4ff6de4560d44d9b3b0697e00c1b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  AudioClip: {fileID: 8300000, guid: 49fedbd34240f46d7a772f62a5f0335d, type: 3}
-  AudioSource: {fileID: 1882001675}
-  AudioProvider: 1
 --- !u!114 &1068169511
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14360,6 +14406,8 @@ MonoBehaviour:
   audioSource: {fileID: 1882001675}
   progressStatus: {fileID: 1181691752}
   yappingHandler: {fileID: 1161991240}
+  voiceName: en-US-ChristopherNeural
+  voiceRate: +15%
 --- !u!4 &1158105858
 Transform:
   m_ObjectHideFlags: 0
