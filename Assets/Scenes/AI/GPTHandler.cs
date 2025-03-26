@@ -36,6 +36,9 @@ public class GPTHandler : MonoBehaviour
     [SerializeField]
     private int maxTTSCharacters = 500; // Maximum characters for TTS responses if optimization is enabled
 
+    [SerializeField]
+    private ConversationLogger conversationLogger;
+
     private string openaiApiKey;
     private string systemPrompt;
     private string openaiApiUrl;
@@ -60,6 +63,12 @@ public class GPTHandler : MonoBehaviour
 
     private void Start()
     {
+        // If the conversationLogger wasn't assigned in inspector, try to find it
+        if (conversationLogger == null)
+        {
+            conversationLogger = ConversationLogger.Instance;
+        }
+
         LoadConfigs();
     }
 
@@ -197,6 +206,12 @@ public class GPTHandler : MonoBehaviour
         }
 
         conversationHistory.Add(new ChatMessage { role = "user", content = content });
+
+        // Log the user message to the conversation log
+        if (conversationLogger != null)
+        {
+            conversationLogger.LogUserMessage(message);
+        }
     }
 
     private IEnumerator SendPostRequest(string message = null, string base64Image = null)
@@ -473,6 +488,15 @@ public class GPTHandler : MonoBehaviour
                             "[GPTHandler] Parsed response is missing pointed_at property"
                         );
                     }
+
+                    // Log the AI response from streaming
+                    if (conversationLogger != null)
+                    {
+                        conversationLogger.LogAIResponse(
+                            finalResponse.voice_response,
+                            finalResponse.text_summary
+                        );
+                    }
                 }
             }
             catch (System.Exception e)
@@ -744,6 +768,15 @@ public class GPTHandler : MonoBehaviour
 
             // Position the teacher hand using the shared method
             PositionTeacherHand(parsedResponse);
+
+            // Log the AI response
+            if (conversationLogger != null)
+            {
+                conversationLogger.LogAIResponse(
+                    parsedResponse.voice_response,
+                    parsedResponse.text_summary
+                );
+            }
 
             return parsedResponse;
         }
