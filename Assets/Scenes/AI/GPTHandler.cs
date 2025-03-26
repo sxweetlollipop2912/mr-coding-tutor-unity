@@ -298,6 +298,12 @@ public class GPTHandler : MonoBehaviour
             jsonPayload
         );
 
+        // Log the request payload for debugging
+        if (conversationLogger != null)
+        {
+            conversationLogger.LogRawJson("GPT Request", jsonPayload);
+        }
+
         // Handle streaming or non-streaming based on the setting
         if (useStreamingResponse)
         {
@@ -324,6 +330,12 @@ public class GPTHandler : MonoBehaviour
         if (request.result == UnityWebRequest.Result.Success)
         {
             Debug.Log("[GPTHandler] Response received: " + request.downloadHandler.text);
+
+            // Log the raw response for debugging
+            if (conversationLogger != null)
+            {
+                conversationLogger.LogRawJson("GPT Response", request.downloadHandler.text);
+            }
 
             progressStatus.UpdateStep(AIProgressStatus.AIStep.ProcessingAIResponse);
             TutorResponseSchema parsedResponse = ParseResponse(request.downloadHandler.text);
@@ -457,6 +469,12 @@ public class GPTHandler : MonoBehaviour
                 // Extract and parse the complete JSON
                 string extractedJson = ExtractCompletedJson(completeResponse);
                 finalResponse = JsonConvert.DeserializeObject<TutorResponseSchema>(extractedJson);
+
+                // Log the extracted JSON for debugging
+                if (conversationLogger != null && extractedJson != null)
+                {
+                    conversationLogger.LogRawJson("Streaming GPT Response (Parsed)", extractedJson);
+                }
 
                 // Log the parsed response details
                 if (finalResponse != null)
