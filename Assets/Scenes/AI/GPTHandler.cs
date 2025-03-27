@@ -401,7 +401,6 @@ public class GPTHandler : MonoBehaviour
             voice_response = "",
             pointed_at = new PointedAtProperty
             {
-                part = "",
                 coordinates = new Coordinates { x = 0, y = 0 },
             },
         };
@@ -487,10 +486,6 @@ public class GPTHandler : MonoBehaviour
                     if (finalResponse.pointed_at != null)
                     {
                         Debug.Log(
-                            "[GPTHandler] Parsed pointed at - part: "
-                                + finalResponse.pointed_at.part
-                        );
-                        Debug.Log(
                             "[GPTHandler] Parsed pointed at - coordinates: "
                                 + finalResponse.pointed_at.coordinates.x
                                 + ", "
@@ -562,10 +557,10 @@ public class GPTHandler : MonoBehaviour
             && parsedResponse.pointed_at.coordinates != null
         )
         {
-            // Check if we have valid coordinates (not 0,0 which is often the default)
+            // Check if we have valid coordinates (not -1,-1 which is often the default)
             if (
-                parsedResponse.pointed_at.coordinates.x != 0
-                || parsedResponse.pointed_at.coordinates.y != 0
+                parsedResponse.pointed_at.coordinates.x != -1
+                || parsedResponse.pointed_at.coordinates.y != -1
             )
             {
                 Debug.Log(
@@ -603,7 +598,7 @@ public class GPTHandler : MonoBehaviour
             }
             else
             {
-                Debug.Log("[GPTHandler] Skipping red dot positioning - coordinates are (0,0)");
+                Debug.Log("[GPTHandler] Skipping red dot positioning - coordinates are (-1,-1)");
             }
         }
         else
@@ -776,7 +771,6 @@ public class GPTHandler : MonoBehaviour
             );
             Debug.Log("[GPTHandler] Parsed voice response: " + parsedResponse.voice_response);
             Debug.Log("[GPTHandler] Parsed text summary: " + parsedResponse.text_summary);
-            Debug.Log("[GPTHandler] Parsed pointed at - part: " + parsedResponse.pointed_at.part);
             Debug.Log(
                 "[GPTHandler] Parsed pointed at - coordinates: "
                     + parsedResponse.pointed_at.coordinates.x
@@ -879,7 +873,6 @@ public class GPTHandler : MonoBehaviour
     [System.Serializable]
     public class PointedAtProperty
     {
-        public string part;
         public Coordinates coordinates;
     }
 
