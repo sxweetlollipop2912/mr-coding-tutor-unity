@@ -2097,6 +2097,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8294b91a73ab841f1b7bc6e1aeba6a20, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  enableDetailedLogging: 1
+  usePersistentDataPath: 0
 --- !u!114 &878906462
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2292,6 +2294,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1bf4ff6de4560d44d9b3b0697e00c1b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  AudioClip: {fileID: 0}
+  AudioSource: {fileID: 0}
+  AudioProvider: 0
 --- !u!114 &1068169511
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11733,6 +11738,18 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 3778921118949953976, guid: d4ea6a0a3bc325444a4f332171438fcd, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3778921118949953977, guid: d4ea6a0a3bc325444a4f332171438fcd, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3778921118949953979, guid: d4ea6a0a3bc325444a4f332171438fcd, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3778921118949953979, guid: d4ea6a0a3bc325444a4f332171438fcd, type: 3}
       propertyPath: _whenSelectedEmpty.m_PersistentCalls.m_Calls.Array.size
       value: 0
@@ -15530,7 +15547,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 49fedbd34240f46d7a772f62a5f0335d, type: 3}
+  m_audioClip: {fileID: 0}
   m_PlayOnAwake: 1
   m_Volume: 1
   m_Pitch: 1
