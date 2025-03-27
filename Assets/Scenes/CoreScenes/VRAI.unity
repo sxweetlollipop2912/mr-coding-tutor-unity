@@ -1507,6 +1507,7 @@ MonoBehaviour:
   redDot: {fileID: 445613003}
   screen: {fileID: 1142612796}
   showDotDuration: 10
+  pointerBeam: {fileID: 707353378}
 --- !u!1 &463924495
 GameObject:
   m_ObjectHideFlags: 0
