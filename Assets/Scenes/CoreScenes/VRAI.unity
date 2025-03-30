@@ -1557,7 +1557,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 970644636753141648, guid: 049d245a53f74e745a6b17c9ccfc1dc5, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 97.52
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 970644636753141648, guid: 049d245a53f74e745a6b17c9ccfc1dc5, type: 3}
       propertyPath: m_SizeDelta.y
@@ -1565,15 +1565,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 970644636753141648, guid: 049d245a53f74e745a6b17c9ccfc1dc5, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 80.759995
+      value: 32
       objectReference: {fileID: 0}
     - target: {fileID: 970644636753141648, guid: 049d245a53f74e745a6b17c9ccfc1dc5, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -17.825
+      value: -10
       objectReference: {fileID: 0}
     - target: {fileID: 970644636753141649, guid: 049d245a53f74e745a6b17c9ccfc1dc5, type: 3}
       propertyPath: m_text
-      value: Hand Grab Use
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 970644636753141649, guid: 049d245a53f74e745a6b17c9ccfc1dc5, type: 3}
       propertyPath: m_sharedMaterial
