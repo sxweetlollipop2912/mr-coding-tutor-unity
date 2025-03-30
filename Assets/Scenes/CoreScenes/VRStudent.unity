@@ -7162,6 +7162,10 @@ PrefabInstance:
       propertyPath: _pixelsPerUnit
       value: 1000
       objectReference: {fileID: 0}
+    - target: {fileID: 698551298687156390, guid: d4ea6a0a3bc325444a4f332171438fcd, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 698551298687156392, guid: d4ea6a0a3bc325444a4f332171438fcd, type: 3}
       propertyPath: m_Color.a
       value: 1
@@ -8370,6 +8374,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3778921117170968202, guid: d4ea6a0a3bc325444a4f332171438fcd, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3778921117222762134, guid: d4ea6a0a3bc325444a4f332171438fcd, type: 3}
       propertyPath: m_AnchorMax.y
       value: 1
@@ -8408,6 +8416,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3778921117337513460, guid: d4ea6a0a3bc325444a4f332171438fcd, type: 3}
       propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3778921117378174301, guid: d4ea6a0a3bc325444a4f332171438fcd, type: 3}
+      propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3778921117603262146, guid: d4ea6a0a3bc325444a4f332171438fcd, type: 3}
@@ -8733,6 +8745,18 @@ PrefabInstance:
     - target: {fileID: 3778921118949953957, guid: d4ea6a0a3bc325444a4f332171438fcd, type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3778921118949953976, guid: d4ea6a0a3bc325444a4f332171438fcd, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3778921118949953977, guid: d4ea6a0a3bc325444a4f332171438fcd, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3778921118949953979, guid: d4ea6a0a3bc325444a4f332171438fcd, type: 3}
+      propertyPath: m_Enabled
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3778921118993437984, guid: d4ea6a0a3bc325444a4f332171438fcd, type: 3}
       propertyPath: m_Layer
