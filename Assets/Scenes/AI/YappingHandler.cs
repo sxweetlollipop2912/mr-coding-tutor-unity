@@ -111,7 +111,6 @@ public class YappingHandler : MonoBehaviour
 
         isYapping = true;
         shouldStopYapping = false;
-        avatarAnimationController.StartYapping();
         yappingStartTime = Time.time;
         yappingCoroutine = StartCoroutine(YappingRoutine());
     }
@@ -136,6 +135,7 @@ public class YappingHandler : MonoBehaviour
     private IEnumerator YappingRoutine()
     {
         Debug.Log("[YappingHandler] Starting yapping routine");
+        avatarAnimationController.StartYapping();
 
         // Wait for the initial delay before starting to yap
         Debug.Log($"[YappingHandler] Waiting {initialDelay} seconds before first yap");
@@ -168,6 +168,7 @@ public class YappingHandler : MonoBehaviour
             }
         }
 
+        avatarAnimationController.StopYapping();
         Debug.Log("[YappingHandler] Yapping routine ended");
     }
 
