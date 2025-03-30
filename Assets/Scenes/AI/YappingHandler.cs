@@ -15,6 +15,9 @@ public class YappingHandler : MonoBehaviour
     [SerializeField, Tooltip("Duration in seconds to wait before playing the first audio clip")]
     private float initialDelay = 5.0f;
 
+    [SerializeField]
+    private AvatarAnimationController avatarAnimationController;
+
     private string yappingAudioFolderPath;
     private List<string> audioFilePaths = new List<string>();
     private bool isYapping = false;
@@ -104,6 +107,7 @@ public class YappingHandler : MonoBehaviour
 
         isYapping = true;
         shouldStopYapping = false;
+        avatarAnimationController.StartYapping();
         yappingCoroutine = StartCoroutine(YappingRoutine());
     }
 

@@ -2310,7 +2310,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   audioSource: {fileID: 1882001675}
-  animationCount: 4
+  testYapping: 0
 --- !u!1 &1069015103
 GameObject:
   m_ObjectHideFlags: 0
@@ -14437,6 +14437,7 @@ MonoBehaviour:
   yappingHandler: {fileID: 1161991240}
   voiceName: en-US-ChristopherNeural
   voiceRate: +15%
+  avatarAnimationController: {fileID: 1068169511}
 --- !u!4 &1158105858
 Transform:
   m_ObjectHideFlags: 0
@@ -14499,6 +14500,7 @@ MonoBehaviour:
   audioSource: {fileID: 1882001675}
   delayBetweenAudio: 10
   initialDelay: 3
+  avatarAnimationController: {fileID: 1068169511}
 --- !u!4 &1181691751 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 970644637833668181, guid: 049d245a53f74e745a6b17c9ccfc1dc5, type: 3}

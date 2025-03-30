@@ -21,6 +21,9 @@ public class TextToSpeechHandler : MonoBehaviour
     [SerializeField]
     private string voiceRate = "+15%"; // Default rate
 
+    [SerializeField]
+    private AvatarAnimationController avatarAnimationController;
+
     private string ttsServerUrl;
     private string outputFilePath;
 
@@ -202,6 +205,7 @@ public class TextToSpeechHandler : MonoBehaviour
                         + $"channels: {audioClip.channels}, frequency: {audioClip.frequency}Hz"
                 );
 
+                avatarAnimationController.StopYapping();
                 audioSource.clip = audioClip;
                 audioSource.Play();
 
