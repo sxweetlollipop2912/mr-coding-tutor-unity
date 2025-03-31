@@ -15,6 +15,9 @@ public class VRAI_TeacherHand : MonoBehaviour
     [SerializeField]
     private float showDotDuration = 5f;
 
+    [SerializeField]
+    private AIPointerBeam pointerBeam; // Reference to the AIPointerBeam component
+
     private float redDotActivationTime = 0f;
 
     // Start is called before the first frame update
@@ -35,7 +38,14 @@ public class VRAI_TeacherHand : MonoBehaviour
         if (normalizedCoordinate == new Vector2(-1, -1))
         {
             redDot.gameObject.SetActive(false);
-            Debug.Log("Hiding red dot");
+
+            // Turn off the pointer beam
+            if (pointerBeam != null)
+            {
+                pointerBeam.SetBeamVisibility(false);
+            }
+
+            Debug.Log("Hiding red dot and beam");
             return;
         }
 
@@ -55,6 +65,13 @@ public class VRAI_TeacherHand : MonoBehaviour
         redDotActivationTime = Time.time;
 
         redDot.GetComponent<Image>().color = Color.red;
+
+        // Set up and activate the pointer beam
+        if (pointerBeam != null)
+        {
+            pointerBeam.AnchorEnd = redDot;
+            pointerBeam.SetBeamVisibility(true);
+        }
 
         Debug.Log(
             "Showing red dot at " + position + ", normalized version: " + normalizedCoordinate
