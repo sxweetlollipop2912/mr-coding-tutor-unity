@@ -2057,12 +2057,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 21c8dde234f2f46eead67a487bf26971, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  startPoint: {fileID: 2126233306}
-  endPoint: {fileID: 445613003}
+  anchorStart: {fileID: 2126233306}
+  anchorEnd: {fileID: 445613003}
+  visibleStart: 0.1
+  visibleEnd: 0.8
   startWidth: 0.015
   endWidth: 0.001
   showBeam: 1
-  beamExtent: 0.799
 --- !u!120 &713067780
 LineRenderer:
   serializedVersion: 2

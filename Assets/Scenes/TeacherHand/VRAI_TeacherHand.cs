@@ -69,7 +69,7 @@ public class VRAI_TeacherHand : MonoBehaviour
         // Set up and activate the pointer beam
         if (pointerBeam != null)
         {
-            pointerBeam.SetEndPoint(redDot);
+            pointerBeam.AnchorEnd = redDot;
             pointerBeam.SetBeamVisibility(true);
         }
 
