@@ -4,7 +4,8 @@ public class AvatarAnimationController : MonoBehaviour
 {
     private Animator animator;
     public AudioSource audioSource;
-    public int animationCount = 4; // Total number of animations in the Blend Tree
+    public bool testYapping = true;
+    private bool yapping = false;
 
     void Start()
     {
@@ -13,20 +14,33 @@ public class AvatarAnimationController : MonoBehaviour
 
     void Update()
     {
+        yapping = testYapping;
+
         if (audioSource.isPlaying)
         {
-            animator.SetBool("IsTalking", true);
-
-            // // Randomly pick an animation from the Blend Tree
-            // if (!animator.GetCurrentAnimatorStateInfo(0).IsTag("Talking"))
-            // {
-            //     int randomIndex = Random.Range(0, animationCount);
-            //     animator.SetFloat("RandomIndex", randomIndex);
-            // }
+            if (yapping)
+            {
+                animator.SetBool("IsYapping", true);
+            }
+            else
+            {
+                animator.SetBool("IsTalking", true);
+            }
         }
         else
         {
             animator.SetBool("IsTalking", false);
+            animator.SetBool("IsYapping", false);
         }
+    }
+
+    public void StartYapping()
+    {
+        yapping = true;
+    }
+
+    public void StopYapping()
+    {
+        yapping = false;
     }
 }

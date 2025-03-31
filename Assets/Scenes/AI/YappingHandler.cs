@@ -15,11 +15,18 @@ public class YappingHandler : MonoBehaviour
     [SerializeField, Tooltip("Duration in seconds to wait before playing the first audio clip")]
     private float initialDelay = 5.0f;
 
+    [SerializeField]
+    private AvatarAnimationController avatarAnimationController;
+
+    [SerializeField]
+    private int maxYappingDuration = 20;
+
     private string yappingAudioFolderPath;
     private List<string> audioFilePaths = new List<string>();
     private bool isYapping = false;
     private bool shouldStopYapping = false;
     private Coroutine yappingCoroutine;
+    private float yappingStartTime = 0f;
 
     private void Start()
     {
@@ -104,6 +111,7 @@ public class YappingHandler : MonoBehaviour
 
         isYapping = true;
         shouldStopYapping = false;
+        yappingStartTime = Time.time;
         yappingCoroutine = StartCoroutine(YappingRoutine());
     }
 
@@ -127,20 +135,22 @@ public class YappingHandler : MonoBehaviour
     private IEnumerator YappingRoutine()
     {
         Debug.Log("[YappingHandler] Starting yapping routine");
+        avatarAnimationController.StartYapping();
 
         // Wait for the initial delay before starting to yap
         Debug.Log($"[YappingHandler] Waiting {initialDelay} seconds before first yap");
         yield return new WaitForSeconds(initialDelay);
 
-        // Check if we should still be yapping after the initial delay
-        if (!isYapping || shouldStopYapping)
-        {
-            Debug.Log("[YappingHandler] Yapping stopped during initial delay");
-            yield break;
-        }
-
         while (isYapping && !shouldStopYapping)
         {
+            if (Time.time - yappingStartTime >= maxYappingDuration)
+            {
+                Debug.LogWarning(
+                    $"[YappingHandler] Yapping timeout reached ({maxYappingDuration} seconds). Auto-stopping."
+                );
+                break;
+            }
+
             // Select a random audio file
             string randomAudioFile = audioFilePaths[Random.Range(0, audioFilePaths.Count)];
             Debug.Log($"[YappingHandler] Playing audio file: {randomAudioFile}");
@@ -158,6 +168,7 @@ public class YappingHandler : MonoBehaviour
             }
         }
 
+        avatarAnimationController.StopYapping();
         Debug.Log("[YappingHandler] Yapping routine ended");
     }
 
