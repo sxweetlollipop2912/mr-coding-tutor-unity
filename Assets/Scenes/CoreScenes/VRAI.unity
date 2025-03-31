@@ -1434,7 +1434,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &445613003
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1452,7 +1452,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 599.99225, y: -344}
-  m_SizeDelta: {x: 5, y: 5}
+  m_SizeDelta: {x: 50, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &445613004
 MonoBehaviour:
@@ -1467,14 +1467,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 0, b: 0, a: 0.6039216}
+  m_Color: {r: 1, g: 0, b: 0.1587658, a: 0.7294118}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: e45f8f823c093d941855bb23b53b9414, type: 3}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -1506,8 +1506,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   redDot: {fileID: 445613003}
   screen: {fileID: 1142612796}
-  showDotDuration: 10
-  pointerBeam: {fileID: 0}
+  showDotDuration: 100000
+  pointerBeam: {fileID: 713067779}
 --- !u!1 &463924495
 GameObject:
   m_ObjectHideFlags: 0
@@ -2059,10 +2059,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   startPoint: {fileID: 2126233306}
   endPoint: {fileID: 445613003}
-  startWidth: 0.03
-  endWidth: 0.01
+  startWidth: 0.015
+  endWidth: 0.001
   showBeam: 1
-  beamExtent: 0.7
+  beamExtent: 0.799
 --- !u!120 &713067780
 LineRenderer:
   serializedVersion: 2
@@ -2454,6 +2454,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1bf4ff6de4560d44d9b3b0697e00c1b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  AudioClip: {fileID: 0}
+  AudioSource: {fileID: 0}
+  AudioProvider: 0
 --- !u!114 &1068169511
 MonoBehaviour:
   m_ObjectHideFlags: 0
