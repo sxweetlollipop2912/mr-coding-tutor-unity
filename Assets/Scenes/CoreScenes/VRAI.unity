@@ -2423,6 +2423,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1bf4ff6de4560d44d9b3b0697e00c1b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  AudioClip: {fileID: 0}
+  AudioSource: {fileID: 1882001675}
+  AudioProvider: 1
 --- !u!114 &1068169511
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14563,7 +14566,6 @@ MonoBehaviour:
   yappingHandler: {fileID: 1161991240}
   voiceName: en-US-ChristopherNeural
   voiceRate: +15%
-  avatarAnimationController: {fileID: 1068169511}
 --- !u!4 &1158105858
 Transform:
   m_ObjectHideFlags: 0
@@ -14627,6 +14629,7 @@ MonoBehaviour:
   delayBetweenAudio: 10
   initialDelay: 3
   avatarAnimationController: {fileID: 1068169511}
+  maxYappingDuration: 20
 --- !u!4 &1181691751 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 970644637833668181, guid: 049d245a53f74e745a6b17c9ccfc1dc5, type: 3}
