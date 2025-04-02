@@ -24,7 +24,10 @@ public class AvatarAnimationController : MonoBehaviour
 
     void Update()
     {
-        yapping = testYapping;
+        if (testYapping)
+        {
+            yapping = true;
+        }
 
         if (audioSource.isPlaying)
         {
