@@ -14600,6 +14600,7 @@ MonoBehaviour:
   yappingHandler: {fileID: 1161991240}
   voiceName: en-US-ChristopherNeural
   voiceRate: +15%
+  avatarAnimationController: {fileID: 1068169511}
 --- !u!4 &1158105858
 Transform:
   m_ObjectHideFlags: 0

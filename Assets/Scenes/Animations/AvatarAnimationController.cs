@@ -34,6 +34,7 @@ public class AvatarAnimationController : MonoBehaviour
             if (yapping)
             {
                 animator.SetBool("IsYapping", true);
+                animator.SetBool("IsTalking", false);
             }
             else
             {
@@ -44,6 +45,7 @@ public class AvatarAnimationController : MonoBehaviour
                         StartCoroutine(ShowRedDotAfterDelay());
                     }
                     animator.SetBool("IsTalking", true);
+                    animator.SetBool("IsYapping", false);
                 }
             }
         }
