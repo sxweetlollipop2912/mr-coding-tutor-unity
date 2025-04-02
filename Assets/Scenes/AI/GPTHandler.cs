@@ -570,31 +570,15 @@ public class GPTHandler : MonoBehaviour
                         + parsedResponse.pointed_at.coordinates.y
                 );
 
-                // Call the PositionRedDot method with the normalized coordinates
                 Vector2 normalizedCoordinate = new Vector2(
                     parsedResponse.pointed_at.coordinates.x,
                     parsedResponse.pointed_at.coordinates.y
                 );
 
-                // Use reflection to call the method to ensure it exists
-                var positionMethod = teacherHand
-                    .GetType()
-                    .GetMethod(
-                        "PositionRedDot",
-                        System.Reflection.BindingFlags.Instance
-                            | System.Reflection.BindingFlags.Public
-                            | System.Reflection.BindingFlags.NonPublic
-                    );
-
-                if (positionMethod != null)
-                {
-                    positionMethod.Invoke(teacherHand, new object[] { normalizedCoordinate });
-                    Debug.Log("[GPTHandler] Successfully positioned red dot");
-                }
-                else
-                {
-                    Debug.LogError("[GPTHandler] PositionRedDot method not found on teacherHand");
-                }
+                teacherHand.RegisterRedDotPosition(normalizedCoordinate);
+                Debug.Log(
+                    "[GPTHandler] Successfully registered red dot position: " + normalizedCoordinate
+                );
             }
             else
             {

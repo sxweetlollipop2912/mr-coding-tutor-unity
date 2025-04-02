@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class AvatarAnimationController : MonoBehaviour
@@ -6,6 +7,15 @@ public class AvatarAnimationController : MonoBehaviour
     public AudioSource audioSource;
     public bool testYapping = true;
     private bool yapping = false;
+
+    [SerializeField]
+    private VRAI_TeacherHand teacherHand;
+
+    [SerializeField]
+    private float redDotDelay = 0f; // Default delay before showing red dot
+
+    [SerializeField]
+    private float redDotDuration = 5f; // Default duration for red dot visibility
 
     void Start()
     {
@@ -24,7 +34,14 @@ public class AvatarAnimationController : MonoBehaviour
             }
             else
             {
-                animator.SetBool("IsTalking", true);
+                if (!animator.GetBool("IsTalking"))
+                {
+                    if (teacherHand != null)
+                    {
+                        StartCoroutine(ShowRedDotAfterDelay());
+                    }
+                    animator.SetBool("IsTalking", true);
+                }
             }
         }
         else
@@ -42,5 +59,17 @@ public class AvatarAnimationController : MonoBehaviour
     public void StopYapping()
     {
         yapping = false;
+    }
+
+    private System.Collections.IEnumerator ShowRedDotAfterDelay()
+    {
+        if (redDotDelay > 0)
+        {
+            yield return new WaitForSeconds(redDotDelay);
+        }
+
+        // Enable the red dot with the specified duration
+        teacherHand.EnableRedDotWithTimeout(redDotDuration);
+        Debug.Log($"[AvatarAnimationController] Enabled red dot with duration: {redDotDuration}s");
     }
 }

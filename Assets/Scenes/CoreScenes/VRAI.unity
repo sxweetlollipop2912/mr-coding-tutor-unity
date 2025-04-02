@@ -1434,7 +1434,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &445613003
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1506,7 +1506,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   redDot: {fileID: 445613003}
   screen: {fileID: 1142612796}
-  showDotDuration: 5
   pointerBeam: {fileID: 713067779}
 --- !u!1 &463924495
 GameObject:
@@ -2044,7 +2043,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &713067779
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2357,12 +2356,12 @@ AudioSource:
   m_Enabled: 0
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 49fedbd34240f46d7a772f62a5f0335d, type: 3}
+  m_audioClip: {fileID: 0}
   m_PlayOnAwake: 1
   m_Volume: 1
   m_Pitch: 1
-  Loop: 1
-  Mute: 1
+  Loop: 0
+  Mute: 0
   Spatialize: 0
   SpatializePostEffects: 0
   Priority: 128
@@ -2456,8 +2455,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   AudioClip: {fileID: 0}
-  AudioSource: {fileID: 0}
-  AudioProvider: 0
+  AudioSource: {fileID: 1068169509}
+  AudioProvider: 1
 --- !u!114 &1068169511
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2472,6 +2471,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   audioSource: {fileID: 1882001675}
   testYapping: 0
+  teacherHand: {fileID: 445613006}
+  redDotDelay: 0
+  redDotDuration: 5
 --- !u!1 &1069015103
 GameObject:
   m_ObjectHideFlags: 0
