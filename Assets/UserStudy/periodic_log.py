@@ -61,7 +61,7 @@ def main():
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
                 # Create output filename with timestamp
-                output_filename = f"{name}_{timestamp}{ext}"
+                output_filename = f"{timestamp}_{name}{ext}"
                 output_path = os.path.join(outdir_path, output_filename)
 
                 # Copy the target file to the output directory with the new name
