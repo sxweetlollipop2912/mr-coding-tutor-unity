@@ -1,3 +1,4 @@
+# Auxiliary Services\n\n## Core Servers\n
 # AI Server Components
 
 This directory contains the Python server components for speech-to-text and text-to-speech functionalities used by the Unity application.
@@ -63,3 +64,10 @@ To stop background servers:
 - The tiny Whisper model processes audio approximately 3x faster than the small model
 - Edge TTS processes about 90 characters per second
 - For a typical 50-word response, TTS generation takes ~3-4 seconds 
+\n\n## Monitoring Tools\n
+
+Command for running the periodic log
+python periodic_log.py --target /Users/sang.pham/.leetcode/416.partition-equal-subset-sum.py --sec 1 --outdir /Users/sang.pham/.leetcode/output_dir
+
+Command for compilation in settings.json of vscode Code Runner
+"python": "cd $dirWithoutTrailingSlash; filename=\"$fileNameWithoutExt\"; timestamp=$(date +%Y%m%d_%H%M%S) && mkdir -p output_dir && cp \"$fileName\" \"output_dir/${timestamp}_${filename}_on_save.py\" && python3 \"$fileName\" 2>&1 | tee \"output_dir/${timestamp}_${filename}_output.log\""
