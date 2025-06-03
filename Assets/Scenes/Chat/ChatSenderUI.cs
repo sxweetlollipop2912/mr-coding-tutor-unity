@@ -1,23 +1,24 @@
+using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
 public class ChatOverlayController_TMP : MonoBehaviour
 {
     [Header("UI References")]
-    public Button chatToggleButton;       // The bottom-right “Chat” button
-    public GameObject chatOverlay;        // The semi-transparent panel
-    public Button closeButton;            // The “X” button inside the panel
+    public Button chatToggleButton; // The bottom-right “Chat” button
+    public GameObject chatOverlay; // The semi-transparent panel
+    public Button closeButton; // The “X” button inside the panel
 
     public TMP_InputField chatInputField; // The Multi Line TMP_InputField
-    public Button sendButton;             // The “Send” button
+    public Button sendButton; // The “Send” button
 
     [Header("Scroll View Content")]
-    public RectTransform contentParent;   // The RectTransform of ScrollView→Viewport→Content
+    public RectTransform contentParent; // The RectTransform of ScrollView→Viewport→Content
 
     [Header("Message Prefab")]
-    public GameObject chatMessagePrefab;  // Must contain a TextMeshProUGUI on its root
+    public GameObject chatMessagePrefab; // Must contain a TextMeshProUGUI on its root
 
     // In-memory list of all sent messages (just for your reference; not strictly needed to display)
     private List<string> messages = new List<string>();
@@ -89,13 +90,13 @@ public class ChatOverlayController_TMP : MonoBehaviour
             return;
         }
 
-        string timestamp = DateTime.Now.ToString("HH:mm:ss"); 
+        string timestamp = DateTime.Now.ToString("HH:mm:ss");
         // You can pick any format you like, e.g. "yyyy-MM-dd HH:mm"
         // Wrap the user text in <noparse>…</noparse> to escape all tags.
         string combined = $"<i>[{timestamp}]</i>\n<noparse>{raw}</noparse>";
 
         // 4) Assign the combined text (timestamp is italic, user text is literal)
-        tmp.richText = true;   // ensure TMP will honor <i>…</i>
+        tmp.richText = true; // ensure TMP will honor <i>…</i>
         tmp.text = combined;
 
         // 5) Force‐update the layout, then scroll to bottom
