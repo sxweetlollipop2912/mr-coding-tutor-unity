@@ -11,12 +11,15 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/CoreScenes/VRStudent.unity
     guid: 0b4b3ef32dbc64f5987acbcc50219975
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/CoreScenes/VRAI.unity
     guid: f7d5fdebe6c91493cb6ac719279c1a98
   - enabled: 0
     path: Assets/Scenes/DesktopDuplication/TestDesktopDuplication.unity
     guid: ff7e34f7fb45126449d24a89e7e0459d
+  - enabled: 1
+    path: Assets/Scenes/CoreScenes/Teacher_New_UI.unity
+    guid: 49a815412d8057043af0265230f210c1
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: 3768cd375894c463b9f1c3bc009a6c4a, type: 2}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 92111c013065f4625996c4cc71b155ea, type: 2}

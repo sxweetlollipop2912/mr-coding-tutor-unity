@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using Agora.Rtc;
 using io.agora.rtc.demo;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
@@ -65,6 +66,10 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
 
             [SerializeField]
             private string saveFramesDirectory = "AvatarFrames";
+
+            // Reference to the chat receiver UI component
+            [Tooltip("Drag the GameObject that has the ReceiverChatUI component here.")]
+            public ReceiverChatUI chatReceiver;
 
             // Method that can be called from the Inspector for immediate testing
             [ContextMenu("Save Avatar Frame Now")]
@@ -1234,17 +1239,47 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             )
             {
                 // Convert the data to a string
-                string coordinateString = System.Text.Encoding.Default.GetString(data);
-                // Parse the coordinate string
-                if (TryParseCoordinate(coordinateString, out Vector2 coordinate))
+                string messageString = System.Text.Encoding.UTF8.GetString(data);
+
+                // Check if it's a chat message
+                if (messageString.StartsWith("CHAT_MSG:"))
                 {
-                    // Update the red dot's position
-                    _desktopScreenShare.PositionRedDot(coordinate);
+                    // Forward to the chat receiver if available
+                    if (_desktopScreenShare.chatReceiver != null)
+                    {
+                        _desktopScreenShare.chatReceiver.HandleIncomingChat(messageString);
+                    }
+                    else
+                    {
+                        Debug.LogError(
+                            "[StudentAgoraScript] No ReceiverChatUI assigned for chat message handling"
+                        );
+                    }
+                    return;
                 }
-                else
+
+                // Check if it's a cursor/position message
+                if (messageString.StartsWith("CURSOR_POS:"))
                 {
-                    Debug.LogError("Invalid coordinate format received.");
+                    string coordString = messageString.Substring("CURSOR_POS:".Length);
+                    if (TryParseCoordinate(coordString, out Vector2 coordinate))
+                    {
+                        // Update the red dot's position
+                        _desktopScreenShare.PositionRedDot(coordinate);
+                    }
+                    else
+                    {
+                        Debug.LogError(
+                            "Received CURSOR_POS message but invalid coordinate: " + coordString
+                        );
+                    }
+                    return;
                 }
+
+                // If not a chat or cursor message, log error
+                Debug.LogError(
+                    "Received message is neither chat nor cursor/coordinate: " + messageString
+                );
             }
 
             private bool TryParseCoordinate(string coordinateString, out Vector2 coordinate)
@@ -1286,5 +1321,13 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
         }
 
         #endregion
+    }
+
+    // Add this class definition at the bottom of the file, outside the class if not present
+    [System.Serializable]
+    public class ChatMessage
+    {
+        public string timestamp;
+        public string content;
     }
 }

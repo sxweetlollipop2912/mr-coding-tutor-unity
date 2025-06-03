@@ -368,7 +368,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                                     / canvasRect.rect.height;
 
                                 string mouseData = $"{normalizedX},{normalizedY}";
-                                StreamMessage(mouseData);
+                                StreamMessage("CURSOR_POS:" + mouseData);
                                 _lastMouseMessageTime = Time.time;
                                 return;
                             }
@@ -392,7 +392,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 if (_shouldStreamMouse)
                 {
                     Debug.Log("Sending stop streaming signal (-1,-1).");
-                    StreamMessage("-1,-1");
+                    StreamMessage("CURSOR_POS:-1,-1");
                     _shouldStreamMouse = false;
                 }
             }
@@ -629,6 +629,46 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             }
 
             #endregion
+
+            // Add this method to the TeacherAgoraScript_NewUI class
+            public bool SendChatMessage(string message)
+            {
+                if (string.IsNullOrEmpty(message))
+                    return false;
+
+                try
+                {
+                    // Create the chat message object
+                    ChatMessage msg = new ChatMessage
+                    {
+                        timestamp = DateTime.UtcNow.ToString("o"),
+                        content = message,
+                    };
+
+                    // Serialize to JSON
+                    string json = JsonUtility.ToJson(msg);
+
+                    // Prepend the chat prefix
+                    string prefixedMessage = "CHAT_MSG:" + json;
+
+                    // Use the existing StreamMessage method
+                    StreamMessage(prefixedMessage);
+                    return true;
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError("[TeacherAgoraScript_NewUI] Error sending chat: " + e.Message);
+                    return false;
+                }
+            }
+        }
+
+        // Add this class definition at the bottom of the file, outside the class
+        [System.Serializable]
+        public class ChatMessage
+        {
+            public string timestamp; // ISO‐8601 string
+            public string content; // the chat text
         }
     }
 }
