@@ -45,6 +45,10 @@ public class ChatOverlayController_TMP : MonoBehaviour
         bool isActive = chatOverlay.activeSelf;
         chatOverlay.SetActive(!isActive);
 
+        // If the overlay was closed (isActive == false), we just opened it → hide the Chat button.
+        // If the overlay was open (isActive == true), we just closed it → show the Chat button again.
+        chatToggleButton.gameObject.SetActive(isActive);
+
         // Do NOT clear chatInputField.text here — we want to preserve it if the user closed previously.
         // If you DO want to clear text when opening the first time, only do it if this is the very first toggle.
         // For simplicity, we leave it as “don’t clear”: re‐opening shows whatever was typed last.
@@ -85,8 +89,14 @@ public class ChatOverlayController_TMP : MonoBehaviour
             return;
         }
 
-        // 4) Assign the text exactly as typed (preserving spaces and newlines)
-        tmp.text = raw;
+        string timestamp = DateTime.Now.ToString("HH:mm:ss"); 
+        // You can pick any format you like, e.g. "yyyy-MM-dd HH:mm"
+        // Wrap the user text in <noparse>…</noparse> to escape all tags.
+        string combined = $"<i>[{timestamp}]</i>\n<noparse>{raw}</noparse>";
+
+        // 4) Assign the combined text (timestamp is italic, user text is literal)
+        tmp.richText = true;   // ensure TMP will honor <i>…</i>
+        tmp.text = combined;
 
         // 5) Force‐update the layout, then scroll to bottom
         Canvas.ForceUpdateCanvases();
