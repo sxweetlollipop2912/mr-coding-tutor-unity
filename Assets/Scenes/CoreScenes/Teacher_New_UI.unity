@@ -3493,7 +3493,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1914826346
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3843,6 +3843,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 619511929420341e08345d95fa3f2ae5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  chatToggleButton: {fileID: 1914826347}
+  chatOverlay: {fileID: 1981549738}
+  closeButton: {fileID: 1228292239}
+  chatInputField: {fileID: 263041038}
+  sendButton: {fileID: 1739735367}
+  contentParent: {fileID: 276011845}
+  chatMessagePrefab: {fileID: 7862389430298395327, guid: b2686433a4bf04459a154a70cd987205, type: 3}
 --- !u!1 &2051414730
 GameObject:
   m_ObjectHideFlags: 0
