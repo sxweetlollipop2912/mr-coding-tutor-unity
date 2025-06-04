@@ -34,7 +34,7 @@ public class ChatOverlayController_TMP : MonoBehaviour
         chatToggleButton.onClick.AddListener(ToggleOverlay);
 
         // 2) ClosePanel only hides it (does NOT clear input! preserves typed text)
-        closeButton.onClick.AddListener(() => chatOverlay.SetActive(false));
+        closeButton.onClick.AddListener(ToggleOverlay);
 
         // 3) SendButton actually sends whatever is in the input field
         sendButton.onClick.AddListener(OnSendButtonClicked);
