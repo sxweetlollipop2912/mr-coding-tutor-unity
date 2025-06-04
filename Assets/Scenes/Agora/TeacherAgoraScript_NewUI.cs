@@ -439,6 +439,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 else
                 {
                     SendStreamMessage(streamId, msg);
+                    Debug.Log(string.Format("Message sent via Agora: {0}", msg));
                 }
             }
 

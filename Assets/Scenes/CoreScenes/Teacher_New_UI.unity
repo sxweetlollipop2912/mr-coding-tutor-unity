@@ -3806,7 +3806,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.2901961}
+  m_Color: {r: 0.8745098, g: 0.8745098, b: 0.8745098, a: 0.9372549}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -3850,6 +3850,7 @@ MonoBehaviour:
   sendButton: {fileID: 1739735367}
   contentParent: {fileID: 276011845}
   chatMessagePrefab: {fileID: 7862389430298395327, guid: b2686433a4bf04459a154a70cd987205, type: 3}
+  agoraManager: {fileID: 981457925}
 --- !u!1 &2051414730
 GameObject:
   m_ObjectHideFlags: 0
