@@ -457,7 +457,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
 
             private void SendStreamMessage(int streamId, string message)
             {
-                byte[] byteArray = System.Text.Encoding.Default.GetBytes(message);
+                byte[] byteArray = System.Text.Encoding.UTF8.GetBytes(message);
                 var nRet = RtcEngine.SendStreamMessage(
                     streamId,
                     byteArray,

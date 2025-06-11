@@ -43,7 +43,8 @@ public class ReceiverChatUI : MonoBehaviour
             }
             else
             {
-                chatText.text += $"\n\n[{chat.timestamp}] </noparse>{chat.content}</noparse>";
+                chatText.text +=
+                    $"\n\n{chat.timestamp}[Teacher]\n<noparse>{chat.content}</noparse>";
             }
 
             // Force rebuild to update layout immediately
