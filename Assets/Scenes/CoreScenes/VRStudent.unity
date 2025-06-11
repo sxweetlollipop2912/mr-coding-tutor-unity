@@ -4085,13 +4085,13 @@ GameObject:
   - component: {fileID: 611701778}
   - component: {fileID: 611701777}
   - component: {fileID: 611701776}
-  - component: {fileID: 611701781}
   - component: {fileID: 611701784}
   - component: {fileID: 611701783}
   - component: {fileID: 611701782}
   - component: {fileID: 611701785}
   - component: {fileID: 611701787}
   - component: {fileID: 611701786}
+  - component: {fileID: 611701789}
   m_Layer: 0
   m_Name: ChatCanvas
   m_TagString: Untagged
@@ -4201,22 +4201,8 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: -1.6, y: 0}
-  m_SizeDelta: {x: 400, y: 550}
+  m_SizeDelta: {x: 600, y: 550}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &611701781
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 611701775}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 68e5d66e55ff64d2a8d90e13ebfbbc36, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  scrollRect: {fileID: 544573567}
-  chatText: {fileID: 843168132}
 --- !u!114 &611701782
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4314,6 +4300,20 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!114 &611701789
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 611701775}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5d3322272dce40d295921122ae4eea8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  scrollRect: {fileID: 544573567}
+  chatText: {fileID: 843168132}
 --- !u!1 &612623390
 GameObject:
   m_ObjectHideFlags: 0
@@ -6463,7 +6463,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _position: {x: 0, y: 0, z: 0}
-  _size: {x: 400, y: 550, z: 0.01}
+  _size: {x: 600, y: 550, z: 0.01}
 --- !u!114 &823049030
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6550,22 +6550,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'New Text New Text New Text New Text New Text New Text New Text New Text
-    New Text New Text New Text New Text New Text New Text New Text New Text New Text
-    New Text New Text New Text New Text New Text New Text New Text New Text New Text
-    New Text New Text New Text New Text New Text New Text New Text New Text New Text
-    New Text New Text New Text New Text New Text New Text New Text New Text New Text
-    New Text New Text New Text New Text New Text New Text New Text New Text New Text
-    New Text New Text New Text New Text New Text New Text New Text New Text New Text
-    New Text New Text New Text New Text New Text New Text New Text New Text New Text
-    New Text New Text New Text New Text New Text New Text New Text New Text New Text
-    New Text New Text New Text New Text New Text New Text New Text New Text New Text
-    New Text New Text New Text New Text New Text New Text New Text New Text New Text
-    New Text New Text New Text New Text New Text New Text New Text New Text New Text
-    New Text New Text New Text New Text New Text New Text New Text New Text New Text
-    New Text New Text New Text New Text New Text New Text New Text New Text New Text
-    New Text New Text New Text New Text New Text New Text New Text New Text New Text
-    New Text New Text New Text New Text New Text New Text New Text New Text New Text '
+  m_text: CHAT  PANEL
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -12430,7 +12415,7 @@ MonoBehaviour:
   saveAvatarFramesToDisk: 0
   saveFrameInterval: 5
   saveFramesDirectory: AvatarFrames
-  chatReceiver: {fileID: 0}
+  chatReceiver: {fileID: 611701789}
   UidStudentWebcam: 123
   UidStudentDesktop: 456
 --- !u!223 &1142612797 stripped
@@ -19240,7 +19225,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _position: {x: 0, y: 0, z: 0}
-  _size: {x: 400, y: 550, z: 0.01}
+  _size: {x: 600, y: 550, z: 0.01}
 --- !u!114 &2130385010
 MonoBehaviour:
   m_ObjectHideFlags: 0
