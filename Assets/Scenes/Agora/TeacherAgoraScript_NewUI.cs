@@ -642,6 +642,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                     // Create the chat message object
                     ChatMessage msg = new ChatMessage
                     {
+                        key = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                         timestamp = DateTime.Now.ToString("HH:mm:ss"),
                         content = message,
                     };
@@ -668,6 +669,7 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
         [System.Serializable]
         public class ChatMessage
         {
+            public long key;
             public string timestamp; // ISO‐8601 string
             public string content; // the chat text
         }
