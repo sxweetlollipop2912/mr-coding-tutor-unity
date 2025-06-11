@@ -74,6 +74,8 @@ public class ChatOverlayController_TMP : MonoBehaviour
     private void SubmitCurrentMessage()
     {
         string raw = chatInputField.text;
+        raw = raw.Trim();
+
         if (string.IsNullOrEmpty(raw))
         {
             // Nothing to send if empty (or only whitespace). You could also trim if you want to disallow whitespace-only.

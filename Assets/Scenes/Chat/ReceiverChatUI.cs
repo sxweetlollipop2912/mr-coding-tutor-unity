@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections.Generic;
 
 public class ReceiverChatUI : MonoBehaviour
 {
@@ -8,6 +9,8 @@ public class ReceiverChatUI : MonoBehaviour
     public ScrollRect scrollRect;
     public TextMeshProUGUI chatText;
     private bool autoScroll = true;
+
+    private Dictionary<long, ChatMessage> chatMessages = new Dictionary<long, ChatMessage>();
 
     void Start()
     {
@@ -27,6 +30,11 @@ public class ReceiverChatUI : MonoBehaviour
         try
         {
             ChatMessage chat = JsonUtility.FromJson<ChatMessage>(json);
+            if (chatMessages.ContainsKey(chat.key))
+                return;
+
+            chatMessages.Add(chat.key, chat);
+
             Debug.Log($"[Chat @ {chat.timestamp}] {chat.content}");
 
             if (chatText.text == "")
@@ -35,8 +43,7 @@ public class ReceiverChatUI : MonoBehaviour
             }
             else
             {
-                chatText.text +=
-                    $"\n\n{chat.timestamp}[Teacher]\n</noparse>{chat.content}</noparse>";
+                chatText.text += $"\n\n[{chat.timestamp}] </noparse>{chat.content}</noparse>";
             }
 
             // Force rebuild to update layout immediately
@@ -66,6 +73,7 @@ public class ReceiverChatUI : MonoBehaviour
 [System.Serializable]
 public class ChatMessage
 {
+    public long key;
     public string timestamp;
     public string content;
 }
