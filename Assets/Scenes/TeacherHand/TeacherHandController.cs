@@ -5,6 +5,7 @@ public class TeacherHandController : MonoBehaviour
     public Transform hand; // Reference to the 3D hand model
     private Transform actualHand; // Reference to the actual hand mesh
     public Transform invisibleDot; // Reference to the invisible dot
+    public Transform beam; // Reference to the beam
     public Transform source; // Starting position for the hand
     public float distanceFromDot = 1.0f; // Distance between hand and dot
     public float moveSpeed = 5.0f; // Speed for smooth movement
@@ -23,6 +24,7 @@ public class TeacherHandController : MonoBehaviour
 
         // Ensure the hand starts as inactive
         actualHand.gameObject.SetActive(false);
+        beam.gameObject.SetActive(false);
         isHandActive = false;
 
         startPosition = source.position;
@@ -36,6 +38,7 @@ public class TeacherHandController : MonoBehaviour
         {
             // Hide the hand and update the active flag
             actualHand.gameObject.SetActive(false);
+            beam.gameObject.SetActive(false);
             isHandActive = false;
             return;
         }
@@ -50,6 +53,7 @@ public class TeacherHandController : MonoBehaviour
         if (!isHandActive)
         {
             hand.position = targetPosition;
+            beam.gameObject.SetActive(true);
             isHandActive = true;
         }
         else
