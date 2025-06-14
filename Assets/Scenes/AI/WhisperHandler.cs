@@ -13,7 +13,6 @@ public class WhisperHandler : MonoBehaviour
     private string whisperServerUrl;
     private string outputFilePath;
     private string selectedMicrophoneDevice;
-    private bool isCurrentlyRecording = false;
 
     [SerializeField]
     private GPTHandler GPTHandler;
@@ -39,7 +38,14 @@ public class WhisperHandler : MonoBehaviour
     // For parallel processing
     private string capturedBase64Image;
     private bool isImageCaptured = false;
-    private bool isRecording = false;
+
+    enum RecordingState
+    {
+        Idle,
+        Recording,
+        Disabled,
+    }
+    private RecordingState recordingState = RecordingState.Idle;
     
     // Thread synchronization for TriggerRecording
     private readonly object triggerRecordingLock = new object();
@@ -48,7 +54,7 @@ public class WhisperHandler : MonoBehaviour
     {
         LoadConfigs();
         InitializeMicrophones();
-        isCurrentlyRecording = false;
+        recordingState = RecordingState.Idle;
         if (Microphone.IsRecording(null))
         {
             Debug.LogWarning("[WhisperHandler] Found active recording on start, stopping it.");
@@ -143,15 +149,17 @@ public class WhisperHandler : MonoBehaviour
 
         try
         {
-            if (isRecording)
+            if (recordingState == RecordingState.Recording)
             {
-                isRecording = false;
                 StopRecording();
             }
-            else
+            else if (recordingState == RecordingState.Idle)
             {
-                isRecording = true;
                 StartRecording();
+            }
+            else if (recordingState == RecordingState.Disabled)
+            {
+                Debug.Log("[WhisperHandler] Recording is disabled, returning immediately");
             }
         }
         finally
@@ -161,12 +169,20 @@ public class WhisperHandler : MonoBehaviour
         }
     }
 
+    public void EnableRecording()
+    {
+        if (recordingState == RecordingState.Disabled)
+        {
+            recordingState = RecordingState.Idle;
+        }
+    }
+
     public void StartRecording()
     {
         Debug.Log(
             $"[WhisperHandler] StartRecording called. Current state:"
                 + $"\n- Selected device: {selectedMicrophoneDevice}"
-                + $"\n- Is currently recording (internal state): {isCurrentlyRecording}"
+                + $"\n- Is currently recording (internal state): {recordingState}"
                 + $"\n- Microphone.IsRecording: {Microphone.IsRecording(selectedMicrophoneDevice)}"
         );
 
@@ -177,11 +193,17 @@ public class WhisperHandler : MonoBehaviour
             return;
         }
 
-        if (isCurrentlyRecording || Microphone.IsRecording(selectedMicrophoneDevice))
+        if (recordingState == RecordingState.Recording || Microphone.IsRecording(selectedMicrophoneDevice))
         {
             Debug.LogWarning(
                 $"[WhisperHandler] Already recording with device: {selectedMicrophoneDevice}"
             );
+            return;
+        }
+
+        if (recordingState == RecordingState.Disabled)
+        {
+            Debug.LogWarning("[WhisperHandler] Recording is disabled, returning immediately");
             return;
         }
 
@@ -197,12 +219,12 @@ public class WhisperHandler : MonoBehaviour
                     AIProgressStatus.AIStep.Error,
                     "Failed to start recording"
                 );
-                isCurrentlyRecording = false;
-                recordButtonVisual.StopRecording();
+                recordingState = RecordingState.Idle;
+                recordButtonVisual.EnableRecording();
                 return;
             }
 
-            isCurrentlyRecording = true;
+            recordingState = RecordingState.Recording;
             recordButtonVisual.StartRecording();
             Debug.Log(
                 $"[WhisperHandler] Recording started successfully:"
@@ -218,8 +240,8 @@ public class WhisperHandler : MonoBehaviour
                 $"[WhisperHandler] Error starting recording: {e.Message}\n{e.StackTrace}"
             );
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to start recording");
-            isCurrentlyRecording = false;
-            recordButtonVisual.StopRecording();
+            recordingState = RecordingState.Idle;
+            recordButtonVisual.EnableRecording();
         }
     }
 
@@ -228,11 +250,11 @@ public class WhisperHandler : MonoBehaviour
         Debug.Log(
             $"[WhisperHandler] StopRecording called. Current state:"
                 + $"\n- Selected device: {selectedMicrophoneDevice}"
-                + $"\n- Is currently recording (internal state): {isCurrentlyRecording}"
+                + $"\n- Is currently recording (internal state): {recordingState}"
                 + $"\n- Microphone.IsRecording: {Microphone.IsRecording(selectedMicrophoneDevice)}"
         );
 
-        if (!isCurrentlyRecording && !Microphone.IsRecording(selectedMicrophoneDevice))
+        if (recordingState != RecordingState.Recording || !Microphone.IsRecording(selectedMicrophoneDevice))
         {
             Debug.LogWarning("[WhisperHandler] StopRecording called but no active recording found");
             return;
@@ -246,13 +268,12 @@ public class WhisperHandler : MonoBehaviour
             int recordingPosition = Microphone.GetPosition(selectedMicrophoneDevice);
             
             Microphone.End(selectedMicrophoneDevice);
-            isCurrentlyRecording = false;
 
             if (audioClip != null)
             {
                 // Calculate the actual recording duration
                 float actualDuration = (float)recordingPosition / audioClip.frequency;
-                
+
                 Debug.Log(
                     $"[WhisperHandler] Recording stopped successfully. AudioClip info:"
                         + $"\n- Samples: {audioClip.samples}"
@@ -268,8 +289,16 @@ public class WhisperHandler : MonoBehaviour
                 {
                     Debug.LogWarning($"[WhisperHandler] Recording too short ({actualDuration:F2}s). Minimum required: {minimumRecordingDuration:F2}s");
                     progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, $"Recording too short ({actualDuration:F1}s). Minimum: {minimumRecordingDuration:F1}s");
+                    recordingState = RecordingState.Idle;
+                    recordButtonVisual.EnableRecording();
                     return;
                 }
+
+                // Start capturing image in parallel with audio processing
+                recordingState = RecordingState.Disabled;
+                recordButtonVisual.DisableRecording();
+                StartCoroutine(CaptureScreenInParallel());
+                StartCoroutine(SendAudioToWhisperDirect());
 
                 // Start the yapping while processing the audio
                 if (yappingHandler != null)
@@ -280,19 +309,13 @@ public class WhisperHandler : MonoBehaviour
                 {
                     Debug.LogWarning("[WhisperHandler] YappingHandler reference is missing");
                 }
-
-                // Start capturing image in parallel with audio processing
-                StartCoroutine(CaptureScreenInParallel());
-                StartCoroutine(SendAudioToWhisperDirect());
-
-                recordButtonVisual.StopRecording();
             }
             else
             {
                 Debug.LogError("[WhisperHandler] AudioClip is null after recording");
                 progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "No audio recorded");
-                isCurrentlyRecording = false;
-                recordButtonVisual.StopRecording();
+                recordingState = RecordingState.Idle;
+                recordButtonVisual.EnableRecording();
                 return;
             }
         }
@@ -302,8 +325,8 @@ public class WhisperHandler : MonoBehaviour
                 $"[WhisperHandler] Error stopping recording: {e.Message}\n{e.StackTrace}"
             );
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to stop recording");
-            isCurrentlyRecording = false;
-            recordButtonVisual.StopRecording();
+            recordingState = RecordingState.Idle;
+            recordButtonVisual.EnableRecording();
         }
     }
 

@@ -24,6 +24,9 @@ public class TextToSpeechHandler : MonoBehaviour
     [SerializeField]
     private AvatarAnimationController avatarAnimationController;
 
+    [SerializeField]
+    private WhisperHandler whisperHandler;
+
     private string ttsServerUrl;
     private string outputFilePath;
 
@@ -229,6 +232,15 @@ public class TextToSpeechHandler : MonoBehaviour
         {
             Debug.LogError("[TextToSpeechHandler] Failed to load audio: " + request.error);
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to play audio");
+        }
+
+        if (whisperHandler != null)
+        {
+            whisperHandler.EnableRecording();
+        }
+        else
+        {
+            Debug.LogError("[TextToSpeechHandler] WhisperHandler reference is missing");
         }
 
         // Dispose of the request

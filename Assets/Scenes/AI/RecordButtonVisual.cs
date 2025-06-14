@@ -10,9 +10,11 @@ public class RecordButtonVisual : MonoBehaviour
 
     public string normalText    = "Press to Record";
     public string recordingText = "Recording…";
+    public string disabledText  = "Processing…";
 
     public Color normalColor    = Color.white;
     public Color recordingColor = Color.green;
+    public Color disabledColor  = Color.gray;
 
     private void Start()
     {
@@ -26,7 +28,13 @@ public class RecordButtonVisual : MonoBehaviour
         panelRenderer.material.color = recordingColor;
     }
     
-    public void StopRecording()
+    public void DisableRecording()
+    {
+        buttonLabel.text = disabledText;
+        panelRenderer.material.color = disabledColor;
+    }
+
+    public void EnableRecording()
     {
         buttonLabel.text = normalText;
         panelRenderer.material.color = normalColor;

@@ -14505,6 +14505,7 @@ MonoBehaviour:
   voiceName: en-US-ChristopherNeural
   voiceRate: +15%
   avatarAnimationController: {fileID: 1068169511}
+  whisperHandler: {fileID: 1138392151}
 --- !u!4 &1158105858
 Transform:
   m_ObjectHideFlags: 0
@@ -18059,8 +18060,10 @@ MonoBehaviour:
   panelRenderer: {fileID: 5555346712788725481}
   normalText: Press to Record
   recordingText: "Recording\u2026"
+  disabledText: "Processing\u2026"
   normalColor: {r: 1, g: 1, b: 1, a: 0.078431375}
   recordingColor: {r: 0, g: 1, b: 0, a: 0.2}
+  disabledColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.17254902}
 --- !u!1001 &8030197382851624736
 PrefabInstance:
   m_ObjectHideFlags: 0
