@@ -9787,7 +9787,7 @@ MonoBehaviour:
   progressStatus: {fileID: 1181691752}
   microphoneDropdown: {fileID: 0}
   yappingHandler: {fileID: 1161991240}
-  minimumRecordingDuration: 0.5
+  minimumRecordingDuration: 2
 --- !u!4 &1138392152
 Transform:
   m_ObjectHideFlags: 0
