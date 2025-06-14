@@ -33,6 +33,9 @@ public class WhisperHandler : MonoBehaviour
     [SerializeField]
     private float minimumRecordingDuration = 1.0f; // Minimum recording duration in seconds
 
+    [SerializeField]
+    private RecordButtonVisual recordButtonVisual;
+
     // For parallel processing
     private string capturedBase64Image;
     private bool isImageCaptured = false;
@@ -195,10 +198,12 @@ public class WhisperHandler : MonoBehaviour
                     "Failed to start recording"
                 );
                 isCurrentlyRecording = false;
+                recordButtonVisual.StopRecording();
                 return;
             }
 
             isCurrentlyRecording = true;
+            recordButtonVisual.StartRecording();
             Debug.Log(
                 $"[WhisperHandler] Recording started successfully:"
                     + $"\n- AudioClip: {audioClip}"
@@ -214,6 +219,7 @@ public class WhisperHandler : MonoBehaviour
             );
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to start recording");
             isCurrentlyRecording = false;
+            recordButtonVisual.StopRecording();
         }
     }
 
@@ -278,12 +284,15 @@ public class WhisperHandler : MonoBehaviour
                 // Start capturing image in parallel with audio processing
                 StartCoroutine(CaptureScreenInParallel());
                 StartCoroutine(SendAudioToWhisperDirect());
+
+                recordButtonVisual.StopRecording();
             }
             else
             {
                 Debug.LogError("[WhisperHandler] AudioClip is null after recording");
                 progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "No audio recorded");
                 isCurrentlyRecording = false;
+                recordButtonVisual.StopRecording();
                 return;
             }
         }
@@ -294,6 +303,7 @@ public class WhisperHandler : MonoBehaviour
             );
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to stop recording");
             isCurrentlyRecording = false;
+            recordButtonVisual.StopRecording();
         }
     }
 
