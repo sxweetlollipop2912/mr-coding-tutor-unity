@@ -221,7 +221,8 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
 
             void Update()
             {
-                UpdateMousePosition();
+                ShouldStreamMouse();
+                HandleMouseStreaming();
             }
 
             private void InitEngine()
@@ -277,14 +278,11 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             #region -- Mouse Position Streaming Logic ---
 
             private bool _shouldStreamMouse = false; // Flag to track if we should be streaming mouse position
+            private bool _isStreamingMouse = false;
 
-            private void UpdateMousePosition()
+            private void ShouldStreamMouse()
             {
                 if (StudentDesktopImage == null)
-                    return;
-
-                // Only proceed if enough time has passed
-                if (Time.time - _lastMouseMessageTime < 1f / mouseMessagesPerSecond)
                     return;
 
                 if (Input.GetMouseButtonDown(0))
@@ -305,7 +303,6 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                             if (IsInsideCanvas(localPoint, MouseExclusionArea))
                             {
                                 _shouldStreamMouse = false;
-                                Debug.Log("Mouse press detected in exclusion area - ignoring");
                                 return;
                             }
                         }
@@ -327,22 +324,47 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                         {
                             bool insideDesktop = IsInsideCanvas(localPoint, desktopRect);
                             _shouldStreamMouse = insideDesktop;
-                            Debug.Log(
-                                $"Mouse press detected - inside desktop: {insideDesktop}, streaming: {_shouldStreamMouse}"
-                            );
                         }
                     }
-                }
-
-                if (Input.GetMouseButtonUp(0))
-                {
-                    if (_shouldStreamMouse)
+                    else
                     {
-                        StopMouseStreaming();
+                        _shouldStreamMouse = false;
                     }
                 }
+                else if (Input.GetMouseButtonUp(0))
+                {
+                    _shouldStreamMouse = false;
+                }
+            }
 
-                // Only process movement if we should be streaming
+            public void OnPointerExit(PointerEventData eventData)
+            {
+                StopMouseStreaming();
+            }
+
+            private void HandleMouseStreaming()
+            {
+                if (StudentDesktopImage == null)
+                    return;
+
+                if (_shouldStreamMouse)
+                {
+                    StreamMousePosition();
+                }
+                else if (_isStreamingMouse)
+                {
+                    StopMouseStreaming();
+                }
+            }
+
+            private void StreamMousePosition()
+            {
+                if (StudentDesktopImage == null)
+                    return;
+
+                if (Time.time - _lastMouseMessageTime < 1f / mouseMessagesPerSecond)
+                    return;
+
                 if (_shouldStreamMouse)
                 {
                     RectTransform canvasRect = StudentDesktopImage.rectTransform;
@@ -358,42 +380,29 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                             )
                         )
                         {
-                            if (IsInsideCanvas(localPoint, canvasRect))
-                            {
-                                float normalizedX =
-                                    (localPoint.x + canvasRect.rect.width / 2)
-                                    / canvasRect.rect.width;
-                                float normalizedY =
-                                    (localPoint.y + canvasRect.rect.height / 2)
-                                    / canvasRect.rect.height;
+                            float normalizedX =
+                                (localPoint.x + canvasRect.rect.width / 2)
+                                / canvasRect.rect.width;
+                            float normalizedY =
+                                (localPoint.y + canvasRect.rect.height / 2)
+                                / canvasRect.rect.height;
 
-                                string mouseData = $"{normalizedX},{normalizedY}";
-                                StreamMessage("CURSOR_POS:" + mouseData);
-                                _lastMouseMessageTime = Time.time;
-                                return;
-                            }
-                            else
-                            {
-                                // Mouse has left the canvas area while still pressed
-                                StopMouseStreaming();
-                            }
+                            string mouseData = $"{normalizedX},{normalizedY}";
+                            StreamMessage("CURSOR_POS:" + mouseData);
+                            _lastMouseMessageTime = Time.time;
+                            _isStreamingMouse = true;
                         }
                     }
                 }
             }
 
-            public void OnPointerExit(PointerEventData eventData)
-            {
-                StopMouseStreaming();
-            }
-
             private void StopMouseStreaming()
             {
-                if (_shouldStreamMouse)
+                if (_isStreamingMouse && !_shouldStreamMouse)
                 {
                     Debug.Log("Sending stop streaming signal (-1,-1).");
                     StreamMessage("CURSOR_POS:-1,-1");
-                    _shouldStreamMouse = false;
+                    _isStreamingMouse = false;
                 }
             }
 
