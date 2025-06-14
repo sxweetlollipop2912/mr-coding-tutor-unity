@@ -294,7 +294,7 @@ public class DesktopDuplication : MonoBehaviour
         RectTransform mouseRT = mouseGO.AddComponent<RectTransform>();
         mouseRT.sizeDelta = useCustomCursor ? customCursorSize : new Vector2(32f, 32f);
         mouseRT.anchoredPosition = Vector2.zero;
-        mouseRT.pivot = new Vector2(0.5f, 0.5f);
+        mouseRT.pivot = new Vector2(0f, 1f); // Top-left corner for standard cursor behavior
 
         RawImage mouseImage = mouseGO.AddComponent<RawImage>();
         mouseImage.raycastTarget = false;
