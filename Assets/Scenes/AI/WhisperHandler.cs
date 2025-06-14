@@ -30,9 +30,16 @@ public class WhisperHandler : MonoBehaviour
     [SerializeField]
     private YappingHandler yappingHandler; // Add reference to YappingHandler
 
+    [SerializeField]
+    private float minimumRecordingDuration = 1.0f; // Minimum recording duration in seconds
+
     // For parallel processing
     private string capturedBase64Image;
     private bool isImageCaptured = false;
+    private bool isRecording = false;
+    
+    // Thread synchronization for TriggerRecording
+    private readonly object triggerRecordingLock = new object();
 
     private void Start()
     {
@@ -122,6 +129,35 @@ public class WhisperHandler : MonoBehaviour
         );
     }
 
+    public void TriggerRecording()
+    {
+        // Try to acquire the lock immediately, return if another thread is already executing this function
+        if (!System.Threading.Monitor.TryEnter(triggerRecordingLock))
+        {
+            Debug.Log("[WhisperHandler] TriggerRecording already in progress by another thread, returning immediately");
+            return;
+        }
+
+        try
+        {
+            if (isRecording)
+            {
+                isRecording = false;
+                StopRecording();
+            }
+            else
+            {
+                isRecording = true;
+                StartRecording();
+            }
+        }
+        finally
+        {
+            // Always release the lock, even if an exception occurs
+            System.Threading.Monitor.Exit(triggerRecordingLock);
+        }
+    }
+
     public void StartRecording()
     {
         Debug.Log(
@@ -199,17 +235,35 @@ public class WhisperHandler : MonoBehaviour
         try
         {
             progressStatus.UpdateStep(AIProgressStatus.AIStep.ProcessingAudio);
+            
+            // Get the current recording position before ending the recording
+            int recordingPosition = Microphone.GetPosition(selectedMicrophoneDevice);
+            
             Microphone.End(selectedMicrophoneDevice);
             isCurrentlyRecording = false;
 
             if (audioClip != null)
             {
+                // Calculate the actual recording duration
+                float actualDuration = (float)recordingPosition / audioClip.frequency;
+                
                 Debug.Log(
                     $"[WhisperHandler] Recording stopped successfully. AudioClip info:"
                         + $"\n- Samples: {audioClip.samples}"
                         + $"\n- Channels: {audioClip.channels}"
                         + $"\n- Frequency: {audioClip.frequency}"
+                        + $"\n- Recording Position: {recordingPosition}"
+                        + $"\n- Actual Duration: {actualDuration:F2} seconds"
+                        + $"\n- Minimum Required Duration: {minimumRecordingDuration:F2} seconds"
                 );
+
+                // Check if recording meets minimum duration requirement
+                if (actualDuration < minimumRecordingDuration)
+                {
+                    Debug.LogWarning($"[WhisperHandler] Recording too short ({actualDuration:F2}s). Minimum required: {minimumRecordingDuration:F2}s");
+                    progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, $"Recording too short ({actualDuration:F1}s). Minimum: {minimumRecordingDuration:F1}s");
+                    return;
+                }
 
                 // Start the yapping while processing the audio
                 if (yappingHandler != null)

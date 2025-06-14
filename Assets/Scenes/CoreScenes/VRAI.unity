@@ -402,6 +402,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   hand: {fileID: 34115258}
   invisibleDot: {fileID: 445613003}
+  beam: {fileID: 0}
   source: {fileID: 719085419}
   distanceFromDot: 0.3
   moveSpeed: 5
@@ -9786,6 +9787,7 @@ MonoBehaviour:
   progressStatus: {fileID: 1181691752}
   microphoneDropdown: {fileID: 0}
   yappingHandler: {fileID: 1161991240}
+  minimumRecordingDuration: 0.5
 --- !u!4 &1138392152
 Transform:
   m_ObjectHideFlags: 0
@@ -18008,7 +18010,19 @@ MonoBehaviour:
   _pointable: {fileID: 7918400823802696875}
   _whenRelease:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1138392151}
+        m_TargetAssemblyTypeName: WhisperHandler, Assembly-CSharp
+        m_MethodName: TriggerRecording
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   _whenHover:
     m_PersistentCalls:
       m_Calls: []
@@ -18017,34 +18031,10 @@ MonoBehaviour:
       m_Calls: []
   _whenSelect:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1138392151}
-        m_TargetAssemblyTypeName: WhisperHandler, Assembly-CSharp
-        m_MethodName: StartRecording
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
   _whenUnselect:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1138392151}
-        m_TargetAssemblyTypeName: WhisperHandler, Assembly-CSharp
-        m_MethodName: StopRecording
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
   _whenMove:
     m_PersistentCalls:
       m_Calls: []
