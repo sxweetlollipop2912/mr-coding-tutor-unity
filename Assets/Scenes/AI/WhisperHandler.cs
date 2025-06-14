@@ -55,6 +55,7 @@ public class WhisperHandler : MonoBehaviour
         LoadConfigs();
         InitializeMicrophones();
         recordingState = RecordingState.Idle;
+        recordButtonVisual.EnableRecording();
         if (Microphone.IsRecording(null))
         {
             Debug.LogWarning("[WhisperHandler] Found active recording on start, stopping it.");
@@ -174,6 +175,7 @@ public class WhisperHandler : MonoBehaviour
         if (recordingState == RecordingState.Disabled)
         {
             recordingState = RecordingState.Idle;
+            recordButtonVisual.EnableRecording();
         }
     }
 
