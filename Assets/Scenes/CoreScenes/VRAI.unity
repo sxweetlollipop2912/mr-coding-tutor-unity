@@ -18055,8 +18055,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64a7e9a035c684b6ea73ffeb15b25be1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  buttonLabel: {fileID: 0}
-  boxProps: {fileID: 0}
+  buttonLabel: {fileID: 836539863387433774}
+  boxProps: {fileID: 8866962485801351824}
   normalText: Press to Record
   recordingText: "Recording\u2026"
   normalColor: {r: 1, g: 1, b: 1, a: 1}

@@ -5,8 +5,8 @@ using Oculus.Interaction;
 public class RecordButtonVisual : MonoBehaviour
 {
     [Header("Button Visuals")]
-    public TextMeshProUGUI         buttonLabel;
-    public RoundedBoxProperties    boxProps;           // ← new
+    public TMP_Text             buttonLabel;
+    public RoundedBoxProperties boxProps;
 
     public string normalText    = "Press to Record";
     public string recordingText = "Recording…";
