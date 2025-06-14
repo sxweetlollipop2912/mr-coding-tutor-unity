@@ -786,6 +786,59 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1a379f34d4f4f2e408d34f14bfb753ce, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &178051959
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 178051960}
+  - component: {fileID: 178051961}
+  m_Layer: 0
+  m_Name: RecordingIndicator
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &178051960
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 178051959}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1022876514}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &178051961
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 178051959}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c3c2cb3d9b454822acfa6b6addd7a43, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  borderImage: {fileID: 0}
+  recordingColor: {r: 0, g: 0.8018868, b: 0, a: 0.5}
+  borderThickness: 15
+  enablePulsingEffect: 1
+  pulseSpeed: 2
+  minAlpha: 0.2
+  maxAlpha: 0.8
+  targetCanvas: {fileID: 1142612795}
+  isRecording: 0
 --- !u!1 &183880204
 GameObject:
   m_ObjectHideFlags: 0
@@ -1188,6 +1241,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   monitorCanvas: {fileID: 1142612795}
+  useCustomCursor: 1
+  customCursorTexture: {fileID: 0}
+  customCursorSize: {x: 32, y: 32}
 --- !u!1 &384988845
 GameObject:
   m_ObjectHideFlags: 0
@@ -2337,6 +2393,7 @@ Transform:
   m_Children:
   - {fileID: 1142612794}
   - {fileID: 1287588530}
+  - {fileID: 178051960}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1068169506 stripped
@@ -2356,9 +2413,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1bf4ff6de4560d44d9b3b0697e00c1b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  AudioClip: {fileID: 0}
-  AudioSource: {fileID: 1882001675}
-  AudioProvider: 1
 --- !u!114 &1068169511
 MonoBehaviour:
   m_ObjectHideFlags: 0
