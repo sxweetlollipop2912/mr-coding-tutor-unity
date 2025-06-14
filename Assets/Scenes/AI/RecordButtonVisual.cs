@@ -5,8 +5,8 @@ using Oculus.Interaction;
 public class RecordButtonVisual : MonoBehaviour
 {
     [Header("Button Visuals")]
-    public TMP_Text             buttonLabel;
-    public RoundedBoxProperties boxProps;
+    public TMP_Text buttonLabel;
+    public Renderer panelRenderer;
 
     public string normalText    = "Press to Record";
     public string recordingText = "Recording…";
@@ -17,18 +17,18 @@ public class RecordButtonVisual : MonoBehaviour
     private void Start()
     {
         buttonLabel.text = normalText;
-        boxProps.Color = normalColor;
+        panelRenderer.material.color = normalColor;
     }
 
     public void StartRecording()
     {
         buttonLabel.text = recordingText;
-        boxProps.Color = recordingColor;
+        panelRenderer.material.color = recordingColor;
     }
     
     public void StopRecording()
     {
         buttonLabel.text = normalText;
-        boxProps.Color = normalColor;
+        panelRenderer.material.color = normalColor;
     }
 }

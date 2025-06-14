@@ -18056,11 +18056,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   buttonLabel: {fileID: 836539863387433774}
-  boxProps: {fileID: 8866962485801351824}
+  panelRenderer: {fileID: 5555346712788725481}
   normalText: Press to Record
   recordingText: "Recording\u2026"
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
-  recordingColor: {r: 0, g: 1, b: 0, a: 1}
+  normalColor: {r: 1, g: 1, b: 1, a: 0.078431375}
+  recordingColor: {r: 0, g: 1, b: 0, a: 0.2}
 --- !u!1001 &8030197382851624736
 PrefabInstance:
   m_ObjectHideFlags: 0
