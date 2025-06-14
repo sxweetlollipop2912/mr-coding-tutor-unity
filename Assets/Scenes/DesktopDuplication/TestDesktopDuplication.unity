@@ -401,6 +401,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   monitorCanvas: {fileID: 1939044972}
+  useCustomCursor: 1
+  customCursorTexture: {fileID: 2800000, guid: 6b8b0dd5187450e4f8d7ad612ea2e2b4, type: 3}
+  customCursorSize: {x: 16, y: 24}
 --- !u!1 &1770102988
 GameObject:
   m_ObjectHideFlags: 0

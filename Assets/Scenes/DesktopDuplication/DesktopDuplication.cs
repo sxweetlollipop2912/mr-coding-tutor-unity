@@ -22,6 +22,16 @@ public class DesktopDuplication : MonoBehaviour
     [SerializeField]
     private Canvas monitorCanvas; // Assign in Inspector
 
+    [Header("Custom Cursor Settings")]
+    [SerializeField]
+    private bool useCustomCursor = true;
+
+    [SerializeField]
+    private Texture2D customCursorTexture;
+
+    [SerializeField]
+    private Vector2 customCursorSize = new Vector2(32, 32);
+
     // We'll store references so we can update mouse pointer each frame
     private List<MonitorUIData> monitorUIList = new List<MonitorUIData>();
 
@@ -86,6 +96,13 @@ public class DesktopDuplication : MonoBehaviour
                 continue;
             }
 
+            // Notify HDD_Monitor about custom cursor setting
+            var hddMonitor = monitorObj.GetComponent<HDD_Monitor>();
+            if (hddMonitor != null)
+            {
+                hddMonitor.SetUseCustomCursor(useCustomCursor);
+            }
+
             // Position in 3D
             monitorObj.transform.localScale = new Vector3(1 / scale, 1 / scale, 1);
             monitorObj.transform.localPosition =
@@ -126,13 +143,13 @@ public class DesktopDuplication : MonoBehaviour
                 }
             }
 
-            // Create the UI
+            // Create the UI - pass custom cursor texture if enabled
             var monitorData = CreateMonitorUI(
                 i,
                 monitorObj,
                 info,
                 desktopTexture,
-                mouseTexture,
+                useCustomCursor ? customCursorTexture : mouseTexture,
                 monitorObj.transform.localPosition
             );
 
@@ -152,27 +169,31 @@ public class DesktopDuplication : MonoBehaviour
             if (data.monitorObj == null)
                 continue;
 
-            // 1) Re-fetch the mouse pointer texture if changed
-            var mouseRendererTF = data.monitorObj.transform.Find("MouseRenderer");
-            if (mouseRendererTF != null)
+            // 1) Re-fetch the mouse pointer texture if changed (only if not using custom cursor)
+            if (!useCustomCursor)
             {
-                var mesh = mouseRendererTF.GetComponent<Renderer>();
-                if (mesh != null && mesh.material != null && data.mouseUI != null)
+                var mouseRendererTF = data.monitorObj.transform.Find("MouseRenderer");
+                if (mouseRendererTF != null)
                 {
-                    var currentPointerTex = mesh.material.mainTexture;
-                    if (data.mouseUI.texture != currentPointerTex)
+                    var mesh = mouseRendererTF.GetComponent<Renderer>();
+                    if (mesh != null && mesh.material != null && data.mouseUI != null)
                     {
-                        data.mouseUI.texture = currentPointerTex;
-                        // We'll use the default uvRect (no vertical flip on the pointer image)
-                        data.mouseUI.uvRect = new Rect(0f, 0f, 1f, -1f);
+                        var currentPointerTex = mesh.material.mainTexture;
+                        if (data.mouseUI.texture != currentPointerTex)
+                        {
+                            data.mouseUI.texture = currentPointerTex;
+                            // We'll use the default uvRect (no vertical flip on the pointer image)
+                            data.mouseUI.uvRect = new Rect(0f, 0f, 1f, -1f);
+                        }
                     }
                 }
             }
 
             // 2) Sync the pointer position, flipping the Y-axis
-            if (data.mouseUI != null && mouseRendererTF != null)
+            var mouseRendererTF2 = data.monitorObj.transform.Find("MouseRenderer");
+            if (data.mouseUI != null && mouseRendererTF2 != null)
             {
-                var localMousePos = mouseRendererTF.localPosition;
+                var localMousePos = mouseRendererTF2.localPosition;
 
                 float ratioX = data.monitorWidth / data.pixelWidth;
                 float ratioY = data.monitorHeight / data.pixelHeight;
@@ -184,6 +205,12 @@ public class DesktopDuplication : MonoBehaviour
                 );
 
                 data.mouseUI.rectTransform.anchoredPosition = anchoredPos;
+
+                // Update cursor size if using custom cursor
+                if (useCustomCursor)
+                {
+                    data.mouseUI.rectTransform.sizeDelta = customCursorSize;
+                }
             }
         }
     }
@@ -265,9 +292,9 @@ public class DesktopDuplication : MonoBehaviour
         mouseGO.transform.SetParent(monitorUI.transform, false);
 
         RectTransform mouseRT = mouseGO.AddComponent<RectTransform>();
-        mouseRT.sizeDelta = new Vector2(32f, 32f);
+        mouseRT.sizeDelta = useCustomCursor ? customCursorSize : new Vector2(32f, 32f);
         mouseRT.anchoredPosition = Vector2.zero;
-        mouseRT.pivot = new Vector2(0.5f, 0.5f);
+        mouseRT.pivot = new Vector2(0f, 1f); // Top-left corner for standard cursor behavior
 
         RawImage mouseImage = mouseGO.AddComponent<RawImage>();
         mouseImage.raycastTarget = false;
@@ -279,9 +306,18 @@ public class DesktopDuplication : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning(
-                $"Mouse texture for monitor {monitorIndex} is null initially. Will update later."
-            );
+            if (useCustomCursor)
+            {
+                Debug.LogWarning(
+                    $"Custom cursor texture not assigned for monitor {monitorIndex}. Please assign a texture in the inspector."
+                );
+            }
+            else
+            {
+                Debug.LogWarning(
+                    $"Mouse texture for monitor {monitorIndex} is null initially. Will update later."
+                );
+            }
         }
 
         Debug.Log($"Created Monitor UI for monitor {monitorIndex}");
