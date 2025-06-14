@@ -17425,7 +17425,9 @@ MonoBehaviour:
   _renderers:
   - {fileID: 5555346712788725481}
   _vectorProperties: []
-  _colorProperties: []
+  _colorProperties:
+  - name: _Color
+    value: {r: 1, g: 1, b: 1, a: 0.078431375}
   _floatProperties: []
   _updateEveryFrame: 1
 --- !u!114 &6977884630742533616
