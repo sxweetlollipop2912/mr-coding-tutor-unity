@@ -2413,6 +2413,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1bf4ff6de4560d44d9b3b0697e00c1b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  AudioClip: {fileID: 0}
+  AudioSource: {fileID: 0}
+  AudioProvider: 0
 --- !u!114 &1068169511
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9843,6 +9846,7 @@ MonoBehaviour:
   yappingHandler: {fileID: 1161991240}
   minimumRecordingDuration: 1
   recordButtonVisual: {fileID: 7928160229997976868}
+  canvasRecordingIndicator: {fileID: 178051961}
 --- !u!4 &1138392152
 Transform:
   m_ObjectHideFlags: 0
@@ -18113,7 +18117,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   buttonLabel: {fileID: 836539863387433774}
-  panelRenderer: {fileID: 5555346712788725481}
+  mpbEditor: {fileID: 6600564813815842885}
   normalText: Press to Record
   recordingText: "Recording\u2026"
   disabledText: "Processing\u2026"

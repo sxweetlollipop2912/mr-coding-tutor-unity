@@ -35,6 +35,9 @@ public class WhisperHandler : MonoBehaviour
     [SerializeField]
     private RecordButtonVisual recordButtonVisual;
 
+    [SerializeField]
+    private CanvasRecordingIndicator canvasRecordingIndicator;
+
     // For parallel processing
     private string capturedBase64Image;
     private bool isImageCaptured = false;
@@ -56,6 +59,7 @@ public class WhisperHandler : MonoBehaviour
         InitializeMicrophones();
         recordingState = RecordingState.Idle;
         recordButtonVisual.EnableRecording();
+        canvasRecordingIndicator.StopRecording();
         if (Microphone.IsRecording(null))
         {
             Debug.LogWarning("[WhisperHandler] Found active recording on start, stopping it.");
@@ -176,6 +180,7 @@ public class WhisperHandler : MonoBehaviour
         {
             recordingState = RecordingState.Idle;
             recordButtonVisual.EnableRecording();
+            canvasRecordingIndicator.StopRecording();
         }
     }
 
@@ -223,11 +228,13 @@ public class WhisperHandler : MonoBehaviour
                 );
                 recordingState = RecordingState.Idle;
                 recordButtonVisual.EnableRecording();
+                canvasRecordingIndicator.StopRecording();
                 return;
             }
 
             recordingState = RecordingState.Recording;
             recordButtonVisual.StartRecording();
+            canvasRecordingIndicator.StartRecording();
             Debug.Log(
                 $"[WhisperHandler] Recording started successfully:"
                     + $"\n- AudioClip: {audioClip}"
@@ -244,6 +251,7 @@ public class WhisperHandler : MonoBehaviour
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to start recording");
             recordingState = RecordingState.Idle;
             recordButtonVisual.EnableRecording();
+            canvasRecordingIndicator.StopRecording();
         }
     }
 
@@ -293,12 +301,14 @@ public class WhisperHandler : MonoBehaviour
                     progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, $"Recording too short ({actualDuration:F1}s). Minimum: {minimumRecordingDuration:F1}s");
                     recordingState = RecordingState.Idle;
                     recordButtonVisual.EnableRecording();
+                    canvasRecordingIndicator.StopRecording();
                     return;
                 }
 
                 // Start capturing image in parallel with audio processing
                 recordingState = RecordingState.Disabled;
                 recordButtonVisual.DisableRecording();
+                canvasRecordingIndicator.StopRecording();
                 StartCoroutine(CaptureScreenInParallel());
                 StartCoroutine(SendAudioToWhisperDirect());
 
@@ -318,6 +328,7 @@ public class WhisperHandler : MonoBehaviour
                 progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "No audio recorded");
                 recordingState = RecordingState.Idle;
                 recordButtonVisual.EnableRecording();
+                canvasRecordingIndicator.StopRecording();
                 return;
             }
         }
@@ -329,6 +340,7 @@ public class WhisperHandler : MonoBehaviour
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to stop recording");
             recordingState = RecordingState.Idle;
             recordButtonVisual.EnableRecording();
+            canvasRecordingIndicator.StopRecording();
         }
     }
 
