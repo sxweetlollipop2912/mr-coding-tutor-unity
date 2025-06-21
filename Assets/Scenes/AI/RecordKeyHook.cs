@@ -177,66 +177,82 @@ public class RecordKeyHook : MonoBehaviour
         {
             if (nCode >= HC_ACTION)
             {
-                // Count all key events for debugging
-                keyEventsProcessed++;
-
-                // Log every 100 key events to show the hook is working
-                if (keyEventsProcessed % 100 == 0)
-                {
-                    UnityEngine.Debug.Log(
-                        $"[RecordKeyHook] Processed {keyEventsProcessed} key events so far..."
-                    );
-                }
-
                 // Parse the keyboard structure
                 KBDLLHOOKSTRUCT kbd = (KBDLLHOOKSTRUCT)
                     Marshal.PtrToStructure(lParam, typeof(KBDLLHOOKSTRUCT));
 
-                // Log the key event details (uncomment for detailed debugging)
-                // UnityEngine.Debug.Log($"[RecordKeyHook] Key event: vkCode={kbd.vkCode}, wParam=0x{wParam.ToInt32():X}");
+                // Check for our trigger key first
+                bool isOurTriggerKey = (kbd.vkCode == triggerKeyCode);
+                bool isKeyDown = (wParam.ToInt32() == WM_KEYDOWN);
+                bool isKeyUp = (wParam.ToInt32() == WM_KEYUP);
 
-                // Check for our trigger key
-                if (kbd.vkCode == triggerKeyCode)
+                if (isOurTriggerKey)
                 {
-                    if (wParam.ToInt32() == WM_KEYDOWN)
+                    if (isKeyDown)
                     {
                         lock (keyPressLock)
                         {
-                            if (!keyPressed) // First time pressing down
+                            if (!keyPressed) // First time pressing down (not a repeat from holding)
                             {
                                 keyPressed = true;
-                                hasTriggered = false; // Reset trigger flag for new press cycle
+                                hasTriggered = false;
+
+                                // Count this as a genuine key event
+                                keyEventsProcessed++;
+
                                 UnityEngine.Debug.Log(
-                                    $"[RecordKeyHook] Target key {triggerKeyCode} pressed down (cycle started)"
-                                );
-                            }
-                            // Don't trigger action on key down anymore
-                        }
-                    }
-                    else if (wParam.ToInt32() == WM_KEYUP)
-                    {
-                        lock (keyPressLock)
-                        {
-                            if (keyPressed && !hasTriggered) // Complete press cycle: was down, now up, and haven't triggered yet
-                            {
-                                hasTriggered = true;
-                                UnityEngine.Debug.Log(
-                                    $"[RecordKeyHook] Target key {triggerKeyCode} released - triggering action!"
+                                    $"[RecordKeyHook] Target key {triggerKeyCode} pressed down - triggering action! (Event #{keyEventsProcessed})"
                                 );
 
-                                // Schedule the action on the main thread
+                                // Trigger action immediately on key down
                                 UnityMainThreadDispatcher
                                     .Instance()
                                     .Enqueue(() => OnTargetKeyPressed());
-                            }
 
-                            keyPressed = false; // Reset key state
+                                hasTriggered = true;
+                            }
+                            else
+                            {
+                                // Key is being held down - don't count or trigger
+                                UnityEngine.Debug.Log(
+                                    $"[RecordKeyHook] Target key {triggerKeyCode} held down (ignored)"
+                                );
+                            }
+                        }
+                    }
+                    else if (isKeyUp)
+                    {
+                        lock (keyPressLock)
+                        {
+                            if (keyPressed)
+                            {
+                                keyPressed = false; // Reset for next press cycle
+                                UnityEngine.Debug.Log(
+                                    $"[RecordKeyHook] Target key {triggerKeyCode} released - ready for next trigger"
+                                );
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // For non-trigger keys, count normally but only on key down to avoid duplicates
+                    if (isKeyDown)
+                    {
+                        keyEventsProcessed++;
+
+                        // Log every 100 non-trigger key events to show the hook is working
+                        if (keyEventsProcessed % 100 == 0)
+                        {
                             UnityEngine.Debug.Log(
-                                $"[RecordKeyHook] Target key {triggerKeyCode} released (cycle ended)"
+                                $"[RecordKeyHook] Processed {keyEventsProcessed} key events so far..."
                             );
                         }
                     }
                 }
+
+                // Log the key event details (uncomment for detailed debugging)
+                // UnityEngine.Debug.Log($"[RecordKeyHook] Key event: vkCode={kbd.vkCode}, wParam=0x{wParam.ToInt32():X}");
             }
         }
         catch (System.Exception e)
