@@ -2414,6 +2414,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1bf4ff6de4560d44d9b3b0697e00c1b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  AudioClip: {fileID: 0}
+  AudioSource: {fileID: 0}
+  AudioProvider: 0
 --- !u!114 &1068169511
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15783,6 +15786,7 @@ GameObject:
   - component: {fileID: 1910846440}
   - component: {fileID: 1910846439}
   - component: {fileID: 1910846441}
+  - component: {fileID: 1910846442}
   m_Layer: 0
   m_Name: RecordTrigger
   m_TagString: Untagged
@@ -15827,7 +15831,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1910846438}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 095573035bab5499ea0a20075471b345, type: 3}
   m_Name: 
@@ -15836,6 +15840,24 @@ MonoBehaviour:
   enableGlobalF5Trigger: 1
   lastF5PressTime: Never
   isHotkeyRegistered: 0
+--- !u!114 &1910846442
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1910846438}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3563a18d8a0234cf48320e2360245e78, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  whisperHandler: {fileID: 1138392151}
+  triggerKeyCode: 116
+  enableGlobalTrigger: 1
+  lastKeyPressTime: Never
+  isHookInstalled: 0
+  keyEventsProcessed: 0
 --- !u!1 &2028493288
 GameObject:
   m_ObjectHideFlags: 0
@@ -17898,7 +17920,7 @@ Transform:
   m_GameObject: {fileID: 7241302355911216043}
   serializedVersion: 2
   m_LocalRotation: {x: 0.11397163, y: -0.17248146, z: 0.020096289, w: 0.9781906}
-  m_LocalPosition: {x: -0.328, y: 0.652, z: 0.366}
+  m_LocalPosition: {x: -0.328, y: 0.652, z: 0.911}
   m_LocalScale: {x: 0.05000002, y: 0.050000012, z: 0.050000016}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -17925,7 +17947,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &7813278363079292250
 MonoBehaviour:
   m_ObjectHideFlags: 0
