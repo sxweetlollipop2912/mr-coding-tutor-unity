@@ -91,6 +91,26 @@ public class GlobalF5RecordingTrigger : MonoBehaviour
 
     private void Start()
     {
+        Debug.Log("[GlobalF5RecordingTrigger] === STARTING GLOBAL F5 TRIGGER ===");
+        Debug.Log($"[GlobalF5RecordingTrigger] Platform: {Application.platform}");
+        Debug.Log(
+            $"[GlobalF5RecordingTrigger] Is Windows Platform: {Application.platform == RuntimePlatform.WindowsPlayer || Application.platform == RuntimePlatform.WindowsEditor}"
+        );
+        Debug.Log($"[GlobalF5RecordingTrigger] enableGlobalF5Trigger: {enableGlobalF5Trigger}");
+
+        // Check if we're on Windows
+        if (
+            Application.platform != RuntimePlatform.WindowsPlayer
+            && Application.platform != RuntimePlatform.WindowsEditor
+        )
+        {
+            Debug.LogError(
+                "[GlobalF5RecordingTrigger] This script only works on Windows! Current platform: "
+                    + Application.platform
+            );
+            return;
+        }
+
         // Validate the whisperHandler reference
         if (whisperHandler == null)
         {
@@ -99,10 +119,19 @@ public class GlobalF5RecordingTrigger : MonoBehaviour
             );
             return;
         }
+        else
+        {
+            Debug.Log("[GlobalF5RecordingTrigger] WhisperHandler assigned successfully");
+        }
 
         if (enableGlobalF5Trigger)
         {
+            Debug.Log("[GlobalF5RecordingTrigger] Starting global hotkey registration...");
             StartGlobalHotkey();
+        }
+        else
+        {
+            Debug.Log("[GlobalF5RecordingTrigger] Global F5 trigger is disabled in inspector");
         }
     }
 
@@ -114,13 +143,34 @@ public class GlobalF5RecordingTrigger : MonoBehaviour
 
     private void StartGlobalHotkey()
     {
+        Debug.Log("[GlobalF5RecordingTrigger] === STARTING GLOBAL HOTKEY REGISTRATION ===");
+
         try
         {
             // Get Unity's window handle
+            Debug.Log("[GlobalF5RecordingTrigger] Getting Unity window handle...");
             windowHandle = GetActiveWindow();
+            Debug.Log(
+                $"[GlobalF5RecordingTrigger] Window handle: {windowHandle} (0x{windowHandle.ToString("X")})"
+            );
+
+            if (windowHandle == IntPtr.Zero)
+            {
+                Debug.LogError("[GlobalF5RecordingTrigger] Failed to get valid window handle!");
+                return;
+            }
+
+            // Show all the constants being used
+            Debug.Log(
+                $"[GlobalF5RecordingTrigger] Using constants: HOTKEY_ID={HOTKEY_ID}, VK_F5=0x{VK_F5:X}, MOD_NONE={MOD_NONE}"
+            );
 
             // Register F5 as global hotkey
-            if (RegisterHotKey(windowHandle, HOTKEY_ID, MOD_NONE, VK_F5))
+            Debug.Log("[GlobalF5RecordingTrigger] Attempting to register F5 hotkey...");
+            bool registrationResult = RegisterHotKey(windowHandle, HOTKEY_ID, MOD_NONE, VK_F5);
+            Debug.Log($"[GlobalF5RecordingTrigger] RegisterHotKey returned: {registrationResult}");
+
+            if (registrationResult)
             {
                 isHotkeyRegistered = true;
                 Debug.Log(
@@ -128,31 +178,53 @@ public class GlobalF5RecordingTrigger : MonoBehaviour
                 );
 
                 // Start the message loop thread
+                Debug.Log("[GlobalF5RecordingTrigger] Starting message loop thread...");
                 messageLoopThread = new Thread(MessageLoopWorker)
                 {
                     IsBackground = true,
                     Name = "GlobalF5MessageLoop",
                 };
                 messageLoopThread.Start();
+                Debug.Log(
+                    $"[GlobalF5RecordingTrigger] Message loop thread started. ThreadId: {messageLoopThread.ManagedThreadId}"
+                );
             }
             else
             {
+                // Get the last Windows error
+                int lastError = Marshal.GetLastWin32Error();
                 Debug.LogError(
-                    "[GlobalF5RecordingTrigger] Failed to register global F5 hotkey! Another application might be using it, or insufficient permissions."
+                    $"[GlobalF5RecordingTrigger] Failed to register global F5 hotkey! Win32 Error: {lastError} (0x{lastError:X})"
+                );
+                Debug.LogError(
+                    "[GlobalF5RecordingTrigger] Common causes: Another app using F5, insufficient permissions, or invalid window handle"
                 );
                 isHotkeyRegistered = false;
             }
         }
         catch (System.Exception e)
         {
-            Debug.LogError($"[GlobalF5RecordingTrigger] Error starting global hotkey: {e.Message}");
+            Debug.LogError(
+                $"[GlobalF5RecordingTrigger] Exception in StartGlobalHotkey: {e.Message}"
+            );
+            Debug.LogError($"[GlobalF5RecordingTrigger] Stack trace: {e.StackTrace}");
             isHotkeyRegistered = false;
         }
+
+        Debug.Log($"[GlobalF5RecordingTrigger] Final registration status: {isHotkeyRegistered}");
     }
 
     private void MessageLoopWorker()
     {
-        Debug.Log("[GlobalF5RecordingTrigger] Message loop thread started");
+        Debug.Log(
+            $"[GlobalF5RecordingTrigger] Message loop thread started on ThreadId: {Thread.CurrentThread.ManagedThreadId}"
+        );
+        Debug.Log(
+            $"[GlobalF5RecordingTrigger] Listening for WM_HOTKEY (0x{WM_HOTKEY:X}) with HOTKEY_ID {HOTKEY_ID}"
+        );
+
+        int messageCount = 0;
+        int hotkeyMessageCount = 0;
 
         while (!shouldStop)
         {
@@ -162,12 +234,44 @@ public class GlobalF5RecordingTrigger : MonoBehaviour
                 // Use PeekMessage with a timeout to avoid blocking indefinitely
                 if (PeekMessage(out msg, IntPtr.Zero, 0, 0, PM_REMOVE))
                 {
-                    if (msg.message == WM_HOTKEY && msg.wParam.ToInt32() == HOTKEY_ID)
+                    messageCount++;
+
+                    // Log every 10000 messages to show the loop is working (reduced from 1000)
+                    if (messageCount % 10000 == 0)
                     {
-                        // F5 hotkey was pressed! Queue the action for the main thread
-                        lock (actionQueueLock)
+                        Debug.Log(
+                            $"[GlobalF5RecordingTrigger] Processed {messageCount} messages so far..."
+                        );
+                    }
+
+                    // Only log hotkey messages to reduce spam
+                    if (msg.message == WM_HOTKEY)
+                    {
+                        hotkeyMessageCount++;
+                        int receivedHotkeyId = msg.wParam.ToInt32();
+                        Debug.Log(
+                            $"[GlobalF5RecordingTrigger] HOTKEY MESSAGE! ID: {receivedHotkeyId}, Expected: {HOTKEY_ID}"
+                        );
+
+                        if (receivedHotkeyId == HOTKEY_ID)
                         {
-                            mainThreadActions.Enqueue(() => OnF5Pressed());
+                            Debug.Log(
+                                "[GlobalF5RecordingTrigger] F5 hotkey detected! Queuing action for main thread..."
+                            );
+                            // F5 hotkey was pressed! Queue the action for the main thread
+                            lock (actionQueueLock)
+                            {
+                                mainThreadActions.Enqueue(() => OnF5Pressed());
+                                Debug.Log(
+                                    $"[GlobalF5RecordingTrigger] Action queued. Queue size: {mainThreadActions.Count}"
+                                );
+                            }
+                        }
+                        else
+                        {
+                            Debug.Log(
+                                $"[GlobalF5RecordingTrigger] Different hotkey ID received: {receivedHotkeyId}"
+                            );
                         }
                     }
                 }
@@ -178,46 +282,86 @@ public class GlobalF5RecordingTrigger : MonoBehaviour
             catch (System.Exception e)
             {
                 Debug.LogError($"[GlobalF5RecordingTrigger] Error in message loop: {e.Message}");
+                Debug.LogError($"[GlobalF5RecordingTrigger] Stack trace: {e.StackTrace}");
                 Thread.Sleep(100); // Longer delay on error
             }
         }
 
-        Debug.Log("[GlobalF5RecordingTrigger] Message loop thread stopped");
+        Debug.Log(
+            $"[GlobalF5RecordingTrigger] Message loop thread stopped. Total messages processed: {messageCount}, Hotkey messages: {hotkeyMessageCount}"
+        );
     }
 
     private void ProcessMainThreadActions()
     {
         lock (actionQueueLock)
         {
+            int actionsProcessed = 0;
             while (mainThreadActions.Count > 0)
             {
                 try
                 {
                     System.Action action = mainThreadActions.Dequeue();
+                    Debug.Log(
+                        $"[GlobalF5RecordingTrigger] Processing main thread action {actionsProcessed + 1}..."
+                    );
                     action?.Invoke();
+                    actionsProcessed++;
                 }
                 catch (System.Exception e)
                 {
                     Debug.LogError(
                         $"[GlobalF5RecordingTrigger] Error executing main thread action: {e.Message}"
                     );
+                    Debug.LogError($"[GlobalF5RecordingTrigger] Stack trace: {e.StackTrace}");
                 }
+            }
+
+            if (actionsProcessed > 0)
+            {
+                Debug.Log(
+                    $"[GlobalF5RecordingTrigger] Processed {actionsProcessed} main thread actions"
+                );
             }
         }
     }
 
     private void OnF5Pressed()
     {
+        Debug.Log("[GlobalF5RecordingTrigger] === OnF5Pressed() CALLED ===");
+        Debug.Log($"[GlobalF5RecordingTrigger] enableGlobalF5Trigger: {enableGlobalF5Trigger}");
+        Debug.Log($"[GlobalF5RecordingTrigger] whisperHandler is null: {whisperHandler == null}");
+
         if (!enableGlobalF5Trigger || whisperHandler == null)
+        {
+            Debug.LogWarning(
+                "[GlobalF5RecordingTrigger] F5 press ignored - trigger disabled or whisperHandler is null"
+            );
             return;
+        }
 
         Debug.Log("[GlobalF5RecordingTrigger] Global F5 key pressed! Triggering recording...");
 
         // Update debug info
         lastF5PressTime = System.DateTime.Now.ToString("HH:mm:ss");
+        Debug.Log($"[GlobalF5RecordingTrigger] Updated lastF5PressTime to: {lastF5PressTime}");
 
         // Call the WhisperHandler's TriggerRecording function
-        whisperHandler.TriggerRecording();
+        try
+        {
+            Debug.Log("[GlobalF5RecordingTrigger] Calling whisperHandler.TriggerRecording()...");
+            whisperHandler.TriggerRecording();
+            Debug.Log(
+                "[GlobalF5RecordingTrigger] whisperHandler.TriggerRecording() completed successfully"
+            );
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError(
+                $"[GlobalF5RecordingTrigger] Error calling TriggerRecording: {e.Message}"
+            );
+            Debug.LogError($"[GlobalF5RecordingTrigger] Stack trace: {e.StackTrace}");
+        }
     }
 
     private void StopGlobalHotkey()
@@ -351,6 +495,38 @@ public class GlobalF5RecordingTrigger : MonoBehaviour
             Debug.LogWarning(
                 "[GlobalF5RecordingTrigger] WhisperHandler reference is missing. Please assign it in the inspector."
             );
+        }
+    }
+
+    /// <summary>
+    /// Test method to verify the script is working - call this from inspector button
+    /// </summary>
+    [ContextMenu("Test F5 Trigger")]
+    public void TestF5Trigger()
+    {
+        Debug.Log("[GlobalF5RecordingTrigger] === MANUAL TEST TRIGGERED ===");
+        OnF5Pressed();
+    }
+
+    /// <summary>
+    /// Debug info method to show current status
+    /// </summary>
+    [ContextMenu("Show Debug Info")]
+    public void ShowDebugInfo()
+    {
+        Debug.Log("[GlobalF5RecordingTrigger] === DEBUG INFO ===");
+        Debug.Log($"Platform: {Application.platform}");
+        Debug.Log($"enableGlobalF5Trigger: {enableGlobalF5Trigger}");
+        Debug.Log($"isHotkeyRegistered: {isHotkeyRegistered}");
+        Debug.Log($"windowHandle: {windowHandle} (0x{windowHandle.ToString("X")})");
+        Debug.Log($"whisperHandler assigned: {whisperHandler != null}");
+        Debug.Log($"messageLoopThread alive: {messageLoopThread?.IsAlive ?? false}");
+        Debug.Log($"lastF5PressTime: {lastF5PressTime}");
+        Debug.Log($"shouldStop: {shouldStop}");
+
+        lock (actionQueueLock)
+        {
+            Debug.Log($"mainThreadActions queue size: {mainThreadActions.Count}");
         }
     }
 }

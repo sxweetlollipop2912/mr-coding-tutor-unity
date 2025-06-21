@@ -15832,7 +15832,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 095573035bab5499ea0a20075471b345, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  whisperHandler: {fileID: 0}
+  whisperHandler: {fileID: 1138392151}
   enableGlobalF5Trigger: 1
   lastF5PressTime: Never
   isHotkeyRegistered: 0
