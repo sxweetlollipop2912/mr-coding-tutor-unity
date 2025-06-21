@@ -82,7 +82,8 @@ public class RecordKeyHook : MonoBehaviour
     // Hook variables
     private LowLevelKeyboardProc hookProc;
     private IntPtr hookId = IntPtr.Zero;
-    private bool keyPressed = false; // Track key state to avoid multiple triggers
+    private bool keyPressed = false; // Track if key is currently down
+    private bool hasTriggered = false; // Track if we've already triggered for this press cycle
 
     // Thread synchronization
     private readonly object keyPressLock = new object();
@@ -201,11 +202,26 @@ public class RecordKeyHook : MonoBehaviour
                     {
                         lock (keyPressLock)
                         {
-                            if (!keyPressed) // Only trigger once per key press
+                            if (!keyPressed) // First time pressing down
                             {
                                 keyPressed = true;
+                                hasTriggered = false; // Reset trigger flag for new press cycle
                                 UnityEngine.Debug.Log(
-                                    $"[RecordKeyHook] Target key {triggerKeyCode} pressed down! Triggering action..."
+                                    $"[RecordKeyHook] Target key {triggerKeyCode} pressed down (cycle started)"
+                                );
+                            }
+                            // Don't trigger action on key down anymore
+                        }
+                    }
+                    else if (wParam.ToInt32() == WM_KEYUP)
+                    {
+                        lock (keyPressLock)
+                        {
+                            if (keyPressed && !hasTriggered) // Complete press cycle: was down, now up, and haven't triggered yet
+                            {
+                                hasTriggered = true;
+                                UnityEngine.Debug.Log(
+                                    $"[RecordKeyHook] Target key {triggerKeyCode} released - triggering action!"
                                 );
 
                                 // Schedule the action on the main thread
@@ -213,15 +229,10 @@ public class RecordKeyHook : MonoBehaviour
                                     .Instance()
                                     .Enqueue(() => OnTargetKeyPressed());
                             }
-                        }
-                    }
-                    else if (wParam.ToInt32() == WM_KEYUP)
-                    {
-                        lock (keyPressLock)
-                        {
-                            keyPressed = false; // Reset key state on key up
+
+                            keyPressed = false; // Reset key state
                             UnityEngine.Debug.Log(
-                                $"[RecordKeyHook] Target key {triggerKeyCode} released"
+                                $"[RecordKeyHook] Target key {triggerKeyCode} released (cycle ended)"
                             );
                         }
                     }
