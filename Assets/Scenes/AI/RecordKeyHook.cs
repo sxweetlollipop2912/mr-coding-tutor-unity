@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using UnityEngine;
@@ -25,72 +25,73 @@ public class RecordKeyHook : MonoBehaviour
     private string lastKeyPressTime = "Never";
 
     [SerializeField]
-    [Tooltip("Shows if the global hotkey is registered")]
-    private bool isHotkeyRegistered = false;
+    [Tooltip("Shows if the keyboard hook is installed")]
+    private bool isHookInstalled = false;
 
-    // Windows API declarations for RegisterHotKey approach
-    [DllImport("user32.dll")]
-    private static extern bool RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vk);
+    [SerializeField]
+    [Tooltip("Count of key events processed")]
+    private int keyEventsProcessed = 0;
 
-    [DllImport("user32.dll")]
-    private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
-
-    [DllImport("user32.dll")]
-    private static extern bool PeekMessage(
-        out MSG lpMsg,
-        IntPtr hWnd,
-        uint wMsgFilterMin,
-        uint wMsgFilterMax,
-        uint wRemoveMsg
+    // Low-level keyboard hook approach
+    [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+    private static extern IntPtr SetWindowsHookEx(
+        int idHook,
+        LowLevelKeyboardProc lpfn,
+        IntPtr hMod,
+        uint dwThreadId
     );
 
-    [DllImport("user32.dll")]
-    private static extern IntPtr GetActiveWindow();
+    [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool UnhookWindowsHookEx(IntPtr hhk);
+
+    [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+    private static extern IntPtr CallNextHookEx(
+        IntPtr hhk,
+        int nCode,
+        IntPtr wParam,
+        IntPtr lParam
+    );
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+    private static extern IntPtr GetModuleHandle(string lpModuleName);
 
     [DllImport("kernel32.dll")]
     private static extern uint GetCurrentThreadId();
 
-    // Windows message structure
+    // Hook constants
+    private const int WH_KEYBOARD_LL = 13;
+    private const int WM_KEYDOWN = 0x0100;
+    private const int WM_KEYUP = 0x0101;
+    private const int HC_ACTION = 0;
+
+    // Structure for low-level keyboard input
     [StructLayout(LayoutKind.Sequential)]
-    public struct MSG
+    public struct KBDLLHOOKSTRUCT
     {
-        public IntPtr hwnd;
-        public uint message;
-        public IntPtr wParam;
-        public IntPtr lParam;
+        public uint vkCode;
+        public uint scanCode;
+        public uint flags;
         public uint time;
-        public POINT pt;
+        public IntPtr dwExtraInfo;
     }
 
-    [StructLayout(LayoutKind.Sequential)]
-    public struct POINT
-    {
-        public int x;
-        public int y;
-    }
+    // Delegate for the hook procedure
+    public delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
 
-    // Constants
-    private const int HOTKEY_ID = 9001;
-    private const int MOD_NONE = 0x0000;
-    private const uint WM_HOTKEY = 0x0312;
-    private const uint PM_REMOVE = 0x0001;
+    // Hook variables
+    private LowLevelKeyboardProc hookProc;
+    private IntPtr hookId = IntPtr.Zero;
+    private bool keyPressed = false; // Track key state to avoid multiple triggers
 
-    // Threading
-    private Thread messageLoopThread;
-    private volatile bool shouldStop = false;
-    private IntPtr windowHandle;
-
-    // Thread-safe queue for main thread actions
-    private readonly Queue<System.Action> mainThreadActions = new Queue<System.Action>();
-    private readonly object actionQueueLock = new object();
+    // Thread synchronization
+    private readonly object keyPressLock = new object();
 
     private void Start()
     {
-        Debug.Log("[RecordKeyHook] === STARTING GLOBAL KEY HOOK ===");
-        Debug.Log($"[RecordKeyHook] Platform: {Application.platform}");
-        Debug.Log(
-            $"[RecordKeyHook] Trigger Key Code: {triggerKeyCode} (F5=116, F1=112, F2=113, etc.)"
-        );
+        UnityEngine.Debug.Log("[RecordKeyHook] === STARTING LOW-LEVEL KEYBOARD HOOK ===");
+        UnityEngine.Debug.Log($"[RecordKeyHook] Platform: {Application.platform}");
+        UnityEngine.Debug.Log($"[RecordKeyHook] Trigger Key Code: {triggerKeyCode} (F5=116)");
 
         // Check if we're on Windows
         if (
@@ -98,7 +99,7 @@ public class RecordKeyHook : MonoBehaviour
             && Application.platform != RuntimePlatform.WindowsEditor
         )
         {
-            Debug.LogError(
+            UnityEngine.Debug.LogError(
                 "[RecordKeyHook] This script only works on Windows! Current platform: "
                     + Application.platform
             );
@@ -108,7 +109,7 @@ public class RecordKeyHook : MonoBehaviour
         // Validate the whisperHandler reference
         if (whisperHandler == null)
         {
-            Debug.LogWarning(
+            UnityEngine.Debug.LogWarning(
                 "[RecordKeyHook] WhisperHandler not assigned! Please drag the WhisperHandler component to this script in the inspector."
             );
             return;
@@ -116,182 +117,179 @@ public class RecordKeyHook : MonoBehaviour
 
         if (enableGlobalTrigger)
         {
-            StartGlobalHotkey();
+            InstallKeyboardHook();
         }
     }
 
-    private void Update()
+    private void InstallKeyboardHook()
     {
-        // Process any queued actions on the main thread
-        ProcessMainThreadActions();
-    }
-
-    private void StartGlobalHotkey()
-    {
-        Debug.Log("[RecordKeyHook] === STARTING GLOBAL HOTKEY REGISTRATION ===");
+        UnityEngine.Debug.Log("[RecordKeyHook] Installing low-level keyboard hook...");
 
         try
         {
-            windowHandle = GetActiveWindow();
-            Debug.Log(
-                $"[RecordKeyHook] Window handle: {windowHandle} (0x{windowHandle.ToString("X")})"
+            // Create the hook procedure delegate
+            hookProc = new LowLevelKeyboardProc(HookCallback);
+
+            // Get current module handle
+            IntPtr moduleHandle = GetModuleHandle(
+                Process.GetCurrentProcess().MainModule.ModuleName
+            );
+            UnityEngine.Debug.Log(
+                $"[RecordKeyHook] Module handle: {moduleHandle} (0x{moduleHandle.ToString("X")})"
             );
 
-            if (windowHandle == IntPtr.Zero)
+            // Install the hook
+            hookId = SetWindowsHookEx(WH_KEYBOARD_LL, hookProc, moduleHandle, 0);
+
+            if (hookId != IntPtr.Zero)
             {
-                Debug.LogError("[RecordKeyHook] Failed to get valid window handle!");
-                return;
-            }
-
-            Debug.Log(
-                $"[RecordKeyHook] Registering hotkey: ID={HOTKEY_ID}, Key=0x{triggerKeyCode:X}"
-            );
-
-            bool registrationResult = RegisterHotKey(
-                windowHandle,
-                HOTKEY_ID,
-                MOD_NONE,
-                triggerKeyCode
-            );
-            Debug.Log($"[RecordKeyHook] RegisterHotKey returned: {registrationResult}");
-
-            if (registrationResult)
-            {
-                isHotkeyRegistered = true;
-                Debug.Log(
-                    $"[RecordKeyHook] Global key (code {triggerKeyCode}) registered successfully!"
+                isHookInstalled = true;
+                UnityEngine.Debug.Log(
+                    $"[RecordKeyHook] Keyboard hook installed successfully! Hook ID: {hookId} (0x{hookId.ToString("X")})"
                 );
-
-                messageLoopThread = new Thread(MessageLoopWorker)
-                {
-                    IsBackground = true,
-                    Name = "GlobalKeyMessageLoop",
-                };
-                messageLoopThread.Start();
+                UnityEngine.Debug.Log(
+                    $"[RecordKeyHook] Now listening globally for key code {triggerKeyCode}..."
+                );
             }
             else
             {
                 int lastError = Marshal.GetLastWin32Error();
-                Debug.LogError(
-                    $"[RecordKeyHook] Failed to register global hotkey! Win32 Error: {lastError} (0x{lastError:X})"
+                UnityEngine.Debug.LogError(
+                    $"[RecordKeyHook] Failed to install keyboard hook! Win32 Error: {lastError} (0x{lastError:X})"
                 );
-                isHotkeyRegistered = false;
+                isHookInstalled = false;
             }
         }
         catch (System.Exception e)
         {
-            Debug.LogError($"[RecordKeyHook] Exception in StartGlobalHotkey: {e.Message}");
-            isHotkeyRegistered = false;
+            UnityEngine.Debug.LogError(
+                $"[RecordKeyHook] Exception installing keyboard hook: {e.Message}"
+            );
+            UnityEngine.Debug.LogError($"[RecordKeyHook] Stack trace: {e.StackTrace}");
+            isHookInstalled = false;
         }
     }
 
-    private void MessageLoopWorker()
+    private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
     {
-        Debug.Log(
-            $"[RecordKeyHook] Message loop thread started, listening for key code {triggerKeyCode}"
-        );
-
-        while (!shouldStop)
+        try
         {
-            try
+            if (nCode >= HC_ACTION)
             {
-                MSG msg;
-                if (PeekMessage(out msg, IntPtr.Zero, 0, 0, PM_REMOVE))
+                // Count all key events for debugging
+                keyEventsProcessed++;
+
+                // Log every 100 key events to show the hook is working
+                if (keyEventsProcessed % 100 == 0)
                 {
-                    if (msg.message == WM_HOTKEY && msg.wParam.ToInt32() == HOTKEY_ID)
+                    UnityEngine.Debug.Log(
+                        $"[RecordKeyHook] Processed {keyEventsProcessed} key events so far..."
+                    );
+                }
+
+                // Parse the keyboard structure
+                KBDLLHOOKSTRUCT kbd = (KBDLLHOOKSTRUCT)
+                    Marshal.PtrToStructure(lParam, typeof(KBDLLHOOKSTRUCT));
+
+                // Log the key event details (uncomment for detailed debugging)
+                // UnityEngine.Debug.Log($"[RecordKeyHook] Key event: vkCode={kbd.vkCode}, wParam=0x{wParam.ToInt32():X}");
+
+                // Check for our trigger key
+                if (kbd.vkCode == triggerKeyCode)
+                {
+                    if (wParam.ToInt32() == WM_KEYDOWN)
                     {
-                        Debug.Log($"[RecordKeyHook] Global key {triggerKeyCode} detected!");
-                        lock (actionQueueLock)
+                        lock (keyPressLock)
                         {
-                            mainThreadActions.Enqueue(() => OnGlobalKeyPressed());
+                            if (!keyPressed) // Only trigger once per key press
+                            {
+                                keyPressed = true;
+                                UnityEngine.Debug.Log(
+                                    $"[RecordKeyHook] Target key {triggerKeyCode} pressed down! Triggering action..."
+                                );
+
+                                // Schedule the action on the main thread
+                                UnityMainThreadDispatcher
+                                    .Instance()
+                                    .Enqueue(() => OnTargetKeyPressed());
+                            }
+                        }
+                    }
+                    else if (wParam.ToInt32() == WM_KEYUP)
+                    {
+                        lock (keyPressLock)
+                        {
+                            keyPressed = false; // Reset key state on key up
+                            UnityEngine.Debug.Log(
+                                $"[RecordKeyHook] Target key {triggerKeyCode} released"
+                            );
                         }
                     }
                 }
-                Thread.Sleep(10);
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogError($"[RecordKeyHook] Error in message loop: {e.Message}");
-                Thread.Sleep(100);
             }
         }
-
-        Debug.Log("[RecordKeyHook] Message loop thread stopped");
-    }
-
-    private void ProcessMainThreadActions()
-    {
-        lock (actionQueueLock)
+        catch (System.Exception e)
         {
-            while (mainThreadActions.Count > 0)
-            {
-                try
-                {
-                    System.Action action = mainThreadActions.Dequeue();
-                    action?.Invoke();
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogError(
-                        $"[RecordKeyHook] Error executing main thread action: {e.Message}"
-                    );
-                }
-            }
+            UnityEngine.Debug.LogError($"[RecordKeyHook] Exception in hook callback: {e.Message}");
         }
+
+        // Always call the next hook
+        return CallNextHookEx(hookId, nCode, wParam, lParam);
     }
 
-    private void OnGlobalKeyPressed()
+    private void OnTargetKeyPressed()
     {
-        Debug.Log($"[RecordKeyHook] Global key {triggerKeyCode} pressed! Triggering recording...");
+        UnityEngine.Debug.Log($"[RecordKeyHook] === TARGET KEY {triggerKeyCode} DETECTED ===");
 
         if (!enableGlobalTrigger || whisperHandler == null)
         {
-            Debug.LogWarning(
+            UnityEngine.Debug.LogWarning(
                 "[RecordKeyHook] Key press ignored - trigger disabled or whisperHandler is null"
             );
             return;
         }
 
         lastKeyPressTime = System.DateTime.Now.ToString("HH:mm:ss");
+        UnityEngine.Debug.Log($"[RecordKeyHook] Updated lastKeyPressTime to: {lastKeyPressTime}");
 
         try
         {
+            UnityEngine.Debug.Log("[RecordKeyHook] Calling whisperHandler.TriggerRecording()...");
             whisperHandler.TriggerRecording();
-            Debug.Log("[RecordKeyHook] whisperHandler.TriggerRecording() completed successfully");
+            UnityEngine.Debug.Log(
+                "[RecordKeyHook] whisperHandler.TriggerRecording() completed successfully"
+            );
         }
         catch (System.Exception e)
         {
-            Debug.LogError($"[RecordKeyHook] Error calling TriggerRecording: {e.Message}");
+            UnityEngine.Debug.LogError(
+                $"[RecordKeyHook] Error calling TriggerRecording: {e.Message}"
+            );
+            UnityEngine.Debug.LogError($"[RecordKeyHook] Stack trace: {e.StackTrace}");
         }
     }
 
-    private void StopGlobalHotkey()
+    private void UninstallKeyboardHook()
     {
-        try
+        if (hookId != IntPtr.Zero)
         {
-            shouldStop = true;
+            UnityEngine.Debug.Log("[RecordKeyHook] Uninstalling keyboard hook...");
 
-            if (messageLoopThread != null && messageLoopThread.IsAlive)
+            bool result = UnhookWindowsHookEx(hookId);
+            if (result)
             {
-                if (!messageLoopThread.Join(1000))
-                {
-                    Debug.LogWarning("[RecordKeyHook] Message loop thread did not stop gracefully");
-                }
+                UnityEngine.Debug.Log("[RecordKeyHook] Keyboard hook uninstalled successfully");
+            }
+            else
+            {
+                int lastError = Marshal.GetLastWin32Error();
+                UnityEngine.Debug.LogWarning(
+                    $"[RecordKeyHook] Failed to uninstall keyboard hook. Error: {lastError}"
+                );
             }
 
-            if (isHotkeyRegistered && windowHandle != IntPtr.Zero)
-            {
-                if (UnregisterHotKey(windowHandle, HOTKEY_ID))
-                {
-                    Debug.Log("[RecordKeyHook] Global hotkey unregistered successfully");
-                }
-            }
-
-            isHotkeyRegistered = false;
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError($"[RecordKeyHook] Error stopping global hotkey: {e.Message}");
+            hookId = IntPtr.Zero;
+            isHookInstalled = false;
         }
     }
 
@@ -301,8 +299,8 @@ public class RecordKeyHook : MonoBehaviour
     [ContextMenu("Test Key Trigger")]
     public void TestKeyTrigger()
     {
-        Debug.Log("[RecordKeyHook] === MANUAL TEST TRIGGERED ===");
-        OnGlobalKeyPressed();
+        UnityEngine.Debug.Log("[RecordKeyHook] === MANUAL TEST TRIGGERED ===");
+        OnTargetKeyPressed();
     }
 
     /// <summary>
@@ -311,22 +309,84 @@ public class RecordKeyHook : MonoBehaviour
     [ContextMenu("Show Status")]
     public void ShowStatus()
     {
-        Debug.Log($"[RecordKeyHook] === STATUS ===");
-        Debug.Log($"Platform: {Application.platform}");
-        Debug.Log($"Trigger Key Code: {triggerKeyCode}");
-        Debug.Log($"enableGlobalTrigger: {enableGlobalTrigger}");
-        Debug.Log($"isHotkeyRegistered: {isHotkeyRegistered}");
-        Debug.Log($"whisperHandler assigned: {whisperHandler != null}");
-        Debug.Log($"lastKeyPressTime: {lastKeyPressTime}");
+        UnityEngine.Debug.Log($"[RecordKeyHook] === STATUS ===");
+        UnityEngine.Debug.Log($"Platform: {Application.platform}");
+        UnityEngine.Debug.Log($"Trigger Key Code: {triggerKeyCode}");
+        UnityEngine.Debug.Log($"enableGlobalTrigger: {enableGlobalTrigger}");
+        UnityEngine.Debug.Log($"isHookInstalled: {isHookInstalled}");
+        UnityEngine.Debug.Log($"hookId: {hookId} (0x{hookId.ToString("X")})");
+        UnityEngine.Debug.Log($"whisperHandler assigned: {whisperHandler != null}");
+        UnityEngine.Debug.Log($"lastKeyPressTime: {lastKeyPressTime}");
+        UnityEngine.Debug.Log($"keyEventsProcessed: {keyEventsProcessed}");
     }
 
     private void OnDestroy()
     {
-        StopGlobalHotkey();
+        UninstallKeyboardHook();
     }
 
     private void OnApplicationQuit()
     {
-        StopGlobalHotkey();
+        UninstallKeyboardHook();
+    }
+
+    private void OnApplicationPause(bool pauseStatus)
+    {
+        UnityEngine.Debug.Log($"[RecordKeyHook] Application paused: {pauseStatus}");
+    }
+
+    private void OnApplicationFocus(bool hasFocus)
+    {
+        UnityEngine.Debug.Log($"[RecordKeyHook] Application focus: {hasFocus}");
+        // The hook should continue working regardless of focus
+    }
+}
+
+// Unity Main Thread Dispatcher helper class
+public class UnityMainThreadDispatcher : MonoBehaviour
+{
+    private static UnityMainThreadDispatcher _instance;
+    private static readonly System.Collections.Generic.Queue<System.Action> _executionQueue =
+        new System.Collections.Generic.Queue<System.Action>();
+
+    public static UnityMainThreadDispatcher Instance()
+    {
+        if (_instance == null)
+        {
+            GameObject go = new GameObject("UnityMainThreadDispatcher");
+            _instance = go.AddComponent<UnityMainThreadDispatcher>();
+            DontDestroyOnLoad(go);
+        }
+        return _instance;
+    }
+
+    private void Awake()
+    {
+        if (_instance != null && _instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        _instance = this;
+        DontDestroyOnLoad(gameObject);
+    }
+
+    public void Enqueue(System.Action action)
+    {
+        lock (_executionQueue)
+        {
+            _executionQueue.Enqueue(action);
+        }
+    }
+
+    private void Update()
+    {
+        lock (_executionQueue)
+        {
+            while (_executionQueue.Count > 0)
+            {
+                _executionQueue.Dequeue().Invoke();
+            }
+        }
     }
 }
