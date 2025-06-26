@@ -29,12 +29,54 @@ winget install espeak-ng
 
 **Note**: This configuration assumes you're running code from within a user directory (e.g., `data/1/`) and will save outputs to the `data/on_run/` folder. The outputs will include both the code file and execution log with timestamps.
 
-1.
+## For Study Administrators
+
+### 1. First time setup:
 ```bash
 conda activate myenv
+make setup-data-dir      # Creates the data directory structure
+make shremdup
+# For AI tutor
+make tts
+make whisper
+make espeak
 ```
 
+### 2. For each user session:
 
+For user N (replace N with user number)
 
-Command for running the periodic log
-python periodic_log.py --target /Users/sang.pham/.leetcode/416.partition-equal-subset-sum.py --sec 1 --outdir /Users/sang.pham/.leetcode/output_dir
+```bash
+make setup-user USER=N
+```
+
+```bash
+make new-session USER=N
+
+# Monitor active sessions
+make list-users
+
+# Stop a user's session
+make stop-session USER=N
+
+# Delete a user's data
+make clean-user USER=N
+```
+
+## User perspective
+
+1. Your administrator will set up your session with a unique number N. You will work in the `data/N/` directory:
+   - Your main code file is: `data/N/main_N.py`
+   - Run your code using VSCode's run button (or Ctrl+Alt+N with Code Runner)
+   - All your code runs will be automatically saved in `data/on_run/`
+   - Do not modify any files outside your assigned directory
+
+2. When you're done:
+   - Save your work
+   - Let your administrator know to stop your session
+
+## Important Notes
+
+- **DO NOT** manually stop or start the monitoring tools
+- **ALWAYS** run your code through VSCode to ensure proper logging
+- If you encounter any issues, contact your study administrator
