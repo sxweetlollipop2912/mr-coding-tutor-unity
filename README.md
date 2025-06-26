@@ -36,7 +36,6 @@ winget install espeak-ng
 ```bash
 conda activate py311_env
 make build_klog
-make setup-data-dir      # Creates the data directory structure
 make shremdup
 # For AI tutor
 make tts
@@ -47,10 +46,6 @@ make espeak
 ### 2. For each user session:
 
 For user N (replace N with user number)
-
-```bash
-make setup-user USER=N
-```
 
 ```bash
 make new-session USER=N
