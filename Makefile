@@ -30,6 +30,10 @@ setup-user:
 		echo "Error: USER parameter required. Usage: make setup-user USER=<number>"; \
 		exit 1; \
 	fi
+	@if [ -d "data/$(USER)" ]; then \
+		echo "Error: User $(USER) already exists. Use 'make clean-user USER=$(USER)' first to remove existing data."; \
+		exit 1; \
+	fi
 	@echo "Setting up user $(USER) directory..."
 	@mkdir -p data/$(USER)/period
 	@if [ ! -f data/$(USER)/main_$(USER).py ]; then \
@@ -130,10 +134,10 @@ new-session: setup-data-dir setup-user start-session
 help:
 	@echo "User Study Management Commands:"
 	@echo ""
-	@echo "Setup:"
+	@echo "Setup (New Users Only):"
 	@echo "  make setup-data-dir          - Create base data directory structure"
-	@echo "  make setup-user USER=<n>     - Setup directory for user <n>"
-	@echo "  make new-session USER=<n>    - Complete setup + start session for user <n>"
+	@echo "  make setup-user USER=<n>     - Setup directory for new user <n> (fails if user exists)"
+	@echo "  make new-session USER=<n>    - Complete setup + start session for new user <n> (fails if user exists)"
 	@echo ""
 	@echo "Session Management:"
 	@echo "  make start-session USER=<n>  - Start monitoring for user <n>"
