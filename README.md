@@ -34,6 +34,7 @@ winget install espeak-ng
 ### 1. First time setup:
 ```bash
 conda activate myenv
+make build_klog
 make setup-data-dir      # Creates the data directory structure
 make shremdup
 # For AI tutor
