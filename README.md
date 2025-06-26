@@ -1,7 +1,8 @@
 ## Setup env
 1.
 ```bash
-conda create --name myenv python=3.11
+conda create --name py311_env python=3.11
+conda activate py311_env
 ```
 
 2.
@@ -33,7 +34,7 @@ winget install espeak-ng
 
 ### 1. First time setup:
 ```bash
-conda activate myenv
+conda activate py311_env
 make build_klog
 make setup-data-dir      # Creates the data directory structure
 make shremdup
