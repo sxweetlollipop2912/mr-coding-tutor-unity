@@ -7,6 +7,7 @@ using UnityEngine;
 [System.Serializable]
 public class AppConfig
 {
+    public string problemFilename { get; set; }
     public string systemPromptFilename { get; set; }
     public string openaiApiKey { get; set; }
     public string openaiApiUrl { get; set; }

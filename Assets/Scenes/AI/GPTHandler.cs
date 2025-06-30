@@ -96,6 +96,14 @@ public class GPTHandler : MonoBehaviour
             return;
         }
 
+        // Load problem context and prepend to system prompt
+        string problem = LoadProblem(config.problemFilename);
+        if (!string.IsNullOrEmpty(problem))
+        {
+            // TODO: Format?
+            systemPrompt = problem + "\n\n---\n\n" + systemPrompt;
+        }
+
         // Load response format JSON
         responseFormatJson = LoadResponseFormatJson(config.gptResponseFormatFilename);
         if (string.IsNullOrEmpty(responseFormatJson))
@@ -133,6 +141,29 @@ public class GPTHandler : MonoBehaviour
         }
 
         return File.ReadAllText(systemPromptPath);
+    }
+
+    private string LoadProblem(string problemFilename)
+    {
+        if (string.IsNullOrEmpty(problemFilename))
+        {
+            Debug.LogWarning("[GPTHandler] Problem filename is not specified in config.");
+            return null;
+        }
+
+        string problemFilePath = Path.Combine(
+            Application.streamingAssetsPath,
+            problemFilename
+        );
+
+        if (!File.Exists(problemFilePath))
+        {
+            Debug.LogError("[GPTHandler] Problem file not found: " + problemFilePath);
+            return null;
+        }
+
+        Debug.Log("[GPTHandler] Loading problem context from: " + problemFilePath);
+        return File.ReadAllText(problemFilePath);
     }
 
     private string LoadResponseFormatJson(string responseFormatFilename)

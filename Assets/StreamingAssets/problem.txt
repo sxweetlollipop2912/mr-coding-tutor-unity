@@ -1,0 +1,13 @@
+**Problem Statement:**
+Write a C# function `Add` that takes two integers as input and returns their sum.
+
+**Sample Solution:**
+```csharp
+public class Solution
+{
+    public int Add(int a, int b)
+    {
+        return a + b;
+    }
+}
+``` 
