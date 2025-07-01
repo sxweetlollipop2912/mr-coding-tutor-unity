@@ -96,12 +96,11 @@ public class GPTHandler : MonoBehaviour
             return;
         }
 
-        // Load problem context and prepend to system prompt
+        // Load problem and replace placeholder in system prompt
         string problem = LoadProblem(config.problemFilename);
         if (!string.IsNullOrEmpty(problem))
         {
-            // TODO: Format?
-            systemPrompt = problem + "\n\n---\n\n" + systemPrompt;
+            systemPrompt = systemPrompt.Replace("{problem_and_solution}", problem);
         }
 
         // Load response format JSON
@@ -162,7 +161,7 @@ public class GPTHandler : MonoBehaviour
             return null;
         }
 
-        Debug.Log("[GPTHandler] Loading problem context from: " + problemFilePath);
+        Debug.Log("[GPTHandler] Loading problem from: " + problemFilePath);
         return File.ReadAllText(problemFilePath);
     }
 
