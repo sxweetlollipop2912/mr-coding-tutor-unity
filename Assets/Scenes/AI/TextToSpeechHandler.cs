@@ -77,6 +77,7 @@ public class TextToSpeechHandler : MonoBehaviour
         {
             Debug.LogError("[TextToSpeechHandler] No text to speak");
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "No text to speak");
+            ReEnableRecording();
             return;
         }
 
@@ -84,6 +85,7 @@ public class TextToSpeechHandler : MonoBehaviour
         {
             Debug.LogError("[TextToSpeechHandler] TTS not configured");
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "TTS not configured");
+            ReEnableRecording();
             return;
         }
 
@@ -148,6 +150,7 @@ public class TextToSpeechHandler : MonoBehaviour
             Debug.LogError("[TextToSpeechHandler] TTS Error: " + request.error);
             Debug.LogError("[TextToSpeechHandler] Response: " + request.downloadHandler.text);
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to generate speech");
+            ReEnableRecording();
         }
     }
 
@@ -168,6 +171,7 @@ public class TextToSpeechHandler : MonoBehaviour
         {
             Debug.LogError("[TextToSpeechHandler] Error saving audio to temp file: " + ex.Message);
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Error processing audio");
+            ReEnableRecording();
             yield break;
         }
 
@@ -226,12 +230,14 @@ public class TextToSpeechHandler : MonoBehaviour
             {
                 Debug.LogError("[TextToSpeechHandler] Error playing audio: " + ex.Message);
                 progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Error playing audio");
+                ReEnableRecording();
             }
         }
         else
         {
             Debug.LogError("[TextToSpeechHandler] Failed to load audio: " + request.error);
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to play audio");
+            ReEnableRecording();
         }
 
         if (whisperHandler != null)
@@ -263,5 +269,23 @@ public class TextToSpeechHandler : MonoBehaviour
         public string text;
         public string voice;
         public string rate;
+    }
+
+    /// <summary>
+    /// Helper method to re-enable recording when errors occur
+    /// </summary>
+    private void ReEnableRecording()
+    {
+        if (whisperHandler != null)
+        {
+            whisperHandler.EnableRecording();
+            Debug.Log("[TextToSpeechHandler] Re-enabled recording after error");
+        }
+        else
+        {
+            Debug.LogWarning(
+                "[TextToSpeechHandler] Cannot re-enable recording - WhisperHandler reference is missing"
+            );
+        }
     }
 }

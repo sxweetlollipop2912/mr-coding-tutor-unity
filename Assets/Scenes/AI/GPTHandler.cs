@@ -39,6 +39,9 @@ public class GPTHandler : MonoBehaviour
     [SerializeField]
     private ConversationLogger conversationLogger;
 
+    [SerializeField]
+    private WhisperHandler whisperHandler; // Add reference to WhisperHandler for re-enabling recording
+
     private string openaiApiKey;
     private string systemPrompt;
     private string openaiApiUrl;
@@ -150,10 +153,7 @@ public class GPTHandler : MonoBehaviour
             return null;
         }
 
-        string problemFilePath = Path.Combine(
-            Application.streamingAssetsPath,
-            problemFilename
-        );
+        string problemFilePath = Path.Combine(Application.streamingAssetsPath, problemFilename);
 
         if (!File.Exists(problemFilePath))
         {
@@ -189,6 +189,7 @@ public class GPTHandler : MonoBehaviour
         {
             Debug.LogError("[GPTHandler] Empty message");
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Empty message");
+            ReEnableRecording();
             return;
         }
 
@@ -214,6 +215,7 @@ public class GPTHandler : MonoBehaviour
         {
             Debug.LogError("[GPTHandler] Received empty transcription from Whisper.");
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Empty transcription");
+            ReEnableRecording();
         }
     }
 
@@ -250,6 +252,9 @@ public class GPTHandler : MonoBehaviour
         {
             Debug.LogError("API Key or API URL is not set.");
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "API configuration missing");
+
+            // Re-enable recording so user can try again
+            ReEnableRecording();
             yield break;
         }
 
@@ -382,6 +387,7 @@ public class GPTHandler : MonoBehaviour
                     "Failed to process AI response"
                 );
                 responseText.text = "Error processing AI response. Please try again.";
+                ReEnableRecording();
             }
         }
         else
@@ -391,6 +397,7 @@ public class GPTHandler : MonoBehaviour
 
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to get AI response");
             responseText.text = "Error talking to GPT. Please try again.";
+            ReEnableRecording();
         }
     }
 
@@ -551,6 +558,7 @@ public class GPTHandler : MonoBehaviour
                     AIProgressStatus.AIStep.Error,
                     "Failed to parse streaming response"
                 );
+                ReEnableRecording();
                 yield break;
             }
 
@@ -566,6 +574,7 @@ public class GPTHandler : MonoBehaviour
                     "Failed to parse streaming response"
                 );
                 responseText.text = "Error processing streaming response.";
+                ReEnableRecording();
             }
         }
         else
@@ -573,6 +582,7 @@ public class GPTHandler : MonoBehaviour
             Debug.LogError("[GPTHandler] Streaming request error: " + request.error);
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Streaming request failed");
             responseText.text = "Error with streaming response.";
+            ReEnableRecording();
         }
 
         request.Dispose();
@@ -952,5 +962,23 @@ public class GPTHandler : MonoBehaviour
 
         // Find the max of these positions
         return Math.Max(Math.Max(lastPeriod, lastQuestion), lastExclamation);
+    }
+
+    /// <summary>
+    /// Helper method to re-enable recording when errors occur
+    /// </summary>
+    private void ReEnableRecording()
+    {
+        if (whisperHandler != null)
+        {
+            whisperHandler.EnableRecording();
+            Debug.Log("[GPTHandler] Re-enabled recording after error");
+        }
+        else
+        {
+            Debug.LogWarning(
+                "[GPTHandler] Cannot re-enable recording - WhisperHandler reference is missing"
+            );
+        }
     }
 }

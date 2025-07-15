@@ -1037,6 +1037,7 @@ MonoBehaviour:
   optimizeTTSResponses: 1
   maxTTSCharacters: 500
   conversationLogger: {fileID: 863375473}
+  whisperHandler: {fileID: 1138392151}
 --- !u!1001 &335173051
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -48,8 +48,9 @@ public class WhisperHandler : MonoBehaviour
         Recording,
         Disabled,
     }
+
     private RecordingState recordingState = RecordingState.Idle;
-    
+
     // Thread synchronization for TriggerRecording
     private readonly object triggerRecordingLock = new object();
 
@@ -148,7 +149,9 @@ public class WhisperHandler : MonoBehaviour
         // Try to acquire the lock immediately, return if another thread is already executing this function
         if (!System.Threading.Monitor.TryEnter(triggerRecordingLock))
         {
-            Debug.Log("[WhisperHandler] TriggerRecording already in progress by another thread, returning immediately");
+            Debug.Log(
+                "[WhisperHandler] TriggerRecording already in progress by another thread, returning immediately"
+            );
             return;
         }
 
@@ -200,7 +203,10 @@ public class WhisperHandler : MonoBehaviour
             return;
         }
 
-        if (recordingState == RecordingState.Recording || Microphone.IsRecording(selectedMicrophoneDevice))
+        if (
+            recordingState == RecordingState.Recording
+            || Microphone.IsRecording(selectedMicrophoneDevice)
+        )
         {
             Debug.LogWarning(
                 $"[WhisperHandler] Already recording with device: {selectedMicrophoneDevice}"
@@ -264,7 +270,10 @@ public class WhisperHandler : MonoBehaviour
                 + $"\n- Microphone.IsRecording: {Microphone.IsRecording(selectedMicrophoneDevice)}"
         );
 
-        if (recordingState != RecordingState.Recording || !Microphone.IsRecording(selectedMicrophoneDevice))
+        if (
+            recordingState != RecordingState.Recording
+            || !Microphone.IsRecording(selectedMicrophoneDevice)
+        )
         {
             Debug.LogWarning("[WhisperHandler] StopRecording called but no active recording found");
             return;
@@ -273,10 +282,10 @@ public class WhisperHandler : MonoBehaviour
         try
         {
             progressStatus.UpdateStep(AIProgressStatus.AIStep.ProcessingAudio);
-            
+
             // Get the current recording position before ending the recording
             int recordingPosition = Microphone.GetPosition(selectedMicrophoneDevice);
-            
+
             Microphone.End(selectedMicrophoneDevice);
 
             if (audioClip != null)
@@ -297,8 +306,13 @@ public class WhisperHandler : MonoBehaviour
                 // Check if recording meets minimum duration requirement
                 if (actualDuration < minimumRecordingDuration)
                 {
-                    Debug.LogWarning($"[WhisperHandler] Recording too short ({actualDuration:F2}s). Minimum required: {minimumRecordingDuration:F2}s");
-                    progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, $"Recording too short ({actualDuration:F1}s). Minimum: {minimumRecordingDuration:F1}s");
+                    Debug.LogWarning(
+                        $"[WhisperHandler] Recording too short ({actualDuration:F2}s). Minimum required: {minimumRecordingDuration:F2}s"
+                    );
+                    progressStatus.UpdateStep(
+                        AIProgressStatus.AIStep.Error,
+                        $"Recording too short ({actualDuration:F1}s). Minimum: {minimumRecordingDuration:F1}s"
+                    );
                     recordingState = RecordingState.Idle;
                     recordButtonVisual.EnableRecording();
                     canvasRecordingIndicator.StopRecording();
@@ -439,6 +453,11 @@ public class WhisperHandler : MonoBehaviour
                 Debug.LogError(
                     "[WhisperHandler] Failed to parse transcription from Whisper response."
                 );
+
+                // Re-enable recording so user can try again
+                recordingState = RecordingState.Idle;
+                recordButtonVisual.EnableRecording();
+                canvasRecordingIndicator.StopRecording();
             }
         }
         else
@@ -446,6 +465,11 @@ public class WhisperHandler : MonoBehaviour
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to process speech");
             Debug.LogError("[WhisperHandler] Whisper Error: " + request.error);
             Debug.LogError("[WhisperHandler] Response Text: " + request.downloadHandler.text);
+
+            // Re-enable recording so user can try again
+            recordingState = RecordingState.Idle;
+            recordButtonVisual.EnableRecording();
+            canvasRecordingIndicator.StopRecording();
         }
     }
 
