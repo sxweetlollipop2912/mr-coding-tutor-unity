@@ -50,36 +50,50 @@ def main():
 
     previous_content = None
 
-    try:
-        while True:
-            with open(target_path, "r") as f:
-                current_content = f.read()
+    while True:
+        try:
+            # Try to read the file in binary mode to handle any content type
+            try:
+                with open(target_path, "rb") as f:
+                    current_content = f.read()
+            except Exception as e:
+                print(f"Error reading file '{target_path}': {e}")
+                time.sleep(args.sec)
+                continue
 
             # Only save if content has changed
             if current_content != previous_content:
-                # Generate timestamp
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                try:
+                    # Generate timestamp
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-                # Create output filename with timestamp
-                output_filename = f"{timestamp}_{name}{ext}"
-                output_path = os.path.join(outdir_path, output_filename)
+                    # Create output filename with timestamp
+                    output_filename = f"{timestamp}_{name}{ext}"
+                    output_path = os.path.join(outdir_path, output_filename)
 
-                # Copy the target file to the output directory with the new name
-                shutil.copy2(target_path, output_path)
-                print(f"Content changed, saved copy to: {output_path}")
+                    # Copy the target file to the output directory with the new name
+                    shutil.copy2(target_path, output_path)
+                    print(f"Content changed, saved copy to: {output_path}")
 
-                # Update previous content
-                previous_content = current_content
+                    # Update previous content only if copy was successful
+                    previous_content = current_content
+                except Exception as e:
+                    print(f"Error saving file copy: {e}")
             else:
                 print(f"No changes detected in '{target_path}', skipping save")
 
-            # Wait for the specified interval
-            time.sleep(args.sec)
+        except KeyboardInterrupt:
+            print("\nLogging stopped by user.")
+            break
+        except Exception as e:
+            print(f"Unexpected error: {e}")
 
-    except KeyboardInterrupt:
-        print("\nLogging stopped by user.")
-    except Exception as e:
-        print(f"Error occurred: {e}")
+        # Wait for the specified interval
+        try:
+            time.sleep(args.sec)
+        except KeyboardInterrupt:
+            print("\nLogging stopped by user.")
+            break
 
 
 if __name__ == "__main__":
