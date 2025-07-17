@@ -10,6 +10,19 @@ public class ReceiverChatUI : MonoBehaviour
     public TextMeshProUGUI chatText;
     private bool autoScroll = true;
 
+    [Header("Notification Sound")]
+    [SerializeField]
+    private AudioSource audioSource;
+
+    [SerializeField]
+    private AudioClip notificationSound;
+
+    [SerializeField]
+    private bool playNotificationSound = true;
+
+    [SerializeField]
+    private float notificationVolume = 1.0f;
+
     private Dictionary<long, ChatMessage> chatMessages = new Dictionary<long, ChatMessage>();
 
     void Start()
@@ -56,11 +69,41 @@ public class ReceiverChatUI : MonoBehaviour
                 scrollRect.verticalNormalizedPosition = 0f;
                 Canvas.ForceUpdateCanvases(); // ensure immediate effect :contentReference[oaicite:9]{index=9}
             }
+
+            // Play notification sound for new messages
+            PlayNotificationSound();
         }
         catch (System.Exception e)
         {
             Debug.LogError("ReceiverChatUI failed to parse chat JSON: " + e.Message);
         }
+    }
+
+    /// <summary>
+    /// Plays the notification sound when a new chat message is received.
+    /// This method is modular and can be easily customized or disabled.
+    /// </summary>
+    private void PlayNotificationSound()
+    {
+        // Early return if notification sound is disabled
+        if (!playNotificationSound)
+            return;
+
+        // Validate audio components
+        if (audioSource == null)
+        {
+            Debug.LogWarning("ReceiverChatUI: AudioSource is not assigned. Cannot play notification sound.");
+            return;
+        }
+
+        if (notificationSound == null)
+        {
+            Debug.LogWarning("ReceiverChatUI: Notification sound clip is not assigned.");
+            return;
+        }
+
+        // Play the notification sound
+        audioSource.PlayOneShot(notificationSound, notificationVolume);
     }
 
     private void ScrollToBottom()
