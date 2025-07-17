@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCall.TeacherMrCodingTutorUnity;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCall.TeacherMrCodingTutorUnity;
 
 public class ChatOverlayController_TMP : MonoBehaviour
 {
@@ -39,8 +39,7 @@ public class ChatOverlayController_TMP : MonoBehaviour
         // 3) SendButton actually sends whatever is in the input field
         sendButton.onClick.AddListener(OnSendButtonClicked);
 
-        // 4) IMPORTANT: Do NOT hook into onSubmit or onEndEdit for "Enter" anymore.
-        //    We want ENTER to create a newline, not send. So we leave chatInputField.onSubmit alone.
+        // 4) Note: onSubmit doesn't work well with multiline fields, so we'll use Update() instead
 
         // 5) Ensure the overlay is hidden at start
         chatOverlay.SetActive(false);
@@ -66,6 +65,23 @@ public class ChatOverlayController_TMP : MonoBehaviour
         }
     }
 
+    private void Update()
+    {
+        // Check for Enter key press while input field is focused
+        if (chatInputField.isFocused && Input.GetKeyDown(KeyCode.Return))
+        {
+            // Check if Shift is held down for newline, otherwise send
+            if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+            {
+                // Let Unity handle the newline - do nothing
+                return;
+            }
+
+            // Send the message when Enter is pressed without Shift
+            SubmitCurrentMessage();
+        }
+    }
+
     private void OnSendButtonClicked()
     {
         SubmitCurrentMessage();
@@ -73,7 +89,11 @@ public class ChatOverlayController_TMP : MonoBehaviour
 
     private void SubmitCurrentMessage()
     {
-        string raw = chatInputField.text;
+        SubmitCurrentMessage(chatInputField.text);
+    }
+
+    private void SubmitCurrentMessage(string raw)
+    {
         raw = raw.Trim();
 
         if (string.IsNullOrEmpty(raw))
