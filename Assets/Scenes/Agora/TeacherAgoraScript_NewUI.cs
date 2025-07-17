@@ -42,6 +42,9 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
             [SerializeField]
             private RectTransform MouseExclusionArea;
 
+            [SerializeField]
+            private GameObject mouseCursorIndicator;
+
             [Header("_____________Stream UIDs_____________")]
             [SerializeField]
             private uint UidStudentDesktop;
@@ -91,6 +94,12 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                 else
                 {
                     Debug.LogError("StudentDesktopImage is not assigned!");
+                }
+
+                // Initialize mouse cursor indicator as inactive
+                if (mouseCursorIndicator != null)
+                {
+                    mouseCursorIndicator.SetActive(false);
                 }
             }
 
@@ -391,6 +400,25 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                             StreamMessage("CURSOR_POS:" + mouseData);
                             _lastMouseMessageTime = Time.time;
                             _isStreamingMouse = true;
+
+                            // Show and position the mouse cursor indicator
+                            if (mouseCursorIndicator != null)
+                            {
+                                if (!mouseCursorIndicator.activeInHierarchy)
+                                {
+                                    mouseCursorIndicator.SetActive(true);
+                                }
+
+                                // Position the indicator at the mouse position within the desktop image
+                                RectTransform indicatorRect =
+                                    mouseCursorIndicator.GetComponent<RectTransform>();
+                                if (indicatorRect != null)
+                                {
+                                    // Convert the local point to world position
+                                    Vector3 worldPosition = canvasRect.TransformPoint(localPoint);
+                                    indicatorRect.position = worldPosition;
+                                }
+                            }
                         }
                     }
                 }
@@ -403,6 +431,12 @@ namespace Agora_RTC_Plugin.API_Example.Examples.Advanced.ScreenShareWhileVideoCa
                     Debug.Log("Sending stop streaming signal (-1,-1).");
                     StreamMessage("CURSOR_POS:-1,-1");
                     _isStreamingMouse = false;
+
+                    // Hide the mouse cursor indicator
+                    if (mouseCursorIndicator != null && mouseCursorIndicator.activeInHierarchy)
+                    {
+                        mouseCursorIndicator.SetActive(false);
+                    }
                 }
             }
 
