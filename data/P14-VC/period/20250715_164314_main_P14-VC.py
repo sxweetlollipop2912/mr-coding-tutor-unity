@@ -1,4 +1,0 @@
-# User P14-VC main code file 
-x = 2
-n = 
-print(x**n)
