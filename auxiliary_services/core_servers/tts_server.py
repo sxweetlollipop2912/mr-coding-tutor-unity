@@ -13,7 +13,7 @@ app.config["THREADED"] = True
 
 # Default voice settings (used if not specified in the request)
 DEFAULT_VOICE = "en-US-ChristopherNeural"  # Default male voice
-DEFAULT_RATE = "+15%"  # Faster speed
+DEFAULT_RATE = "0%"  # Faster speed
 
 
 @app.route("/tts", methods=["POST"])
