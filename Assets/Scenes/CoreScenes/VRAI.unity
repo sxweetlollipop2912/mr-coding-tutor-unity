@@ -1033,6 +1033,7 @@ MonoBehaviour:
   textToSpeechHandler: {fileID: 1158105857}
   progressStatus: {fileID: 1181691752}
   teacherHand: {fileID: 445613006}
+  avatarAnimationController: {fileID: 1068169511}
   useStreamingResponse: 1
   optimizeTTSResponses: 1
   maxTTSCharacters: 500

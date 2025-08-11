@@ -38,23 +38,21 @@ public class AvatarAnimationController : MonoBehaviour
                 animator.SetBool("IsTalking", false);
                 animator.SetBool("IsPointing", false);
             }
-            else if (pointing)
-            {
-                animator.SetBool("IsPointing", true);
-                animator.SetBool("IsTalking", false);
-                animator.SetBool("IsYapping", false);
-            }
             else
             {
-                if (!animator.GetBool("IsTalking"))
+                animator.SetBool("IsTalking", true);
+                animator.SetBool("IsYapping", false);
+                
+                if (pointing)
                 {
-                    if (teacherHand != null && !pointing)
+                    if (!animator.GetBool("IsPointing"))
                     {
-                        StartCoroutine(ShowRedDotAfterDelay());
+                        if (teacherHand != null)
+                        {
+                            StartCoroutine(ShowRedDotAfterDelay());
+                        }
                     }
-                    animator.SetBool("IsTalking", true);
-                    animator.SetBool("IsYapping", false);
-                    animator.SetBool("IsPointing", false);
+                    animator.SetBool("IsPointing", true);
                 }
             }
         }
