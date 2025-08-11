@@ -178,7 +178,10 @@ public class GPTHandler : MonoBehaviour
             return null;
         }
 
-        return File.ReadAllText(responseFormatPath);
+        string content = File.ReadAllText(responseFormatPath);
+        Debug.Log("[GPTHandler] Loaded response format from: " + responseFormatPath);
+        Debug.Log("[GPTHandler] Response format content: " + content);
+        return content;
     }
 
     public void SendInputFieldContentToGPT()
@@ -303,6 +306,8 @@ public class GPTHandler : MonoBehaviour
         }
 
         // Construct the payload using the defined structs
+        JObject parsedSchema = JObject.Parse(responseFormatJson);
+        Debug.Log("[GPTHandler] Parsed JSON schema: " + parsedSchema.ToString());
         var payload = new ChatRequest
         {
             model = modelName, // Use the model name from config
@@ -310,7 +315,7 @@ public class GPTHandler : MonoBehaviour
             response_format = new ResponseFormat
             {
                 type = "json_schema",
-                json_schema = JObject.Parse(responseFormatJson),
+                json_schema = parsedSchema,
             },
             temperature = TEMPERATURE,
             max_completion_tokens = MAX_COMPLETION_TOKENS,
