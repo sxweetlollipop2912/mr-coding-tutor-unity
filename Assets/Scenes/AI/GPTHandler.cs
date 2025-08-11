@@ -28,6 +28,9 @@ public class GPTHandler : MonoBehaviour
     private VRAI_TeacherHand teacherHand;
 
     [SerializeField]
+    private AvatarAnimationController avatarAnimationController;
+
+    [SerializeField]
     private bool useStreamingResponse = true; // Option to toggle streaming mode
 
     [SerializeField]
@@ -603,6 +606,11 @@ public class GPTHandler : MonoBehaviour
             Debug.LogWarning(
                 "[GPTHandler] Teacher hand reference is missing - cannot position red dot"
             );
+            // Still try to stop pointing animation if no teacher hand
+            if (avatarAnimationController != null)
+            {
+                avatarAnimationController.StopPointing();
+            }
             return;
         }
 
@@ -631,10 +639,21 @@ public class GPTHandler : MonoBehaviour
                 Debug.Log(
                     "[GPTHandler] Successfully registered red dot position: " + normalizedCoordinate
                 );
+
+                // Start pointing animation
+                if (avatarAnimationController != null)
+                {
+                    avatarAnimationController.StartPointing();
+                }
             }
             else
             {
                 Debug.Log("[GPTHandler] Skipping red dot positioning - coordinates are (-1,-1)");
+                // Stop pointing animation for invalid coordinates
+                if (avatarAnimationController != null)
+                {
+                    avatarAnimationController.StopPointing();
+                }
             }
         }
         else
@@ -642,6 +661,11 @@ public class GPTHandler : MonoBehaviour
             Debug.Log(
                 "[GPTHandler] No pointing information provided - skipping red dot positioning"
             );
+            // Stop pointing animation when no pointing data
+            if (avatarAnimationController != null)
+            {
+                avatarAnimationController.StopPointing();
+            }
         }
     }
 
@@ -999,6 +1023,12 @@ public class GPTHandler : MonoBehaviour
             Debug.LogWarning(
                 "[GPTHandler] Cannot re-enable recording - WhisperHandler reference is missing"
             );
+        }
+
+        // Stop any ongoing pointing animation when resetting
+        if (avatarAnimationController != null)
+        {
+            avatarAnimationController.StopPointing();
         }
     }
 }

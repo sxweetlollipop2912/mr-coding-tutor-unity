@@ -7,6 +7,7 @@ public class AvatarAnimationController : MonoBehaviour
     public AudioSource audioSource;
     public bool testYapping = true;
     private bool yapping = false;
+    private bool pointing = false;
 
     [SerializeField]
     private VRAI_TeacherHand teacherHand;
@@ -35,17 +36,25 @@ public class AvatarAnimationController : MonoBehaviour
             {
                 animator.SetBool("IsYapping", true);
                 animator.SetBool("IsTalking", false);
+                animator.SetBool("IsPointing", false);
+            }
+            else if (pointing)
+            {
+                animator.SetBool("IsPointing", true);
+                animator.SetBool("IsTalking", false);
+                animator.SetBool("IsYapping", false);
             }
             else
             {
                 if (!animator.GetBool("IsTalking"))
                 {
-                    if (teacherHand != null)
+                    if (teacherHand != null && !pointing)
                     {
                         StartCoroutine(ShowRedDotAfterDelay());
                     }
                     animator.SetBool("IsTalking", true);
                     animator.SetBool("IsYapping", false);
+                    animator.SetBool("IsPointing", false);
                 }
             }
         }
@@ -53,6 +62,7 @@ public class AvatarAnimationController : MonoBehaviour
         {
             animator.SetBool("IsTalking", false);
             animator.SetBool("IsYapping", false);
+            animator.SetBool("IsPointing", false);
         }
     }
 
@@ -64,6 +74,18 @@ public class AvatarAnimationController : MonoBehaviour
     public void StopYapping()
     {
         yapping = false;
+    }
+
+    public void StartPointing()
+    {
+        pointing = true;
+        Debug.Log("[AvatarAnimationController] Started pointing animation");
+    }
+
+    public void StopPointing()
+    {
+        pointing = false;
+        Debug.Log("[AvatarAnimationController] Stopped pointing animation");
     }
 
     private System.Collections.IEnumerator ShowRedDotAfterDelay()
