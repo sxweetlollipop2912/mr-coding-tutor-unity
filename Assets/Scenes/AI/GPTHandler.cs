@@ -392,11 +392,12 @@ public class GPTHandler : MonoBehaviour
         }
         else
         {
-            Debug.LogError("Request error: " + request.error);
-            Debug.LogError("Response: " + request.downloadHandler.text);
+            Debug.LogError("[GPTHandler] Non-streaming request error: " + request.error);
+            Debug.LogError("[GPTHandler] Response code: " + request.responseCode);
+            Debug.LogError("[GPTHandler] Response text: " + request.downloadHandler.text);
 
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Failed to get AI response");
-            responseText.text = "Error talking to GPT. Please try again.";
+            responseText.text = "Error talking to GPT. Check console for details.";
             ReEnableRecording();
         }
     }
@@ -578,8 +579,10 @@ public class GPTHandler : MonoBehaviour
         else
         {
             Debug.LogError("[GPTHandler] Streaming request error: " + request.error);
+            Debug.LogError("[GPTHandler] Response code: " + request.responseCode);
+            Debug.LogError("[GPTHandler] Response text: " + request.downloadHandler.text);
             progressStatus.UpdateStep(AIProgressStatus.AIStep.Error, "Streaming request failed");
-            responseText.text = "Error with streaming response.";
+            responseText.text = "Error with streaming response. Check console for details.";
             ReEnableRecording();
         }
 
@@ -901,7 +904,7 @@ public class GPTHandler : MonoBehaviour
     [System.Serializable]
     public class TutorResponseSchema
     {
-        public PointedAtProperty pointed_at;
+        public PointedAtProperty pointed_at; // Now optional - can be null
         public string voice_response;
         public string text_summary;
     }
