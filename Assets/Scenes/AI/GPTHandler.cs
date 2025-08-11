@@ -436,10 +436,7 @@ public class GPTHandler : MonoBehaviour
         {
             text_summary = "Processing...",
             voice_response = "",
-            pointed_at = new PointedAtProperty
-            {
-                coordinates = new Coordinates { x = 0, y = 0 },
-            },
+            pointed_at = null, // Will be set only if provided in the response
         };
 
         // Process incoming chunks
@@ -520,7 +517,10 @@ public class GPTHandler : MonoBehaviour
                     );
                     Debug.Log("[GPTHandler] Parsed text summary: " + finalResponse.text_summary);
 
-                    if (finalResponse.pointed_at != null)
+                    if (
+                        finalResponse.pointed_at != null
+                        && finalResponse.pointed_at.coordinates != null
+                    )
                     {
                         Debug.Log(
                             "[GPTHandler] Parsed pointed at - coordinates: "
@@ -528,16 +528,14 @@ public class GPTHandler : MonoBehaviour
                                 + ", "
                                 + finalResponse.pointed_at.coordinates.y
                         );
-
-                        // Position the teacher hand based on coordinates
-                        PositionTeacherHand(finalResponse);
                     }
                     else
                     {
-                        Debug.LogWarning(
-                            "[GPTHandler] Parsed response is missing pointed_at property"
-                        );
+                        Debug.Log("[GPTHandler] No pointing information provided in response");
                     }
+
+                    // Position the teacher hand based on coordinates (method handles null cases)
+                    PositionTeacherHand(finalResponse);
 
                     // Log the AI response from streaming
                     if (conversationLogger != null)
@@ -591,13 +589,19 @@ public class GPTHandler : MonoBehaviour
     // Helper method to position the teacher hand (extracted from ParseResponse)
     private void PositionTeacherHand(TutorResponseSchema parsedResponse)
     {
-        if (
-            teacherHand != null
-            && parsedResponse.pointed_at != null
-            && parsedResponse.pointed_at.coordinates != null
-        )
+        // Early return if teacher hand is not available
+        if (teacherHand == null)
         {
-            // Check if we have valid coordinates (not -1,-1 which is often the default)
+            Debug.LogWarning(
+                "[GPTHandler] Teacher hand reference is missing - cannot position red dot"
+            );
+            return;
+        }
+
+        // Check if pointing information is provided and valid
+        if (parsedResponse.pointed_at != null && parsedResponse.pointed_at.coordinates != null)
+        {
+            // Check if we have valid coordinates (not -1,-1 which indicates no pointing)
             if (
                 parsedResponse.pointed_at.coordinates.x != -1
                 || parsedResponse.pointed_at.coordinates.y != -1
@@ -627,8 +631,8 @@ public class GPTHandler : MonoBehaviour
         }
         else
         {
-            Debug.LogError(
-                "[GPTHandler] Teacher hand reference is missing or response lacks coordinates!"
+            Debug.Log(
+                "[GPTHandler] No pointing information provided - skipping red dot positioning"
             );
         }
     }
@@ -795,14 +799,22 @@ public class GPTHandler : MonoBehaviour
             );
             Debug.Log("[GPTHandler] Parsed voice response: " + parsedResponse.voice_response);
             Debug.Log("[GPTHandler] Parsed text summary: " + parsedResponse.text_summary);
-            Debug.Log(
-                "[GPTHandler] Parsed pointed at - coordinates: "
-                    + parsedResponse.pointed_at.coordinates.x
-                    + ", "
-                    + parsedResponse.pointed_at.coordinates.y
-            );
 
-            // Position the teacher hand using the shared method
+            if (parsedResponse.pointed_at != null && parsedResponse.pointed_at.coordinates != null)
+            {
+                Debug.Log(
+                    "[GPTHandler] Parsed pointed at - coordinates: "
+                        + parsedResponse.pointed_at.coordinates.x
+                        + ", "
+                        + parsedResponse.pointed_at.coordinates.y
+                );
+            }
+            else
+            {
+                Debug.Log("[GPTHandler] No pointing information provided in response");
+            }
+
+            // Position the teacher hand using the shared method (handles null cases)
             PositionTeacherHand(parsedResponse);
 
             // Log the AI response

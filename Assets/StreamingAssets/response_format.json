@@ -34,7 +34,7 @@
                 "description": "A text summary that aids the user in understanding the voice response, with all response formatted in plaintext, no markdown, but can have code snippets or similar thing, just not formatted in markdown but can only have spaces and newlines."
             }
         },
-        "required": ["pointed_at", "voice_response", "text_summary"],
+        "required": ["voice_response", "text_summary"],
         "additionalProperties": false
     },
     "strict": true
